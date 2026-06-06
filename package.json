@@ -20,10 +20,12 @@
     "@electron-toolkit/utils": "^3.0.0",
     "antd": "^5.19.0",
     "axios": "^1.7.0",
+    "dayjs": "^1.11.11",
     "framer-motion": "^11.3.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.24.0"
+    "react-router-dom": "^6.24.0",
+    "zustand": "^4.5.4"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
