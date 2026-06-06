@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 160" width="400" height="160">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#006A4E;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#004A35;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#D21034;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFDF00;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D21034;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Fond principal -->
+  <rect width="400" height="160" rx="12" ry="12" fill="url(#bgGrad)"/>
+
+  <!-- Bande décorative couleurs drapeau Togo -->
+  <rect x="0" y="140" width="400" height="5" rx="0" fill="url(#accentGrad)"/>
+  <rect x="0" y="145" width="400" height="15" rx="0" fill="none"/>
+
+  <!-- Étoile togolaise (5 branches) -->
+  <g transform="translate(52, 78)">
+    <polygon points="0,-28 6.6,-9 26.6,-9 10.5,4 16.4,23 0,11.4 -16.4,23 -10.5,4 -26.6,-9 -6.6,-9"
+             fill="#FFDF00" opacity="0.92"/>
+  </g>
+
+  <!-- Ligne verticale séparatrice -->
+  <rect x="90" y="30" width="2" height="96" rx="1" fill="#FFDF00" opacity="0.5"/>
+
+  <!-- Texte TCIT -->
+  <text x="115" y="90"
+        font-family="'Segoe UI', 'Arial', sans-serif"
+        font-size="64"
+        font-weight="800"
+        fill="#FFFFFF"
+        letter-spacing="6">TCIT</text>
+
+  <!-- Sous-titre ligne 1 -->
+  <text x="115" y="115"
+        font-family="'Segoe UI', 'Arial', sans-serif"
+        font-size="11"
+        font-weight="400"
+        fill="#FFFFFF"
+        opacity="0.80"
+        letter-spacing="1">Togolaise de Contrôle et d'Immatriculation Transit</text>
+
+  <!-- Petit rectangle rouge accent sous TCIT -->
+  <rect x="115" y="97" width="200" height="3" rx="1.5" fill="#D21034" opacity="0.7"/>
+</svg>

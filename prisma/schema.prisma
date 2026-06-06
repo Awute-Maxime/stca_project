@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Référentiels ──────────────────────────────────────────────
+
+model MarqueModele {
+  id      Int    @id @default(autoincrement())
+  marque  String @db.VarChar(100)
+  modele  String @db.VarChar(100)
+
+  vehicules Vehicule[]
+
+  @@unique([marque, modele])
+  @@map("marque_modele")
+}
+
+model ZoneImportation {
+  id          Int    @id @default(autoincrement())
+  code        String @unique @db.VarChar(20)
+  libelle     String @db.VarChar(200)
+  frontiere   String @db.VarChar(100)
+  pays        String @db.VarChar(100)
+
+  vehicules   Vehicule[]
+
+  @@map("zone_importation")
+}
+
+model MaisonTransit {
+  id      Int    @id @default(autoincrement())
+  code    String @unique @db.VarChar(20)
+  nom     String @db.VarChar(200)
+  adresse String? @db.VarChar(300)
+
+  vehicules Vehicule[]
+
+  @@map("maison_transit")
+}
+
+// ─── Véhicules en transit ──────────────────────────────────────
+
+model Vehicule {
+  id              Int      @id @default(autoincrement())
+  numeroImmat     String   @unique @db.VarChar(30)
+  numeroChassis   String?  @db.VarChar(50)
+  numeroTri       Int?
+  annee           Int?
+  couleur         String?  @db.VarChar(50)
+  dateEnregistrement DateTime @default(now())
+  dateExpiration  DateTime?
+
+  marqueModeleId  Int
+  marqueModele    MarqueModele @relation(fields: [marqueModeleId], references: [id])
+
+  zoneImportationId Int
+  zoneImportation   ZoneImportation @relation(fields: [zoneImportationId], references: [id])
+
+  maisonTransitId Int?
+  maisonTransit   MaisonTransit? @relation(fields: [maisonTransitId], references: [id])
+
+  proprietaire    Proprietaire?
+  documents       Document[]
+
+  @@map("vehicule")
+}
+
+model Proprietaire {
+  id         Int     @id @default(autoincrement())
+  nom        String  @db.VarChar(200)
+  prenom     String? @db.VarChar(200)
+  telephone  String? @db.VarChar(30)
+  nationalite String? @db.VarChar(100)
+
+  vehiculeId Int     @unique
+  vehicule   Vehicule @relation(fields: [vehiculeId], references: [id])
+
+  @@map("proprietaire")
+}
+
+model Document {
+  id         Int    @id @default(autoincrement())
+  type       String @db.VarChar(50)
+  numero     String @db.VarChar(100)
+  dateEmission DateTime?
+  dateExpiration DateTime?
+
+  vehiculeId Int
+  vehicule   Vehicule @relation(fields: [vehiculeId], references: [id])
+
+  @@map("document")
+}
+
+// ─── Utilisateurs ─────────────────────────────────────────────
+
+model Utilisateur {
+  id          Int      @id @default(autoincrement())
+  login       String   @unique @db.VarChar(50)
+  motDePasseHash String @db.VarChar(255)
+  nom         String   @db.VarChar(200)
+  role        Role     @default(AGENT)
+  actif       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  sessions    Session[]
+
+  @@map("utilisateur")
+}
+
+model Session {
+  id          String   @id @default(cuid())
+  token       String   @unique
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  utilisateurId Int
+  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id])
+
+  @@map("session")
+}
+
+enum Role {
+  ADMIN
+  SUPERVISEUR
+  AGENT
+}
