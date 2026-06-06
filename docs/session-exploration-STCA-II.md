@@ -459,3 +459,147 @@ La fenêtre STCA a légèrement bougé depuis la session précédente :
 ---
 
 *Dernière mise à jour : 06/06/2026 — Session 3 terminée (Outils+Config. complet, menu ? complet)*
+
+---
+
+## 13. Nouvelles découvertes — Session 4 (06/06/2026, suite)
+
+### Formulaire d'enregistrement complet
+
+#### Section 1 — En-tête
+| Champ | Type | Valeur/Notes |
+|-------|------|--------------|
+| Référence | Auto (lecture seule) | Numéro auto-généré |
+| En date du | Date | Date du jour auto-remplie |
+| "?" | Bouton | Ouvre "Liste des parcs" (ZoneImportation) |
+
+#### Section 2 — Coordonnées Acheteur
+| Champ | Type | Notes |
+|-------|------|-------|
+| Nom et prénom | Texte | Nom de l'acheteur |
+| Pays Résidence | Texte (orange) | Pays de résidence |
+| Pays Destination | Texte (orange) | Pays de destination |
+| "?" | Bouton | Ouvre table MaisonTransit |
+
+#### Section 3 — Description du véhicule
+| Champ | Type | Notes |
+|-------|------|-------|
+| Véhicule à assurer | Dropdown | Voiture / Camion / Autre (MUST fill FIRST — cascade validation) |
+| Véhicule sortant du Parc | Zone cliquable verte | Ouvre sélection parc (ZoneImportation) |
+| A Destination de | Dropdown | AFO/CK/KA/KE/KP/KW/NO/POL/S\C/TO |
+| Montant | Auto (lecture seule) | **Toujours 10 000 FCFA** pour toutes destinations |
+| Marque - Modèle | Dropdown + "?" | 20 000+ marques/modèles — fenêtre sélection dédiée |
+| N° de Chassis | Texte | VIN du véhicule |
+| N° IMMAT. | **Auto-généré** | Format: {Lettre}{4chiffres} ex: A0003 (selon mode assurance) |
+| Recycler Plaque Perdue | Radio | ○ Oui / ● Non |
+| Imprimer Résumé Fiche Profil | Checkbox | Option impression supplémentaire |
+
+#### Boutons du formulaire
+| Bouton | Icône | Action |
+|--------|-------|--------|
+| ✗ (rouge) | Ferme sans sauvegarder | Annule tout |
+| ↓ (vert, télécharger) | Enregistrer | Valide + génère N° IMMAT. + imprime |
+| ↺ (vert, flèche circulaire) | Réinitialiser | Vide tous les champs |
+
+#### Tables liées au formulaire
+| Table | Accès via | Contenu |
+|-------|-----------|---------|
+| **ZoneImportation** | "?" Référence | ~57 parcs/zones de transit à Lomé |
+| **MaisonTransit** | "?" Coordonnées Acheteur | Maisons de transit (peu d'entrées: 2022290023577, 22288, 38, .) |
+| **MarqueModele** | "?" ou dropdown Marque-Modèle | 20 000+ entrées — tous véhicules par marque |
+
+#### Règles métier du formulaire
+- **Validation en cascade** : "Véhicule à assurer" doit être rempli AVANT "A Destination de"
+- **N° IMMAT auto-généré** : visible dans la zone en haut à droite après sélection destination (ex: A0003)
+- **Montant fixe** : 10 000 FCFA pour toutes les 10 destinations, sans exception
+- **Fermeture** : WM_CLOSE sur le dialog handle (le bouton Annuler ne ferme pas toujours)
+
+---
+
+### Roue de navigation — Items explorés (session 4)
+
+#### Destination
+- **Fenêtre ouverte :** "Nombre Véhicules par Frontières"
+- **Tooltip :** "Permet de connaître le Nbr de véhicules enregistrés par destination pour la journée en cours ou pour une période"
+- **Champs :** Date début | Date fin | Bouton Rechercher | Bouton (imprimer/exporter)
+- **Table :** Frontières | Nombre | Enregistré le
+- **Handle** (dynamique) — structure trouvée via EnumWindows
+
+#### Liste Véhicules
+- **Identique à Destination** — ouvre exactement la même fenêtre "Nombre Véhicules par Frontières"
+- Les deux items de roue pointent vers la même fonctionnalité
+
+#### Recherche IMMAT.
+- **Interface :** Champ de saisie orange + bouton "Impr."
+- **Animation :** Scanner de code-barres (icône centrale)
+- **Fonctionnement prévu :** Lecteur de code-barres USB → IMMAT. auto-remplie → bouton Impr. pour réimprimer fiche
+- **Bouton Impr.** : ouvre la liste des imprimantes STCA
+
+#### Recherche N°Chassis (via roue)
+- **Interface identique à Recherche IMMAT.** — même composant scanner WinDev
+- Conçu pour scan code-barres N° Chassis
+
+#### Recherche N°Chassis (via menu "Enregistrements des véhicules")
+- **Fenêtre :** "Liste Véhicules Enregistrés par N°Chassis (VIN)"
+- **Champ :** N° Chassis (VIN) — 2 zones de saisie
+- **Bouton :** Rechercher
+- **Colonnes :** Ref | Nom et prénom | Adresse | Code | Immatriculation | Marque et modèle | N° Chassis
+- **Filtres :** icône filtre (?) sur colonnes Nom et prénom, Immatriculation, Marque et modèle
+
+---
+
+### Imprimantes réseau STCA (liste complète)
+Découverte via le bouton "Impr." de la Recherche IMMAT. :
+
+| Nom imprimante | Type | IP/Notes |
+|----------------|------|----------|
+| Adobe PDF | Virtuelle | PDF |
+| Imp_Carte_Grise_192_168_0_77 | Réseau | 192.168.0.77 |
+| Imp_Carte_Grise_Jaune_192_168_0_78 | Réseau | 192.168.0.78 |
+| Imp_Feuillet_Bleu_192_168_0_75 | Réseau | 192.168.0.75 |
+| Imp_Feuillet_Rose_192_168_0_80 | Réseau | 192.168.0.80 |
+| Imprimante Facture 2 STCA | Locale | — |
+| Microsoft Print to PDF | Virtuelle | PDF |
+| NPI2B82F9 | Réseau | HP (probablement le 402dne) |
+
+**Réseau imprimantes :** sous-réseau 192.168.0.x (différent du serveur DB 192.168.1.x)
+
+---
+
+### Menu Fichier — Items découverts
+Position correcte: screen x≈-1553, y≈168
+
+| Item | Action |
+|------|--------|
+| **Marques et modèles de véhicules** | NON encore exploré — prochaine étape |
+| Fermer la session de awute | Déconnexion de l'utilisateur courant |
+| Quitter | Ferme l'application |
+
+---
+
+### Coordonnées menu Fichier (calibrées session 4)
+| Item | Screen X | Screen Y |
+|------|----------|----------|
+| "Fichier" (barre menu) | -1553 | 168 |
+| Marques et modèles | -1490 | ~198 |
+| Fermer la session | -1490 | ~218 |
+| Quitter | -1490 | ~238 |
+
+---
+
+### État d'exploration — fin session 4
+| Item | Statut |
+|------|--------|
+| Formulaire d'enregistrement complet | ✅ Documenté |
+| Roue — Destination | ✅ Documenté |
+| Roue — Liste Véhicules | ✅ = Destination |
+| Roue — Recherche IMMAT. | ✅ Scanner code-barres |
+| Roue — Recherche N°Chassis | ✅ Scanner (même interface) |
+| Menu Enregistrements → Liste N°Chassis | ✅ Documenté |
+| Imprimantes réseau | ✅ Liste complète |
+| Menu Fichier — items | ✅ Listés |
+| Menu Fichier → Marques et modèles | ❌ NON exploré |
+
+---
+
+*Dernière mise à jour : 06/06/2026 — Session 4 — Roue de navigation + formulaire complet documentés*

@@ -137,6 +137,15 @@ STCA-Electron\
 
 ---
 
+## Règle 9 — Sauvegarde automatique en fin de session
+
+**Quand le contexte de session approche 90% de la limite :**
+- Déclencher automatiquement la commande `sauvegarde` (Règle 3) sans attendre l'instruction de l'utilisateur
+- Annoncer clairement : "⚠️ Limite de session à 90% — sauvegarde automatique en cours"
+- Inclure dans le résumé session tout ce qui a été exploré depuis la dernière sauvegarde
+
+---
+
 ## Plan d'exécution (rappel rapide)
 
 | Phase | Description | Statut |
