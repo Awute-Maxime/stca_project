@@ -185,18 +185,20 @@ Paramètre global : **Imprimer Facture + Cond. Part. + Assurances = OUI**
 - Logique symétrique : gains vs remboursements
 
 ### Menu Outils+Config. — Structure complète
-| Item | Description |
-|------|-------------|
-| Sauvegarde la Base de Données | Grisé (non accessible) |
-| **Clef d'administration** | Configuration mot de passe forçage admin + "Ecrire Clé USB" |
-| **Archivage** | Vue "Enregistrements archivés" avec données réelles (filtrable par date) |
-| Fixer N° Référence | Réinitialisation du numéro de référence |
-| *(Impression de plaque d'immatriculation)* | Séparateur grisé |
-| Config. Poste N° IMMAT. | Configuration du poste pour numérotation immatriculation |
-| **Configuration Assurances** | Liste assureurs + paramètre "Imprimer Facture+Cond.Part.+Assurances : OUI/NON" |
-| **Types Véhicule** | Liste des types pour assurances |
-| **Paramètres Destinations** | Liste complète des 10 destinations (code, tarif, nom, lettre, N° immat) |
-| Config. Imprimantes | Configuration des imprimantes par type de document |
+| Item | Description | Exploré |
+|------|-------------|---------|
+| Sauvegarde la Base de Données | Grisé (non accessible) | — |
+| **Clef d'administration** | Configuration mot de passe forçage admin + "Ecrire Clé USB" | ✓ session 2 |
+| **Archivage** | Vue "Enregistrements archivés" avec données réelles (filtrable par date) | ✓ session 2 |
+| **Fixer N° Référence** | Dialogue "N° de référence en cours" — réinitialise le compteur | ✓ session 3 |
+| *(Impression de plaque d'immatriculation)* | Séparateur grisé mais cliquable (sans action) | — |
+| **Config. Poste N° IMMAT.** | "Activation du mode assurance" — IP PC affichage IMMAT + activation assurance | ✓ session 3 |
+| **Configuration Assurances** | Liste assureurs + paramètre "Imprimer Facture+Cond.Part.+Assurances : OUI/NON" | ✓ session 2 |
+| **Types Véhicule** | Liste des types pour assurances | ✓ session 2 |
+| **Paramètres Destinations** | Liste complète des 10 destinations (code, tarif, nom, lettre, N° immat) | ✓ session 2 |
+| **Config. Imprimantes** | Configuration des éditions et imprimantes (7 imprimantes, type feuillets, code barre) | ✓ session 3 |
+| **Exporter les enregistrements de véhicules** | Export vers serveur ou poste (sélection répertoire destination) | ✓ session 3 |
+| **Pointage des véhicules** | Pointage/Dépointage sortie véhicules (par N° tri ou N° immat complet) | ✓ session 3 |
 
 ### Roue de navigation (écran principal)
 - **Enregistrement** (en haut)
@@ -254,20 +256,97 @@ Paramètre global : **Imprimer Facture + Cond. Part. + Assurances = OUI**
 - [x] Outils+Config. → Clef d'administration (mot de passe forçage + USB)
 - [x] Outils+Config. → Archivage (données réelles vues)
 
+### Exploré en session 3 (06/06/2026)
+- [x] **Page de connexion — bouton "Gestion des utilisateurs"** (fonctionnalité conditionnelle)
+- [x] **Gestion des utilisateurs** — liste complète 18 utilisateurs (table Login)
+- [x] **Modifier le mot de passe** — dialogue de changement de mot de passe
+- [x] **Outils+Config. → Fixer N° Référence** — N° en cours : 610 266
+- [x] **Outils+Config. → Config. Poste N° IMMAT.** — IP=192.168.0.25, Port=8000, Assurance activée
+- [x] **Outils+Config. → Config. Imprimantes** — 7 configurations, laser, code-barres
+- [x] **Outils+Config. → Exporter les enregistrements** (nouveau item découvert)
+- [x] **Outils+Config. → Pointage des véhicules** (nouveau item découvert)
+- [x] **Menu ? → Copyright / Version / ID réseau** — Version REL 3 : 3.0.20.0, WinDev 23.0.370.1
+
 ### Encore à explorer
-- [ ] Outils+Config. → Fixer N° Référence
-- [ ] Outils+Config. → Config. Poste N° IMMAT.
-- [ ] Outils+Config. → Config. Imprimantes
-- [ ] Menu ? (aide)
 - [ ] Formulaire d'enregistrement complet (champs détaillés, validation, impression)
 - [ ] Item "Destination" de la roue de navigation
 - [ ] Item "Recherche IMMAT." de la roue
 - [ ] Item "Recherche N° Chassis" de la roue
 - [ ] Rapports résumés / Rapport annuel (avec données)
+- [ ] Menu Fichier → "Marques et modèles de véhicules" (NON exploré)
 
 ---
 
-## 10. Notes techniques d'automatisation UI (Win32/PowerShell)
+## 10. Page de connexion — fonctionnalités détaillées
+
+### Interface de base (fenêtre "Identification de l'utilisateur")
+| Élément | Description |
+|---------|-------------|
+| Nom d'utilisateur | Champ texte libre |
+| Mot de passe | Champ texte masqué (avec icône œil pour révéler) |
+| Modifier le mot de passe | Lien/bouton visible en permanence |
+| Mémoriser le nom d'utilisateur | Checkbox (mémorise le login entre sessions) |
+| Valider | Bouton connexion (vert ✓) |
+| Annuler | Bouton annuler (rouge ✗) |
+| **Gestion des utilisateurs** | **Bouton conditionnel — apparaît uniquement quand le login d'un utilisateur "Administrateur=✓" est tapé** |
+
+### Comportement conditionnel — bouton "Gestion des utilisateurs"
+- **Déclencheur :** dès que l'utilisateur tape un nom de compte ayant `Administrateur = ✓` dans la table Login
+- **Disparaît** si le champ est vidé ou si un nom de compte sans pouvoir est tapé
+- **Accès :** nécessite que le mot de passe soit aussi rempli (validation des credentials avant ouverture)
+- **Emplacement dans l'interface :** ligne inférieure, à gauche de "Valider"
+
+### Interface "Gestion des utilisateurs"
+Fenêtre modale affichant la table `Login` complète :
+
+| Colonne | Type | Description |
+|---------|------|-------------|
+| Login Utilisateur | Texte | Identifiant de connexion |
+| Mot de passe | Texte masqué (•••) | Editable inline par double-clic |
+| Administrateur | Checkbox | Si ✓ → bouton "Gestion des utilisateurs" apparaît au login |
+| Compte actif | Checkbox | Si □ → le compte ne peut pas se connecter |
+
+**Boutons :** Supprimer | Fermer  
+**Edition :** double-clic sur une ligne → édition inline des champs  
+**Ajout :** ligne vide en bas de la liste (saisie directe)  
+**Pas de bouton "Ajouter" séparé** — ajout via la ligne vide
+
+### Liste complète des utilisateurs (18 comptes)
+| Login | Administrateur | Compte actif |
+|-------|---------------|--------------|
+| Administrateur | ✓ | ✓ |
+| Authority.Config | ✓ | ✓ |
+| Odette | ✓ | ✓ |
+| akilou | □ | ✓ |
+| aminou | ✓ | ✓ |
+| awute | ✓ | ✓ |
+| awute2 | ✓ | ✓ |
+| celestine | □ | ✓ |
+| clemence | □ | □ |
+| emmanuel | □ | ✓ |
+| jeanlin | ✓ | ✓ |
+| mathieu | □ | ✓ |
+| mohamed | □ | □ |
+| nicole | □ | □ |
+| oliadmin | ✓ | ✓ |
+| victor | □ | ✓ |
+| victoradm | ✓ | ✓ |
+| visiteur | □ | □ |
+
+**Comptes administrateurs (9) :** Administrateur, Authority.Config, Odette, aminou, awute, awute2, jeanlin, oliadmin, victoradm  
+**Comptes désactivés (4) :** clemence, mohamed, nicole, visiteur
+
+### Interface "Modification d'un mot de passe"
+Accessible via le lien "Modifier le mot de passe" sur la page de connexion :
+- **Nom d'utilisateur :** pré-rempli avec le login en cours de saisie
+- **Mot de passe actuel :** champ texte masqué
+- **Nouveau mot de passe :** champ texte masqué
+- **Confirmation du nouveau mot de passe :** champ texte masqué
+- Boutons : Valider | Annuler
+
+---
+
+## 11. Notes techniques d'automatisation UI (Win32/PowerShell)
 
 Points importants découverts lors de l'exploration :
 - **MOUSEEVENTF_VIRTUALDESK (0x4000)** est OBLIGATOIRE pour les clics sur l'écran secondaire avec `mouse_event`. Sans ce flag, les coordonnées sont mappées sur l'écran primaire.
@@ -295,4 +374,88 @@ La fenêtre STCA a légèrement bougé depuis la session précédente :
 
 ---
 
-*Dernière mise à jour : 06/06/2026 — Session 2 terminée*
+---
+
+## 12. Nouvelles découvertes — Session 3 (06/06/2026)
+
+### Application — Identité complète
+| Champ | Valeur |
+|-------|--------|
+| Nom officiel | **COTEC II - TOGO** (logo) |
+| Nom système | STCA II |
+| Copyright | STCA II - Copyright COTEC Togo 2022 |
+| Version | **REL 3 : 3.0.20.0** |
+| Technologie | WinDev **23.0.370.1** |
+| OS hôte | Windows 10 x64 build 22621 (W11 22H2) |
+| IP | 192.168.1.68 |
+| NetName | \\DESKTOP-J87T6NG\ |
+
+### Fixer N° Référence
+- Dialogue : "Attention ! Contrôler la table DB 'enregistrement' avant de modifier ce N° !"
+- **N° de référence en cours : 610 266** (compteur global des enregistrements)
+- Boutons : Valider | Annuler
+- Remarque : bien plus élevé que les 345 545 véhicules → le compteur inclut toutes les opérations historiques
+
+### Config. Poste N° IMMAT.
+- Titre fenêtre : "Activation du mode assurance"
+- ✓ **Activer le mode de fonctionnement avec Assurance** (coché)
+- **Coordonnées du PC Affichage IMMAT :**
+  - Adresse IP PC : **192.168.0.25** (réseau différent ! 192.168.0.x vs serveur 192.168.1.x)
+  - N° Port PC : **8000**
+  - Bouton "Tester"
+- Boutons : Valider | Fermer
+
+### Config. Imprimantes ("Configuration des éditions et imprimantes")
+| Configuration | Valeur |
+|---------------|--------|
+| Facture | HP FACTURE STCA |
+| Carte Grise | STCA HP CARTE GRISE |
+| Feuillet assurance N°1 (Bleu) | STCA HP FEUILLET BLEU |
+| Feuillet assurance N°2 (Rose) | STCA HP FEUILLET ROSE |
+| Type feuillets assurance | ● Laser (○ Rouleau) |
+| Imprimante F3 | HP LaserJet P2035 |
+| Imprimante CGFicheID | NPIC08BAA (HP Laser Pro 402dne) |
+| ✓ Imprimer Fiche ID Véhicule | Activé |
+| Nom Etat Cond. Part. | ETAT_AssuranceCondPartLaserA4 |
+| Etat Facture Global | ● Avec Code Barre (○ Sans Code Barre) |
+| Imprimante Windows par défaut | Imprimante Facture 2 STCA |
+
+### Exportation des enregistrements de véhicules
+- Sélectionner répertoire de destination (browser dossier)
+- Bouton **Sauvegarde Serveur** → export vers le serveur
+- Bouton **Exportation Poste** → export vers le poste local
+- Bouton Quitter
+
+### Pointage / Dépointage de la sortie d'un ou plusieurs véhicules
+- Recherche par **N° de tri** (ex: 125) ou **N° d'immatriculation complet** (ex: A0001CK)
+- Format N° immat complet : `{Lettre}{4chiffres}{CodeDestination}` (ex: A0001CK = A + 0001 + CK)
+- Radio : ● Véhicules sortis aujourd'hui | ○ Véhicules sortis sur une période
+- Bouton **Sortie** → marque le véhicule trouvé comme sorti (FlagSortie = true)
+- Colonnes : Sortie | Ref | N° de Tri | N° d'immatriculation | Destination | Nom et prénom | Adresse | Marque et modèle | N° Chassis | Enregistré le
+- Lien direct avec champ `FlagSortie` de la table ENREGISTREMENTS
+
+### Menu ? (Aide)
+| Item | Contenu |
+|------|---------|
+| Copyright | "STCA II - Copyright COTEC Togo 2022" |
+| Version | COTEC II - TOGO, Version REL 3 : 3.0.20.0 + connexion DB |
+| ID réseau | Windows version, WinDev version, IP PC, NetName |
+
+### Coordonnées menu Outils+Config. (calibrées session 3)
+| Item | Screen Y (approx) |
+|------|-------------------|
+| Archivage | y=235 |
+| Fixer N° Référence | **y=275** |
+| Impression plaque (grisé) | y=315-325 |
+| Config. Poste N° IMMAT. | **y=335** |
+| Configuration Assurances | y=355 |
+| Types Véhicule | y=375 |
+| Paramètres Destinations | **y=415** |
+| Config. Imprimantes | **y=435** |
+| Exporter enregistrements | **y=475** |
+| Pointage des véhicules | **y=495** |
+| Menu "?" items centre x | x=-1043 |
+
+---
+
+*Dernière mise à jour : 06/06/2026 — Session 3 terminée (Outils+Config. complet, menu ? complet)*
