@@ -108,7 +108,21 @@ $gh  = "C:\Program Files\GitHub CLI\gh.exe"
 
 ---
 
-## Règle 7 — Structure des fichiers projet
+## Règle 7 — Emplacement des fichiers créés
+
+**Règle absolue : ne jamais créer de fichier dans `C:\Users\MaxFox\` ni sur le Bureau.**
+
+Tout output (captures d'écran, fichiers temporaires, notes) doit aller directement dans le dossier projet :
+```
+D:\Programmation Doc\AI PROJECTS\STCA-Electron\
+```
+- Captures d'écran → `docs\screenshots\`
+- Notes session → `docs\`
+- Code → sous-dossiers appropriés
+
+---
+
+## Règle 8 — Structure des fichiers projet
 
 ```
 STCA-Electron\

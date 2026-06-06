@@ -99,11 +99,46 @@ Ces champs stockent des valeurs calculées/formatées :
 - Ex : `A2050` existe pour TO, KP, KE, NO, CK, KW, S\C → 7 véhicules avec la même immatriculation, destinations différentes
 - Champ `Compo_ImmaCode` = `"A2050,TO"` → identifiant composite unique
 
-### Destinations
-- 10 destinations au total
-- Toutes utilisent le préfixe **"A"** pour l'immatriculation
-- Codes identifiés : TO, KP, KE, NO, CK, KW, S\C, AFO (8/10)
-- Chaque destination a un compteur séquentiel indépendant (A0001, A0002, ...)
+### Destinations — PARAMDESTINATION complète (10/10)
+| Code | Tarif | Destination | Lettre | N° Immat actuel |
+|------|-------|-------------|--------|-----------------|
+| AFO | 10 000 | Afolé | C | 7388 |
+| CK | 10 000 | Cinkassé | T | 7467 |
+| KA | 10 000 | Kambolé | E | 2182 |
+| KE | 10 000 | Kétao | C | 3177 |
+| KP | 10 000 | Kpadapé | C | 4419 |
+| KW | 10 000 | Kwodjoviakope | C | 6637 |
+| NO | 10 000 | Noépé | A | 3910 |
+| TO | 10 000 | Tohoum | C | 7490 |
+| S\C | 10 000 | Sanvi condji | A | 8039 |
+| POL | 10 000 | Réexportation | A | 0003 |
+
+**Notes :** Toutes à 10 000 FCFA. La colonne "Lettre" est probablement la lettre de la carte grise. Le "N° Immat actuel" est le dernier numéro d'immatriculation utilisé pour cette destination.
+
+### Types de véhicules (TYPEVEH)
+| Rang | Type |
+|------|------|
+| 1 | Voiture |
+| 2 | Camion |
+| 3 | Autre |
+
+### Assureur (TYPEASSURANCE)
+| Nom | Coordonnées |
+|-----|------------|
+| POOL TPV VT - MOTO | 01 BP 2689 Lomé Togo tél : 221 70 9... |
+
+Paramètre global : **Imprimer Facture + Cond. Part. + Assurances = OUI**
+
+### Données réelles (enregistrements archivés — exemples)
+| Réf | Nom | Code | Marque | N° Chassis | Immat | N° Tri |
+|-----|-----|------|--------|------------|-------|--------|
+| 7132 | ABDULLAHI BABA | CK | FIAT | ZFA29000000302873 | A4107 | 00044 |
+| 7186 | MAHAMANE Y. | CK | DAF | XLRTE33KSOE334822 | A4148 | 00008 |
+| 7272 | SOUMANA ALFARI | CK | DAF | 00160937*** | A4197 | 00144 |
+| 7322 | TOURE MAICK | CK | CHEVROLET | 2G1WL52K1W9331657 | A4226 | 00156 |
+| 8842 | DOUNBIA OUMAR | CK | MERCEDES | WDB020182A1A474059 | A5053 | 01727 |
+| 9651 | MAMOUDOU AYOUBA | CK | OPEL KADET | WOLOTD190J5308608 | A5501 | 42480 |
+| 10340 | NOURADINE HACHINE | CK | HONDA | 5J6YH28543L048654 | A5943 | 03255 |
 
 ### Sortie des véhicules
 - `FlagSortie = true` → véhicule sorti, **ne peut plus être modifié**
@@ -127,16 +162,41 @@ Ces champs stockent des valeurs calculées/formatées :
 - Formulaire d'enregistrement (roue de navigation centrale)
 
 ### Menu Analyse → Edition des rapports d'analyse
-- Demande **mot de passe de forçage** = `Awmax`
-- Étape 1 : Choisir secteur : **STCA** ou **ASSURANCE**
-- Étape 2 (STCA) : Choisir type : **Rapports détaillés**, **Rapports résumés**, **Rapport annuel**
-- *(Exploration incomplète — interrompue pour sauvegarde)*
+- Accès direct (pas de mot de passe en cours de session, seulement à la première ouverture)
+- **Étape 1 — Secteur :** STCA | ASSURANCE | Annuler
 
-### Menu Assurances
-- *(Non encore exploré)*
+**Secteur STCA :**
+- Dialogue "Edition des rapports d'analyse" (date début, date fin, Période prédéfinie dropdown, Totaliser par : Jour / Mois / Destination)
+- Boutons : Imprimer | Quitter
+- Si pas de données → "Il n'y a pas de données à imprimer."
+- Types disponibles (dialogue préalable) : **Rapports détaillés** | **Rapports résumés** | **Rapport annuel** | Annuler
 
-### Menu Outils+Config.
-- *(Non encore exploré)*
+**Secteur ASSURANCE :**
+- Ouvre directement **"Gain généré par les assurances"**
+- Colonnes : Réf, Nom et prénom, Adresse, Type, Marque et modèle, N° Chassis, Immatriculation, Destination, N° de Tri, Enregistré le, Montant
+- Filtres : Date début / Date fin / Dropdown Assurance
+- Total : **Gain Total** (en bas)
+- Boutons : Rechercher | Imprimer | Quitter
+
+### Menu Assurances → Montant à restituer
+- Interface identique à "Gain généré par les assurances"
+- Même colonnes, même filtres
+- Total : **Montant Total à restituer** (en bas)
+- Logique symétrique : gains vs remboursements
+
+### Menu Outils+Config. — Structure complète
+| Item | Description |
+|------|-------------|
+| Sauvegarde la Base de Données | Grisé (non accessible) |
+| **Clef d'administration** | Configuration mot de passe forçage admin + "Ecrire Clé USB" |
+| **Archivage** | Vue "Enregistrements archivés" avec données réelles (filtrable par date) |
+| Fixer N° Référence | Réinitialisation du numéro de référence |
+| *(Impression de plaque d'immatriculation)* | Séparateur grisé |
+| Config. Poste N° IMMAT. | Configuration du poste pour numérotation immatriculation |
+| **Configuration Assurances** | Liste assureurs + paramètre "Imprimer Facture+Cond.Part.+Assurances : OUI/NON" |
+| **Types Véhicule** | Liste des types pour assurances |
+| **Paramètres Destinations** | Liste complète des 10 destinations (code, tarif, nom, lettre, N° immat) |
+| Config. Imprimantes | Configuration des imprimantes par type de document |
 
 ### Roue de navigation (écran principal)
 - **Enregistrement** (en haut)
@@ -181,18 +241,29 @@ Ces champs stockent des valeurs calculées/formatées :
 
 ---
 
-## 9. Ce qui reste à explorer (Phase 2 incomplète)
+## 9. Ce qui reste à explorer (Phase 2 — état au 06/06/2026)
 
-- [ ] Rapports détaillés STCA (interrompu à l'étape 2)
-- [ ] Rapports résumés STCA
-- [ ] Rapport annuel STCA
-- [ ] Secteur ASSURANCE dans les rapports d'analyse
-- [ ] Menu **Assurances** — tous les sous-menus
-- [ ] Menu **Outils+Config.** — tous les sous-menus
-- [ ] Table **PARAMDESTINATION** — les 10 destinations complètes
-- [ ] Table **TYPEASSURANCE** — types d'assurance et tarifs
-- [ ] Formulaire d'enregistrement complet (champs, validation, impression)
+### Exploré dans la session du 06/06/2026
+- [x] Menu Analyse → flux STCA (Edition des rapports, types de rapports)
+- [x] Menu Analyse → flux ASSURANCE (Gain généré par les assurances)
+- [x] Menu Assurances → Montant à restituer
+- [x] Menu Outils+Config. → structure complète identifiée
+- [x] Outils+Config. → Types Véhicule (Voiture/Camion/Autre)
+- [x] Outils+Config. → Paramètres Destinations (**PARAMDESTINATION complète — 10 destinations**)
+- [x] Outils+Config. → Configuration Assurances (POOL TPV VT - MOTO)
+- [x] Outils+Config. → Clef d'administration (mot de passe forçage + USB)
+- [x] Outils+Config. → Archivage (données réelles vues)
+
+### Encore à explorer
+- [ ] Outils+Config. → Fixer N° Référence
+- [ ] Outils+Config. → Config. Poste N° IMMAT.
+- [ ] Outils+Config. → Config. Imprimantes
+- [ ] Menu ? (aide)
+- [ ] Formulaire d'enregistrement complet (champs détaillés, validation, impression)
 - [ ] Item "Destination" de la roue de navigation
+- [ ] Item "Recherche IMMAT." de la roue
+- [ ] Item "Recherche N° Chassis" de la roue
+- [ ] Rapports résumés / Rapport annuel (avec données)
 
 ---
 
@@ -209,4 +280,19 @@ Points importants découverts lors de l'exploration :
 
 ---
 
-*Fin de session le 06/06/2026 — Reprise à partir de l'exploration des rapports d'analyse*
+---
+
+## 11. Notes techniques — coordonnées fenêtre (mise à jour 06/06/2026)
+
+La fenêtre STCA a légèrement bougé depuis la session précédente :
+- **Main window** : L=-1577, T=126, R=-296, B=856 (était L=-1547, T=161)
+- **Menu Analyse** : screen x≈-1290, y≈168 (était -1275, 201)
+- **Menu Assurances** : screen x≈-1210, y≈168
+- **Menu Outils+Config.** : screen x≈-1110, y≈168
+- BM_CLICK fonctionne sur les boutons enfants WinDev (classe Button)
+- WM_SETTEXT modifie l'affichage mais pas la valeur interne WinDev (les dates ne sont pas prises en compte)
+- CB_GETCOUNT/CB_GETLBTEXT : partiellement fonctionnel sur les ComboBox WinDev
+
+---
+
+*Dernière mise à jour : 06/06/2026 — Session 2 terminée*
