@@ -587,7 +587,51 @@ Position correcte: screen x≈-1553, y≈168
 
 ---
 
-### État d'exploration — fin session 4
+## 14. Menu Fichier → "Liste des Marques / Modèles de véhicules"
+
+**Fenêtre :** "Liste des Marques / Modèles de véhicules"  
+**Handle Win32 :** [460264]  
+**Position :** L=678, T=335, R=1241, B=745 (563×410 px, modale centrée dans STCA)  
+**Captures :** `stca_marques_full.png` (haut), `stca_marques_fin.png` (bas)
+
+### Structure de la fenêtre
+
+| Zone | Description |
+|------|-------------|
+| Liste principale | Colonne unique "Marques - Modèles" (handle ListBox [263660]) |
+| En-tête colonne | Fond bleu, icône de tri, libellé "Marques - Modèles" |
+| Scrollbar verticale | Handle WDSCROLLBAR [460246], composant WinDev custom |
+| Boutons (droite) | Nouveau (+), Modifier, Supprimer (-), Imprimer, Quitter |
+
+### Boutons CRUD
+
+| Bouton | Handle | Action |
+|--------|--------|--------|
+| **Nouveau** | [67074] | Ajouter un nouveau couple Marque/Modèle |
+| **Modifier** | [67072] | Modifier l'entrée sélectionnée |
+| **Supprimer** | [67070] | Supprimer l'entrée sélectionnée |
+| **Imprimer** | [787952] | Imprimer la liste |
+| **Quitter** | [67068] | Fermer la fenêtre |
+
+### Format des données
+
+- **Format :** `MARQUE MODELE` (marque + modèle combinés en une seule chaîne, séparés par un espace)
+- **Tri :** Alphabétique ascendant
+- **Premières entrées :** 140 H, 3256 33, ABG DD74, ABI E.B.G 1200, ACAM M 2770 G
+- **Dernière entrée visible :** ZREMB NW 302.1
+- **Volume :** ~20 000+ entrées (estimation session précédente, scrollbar WinDev non interrogeable via API standard)
+
+### Observations importantes pour la reproduction
+
+1. **Format combiné** — La table HFSQL contient sans doute `Marque` et `Modele` comme champs séparés, mais l'affichage les concatène `Marque + " " + Modele`
+2. **C'est le référentiel** utilisé dans le dropdown Marque/Modèle du formulaire d'enregistrement
+3. **Administration** : accessible uniquement via Menu Fichier → "Marques et modèles de véhicules" (pas dans la roue de navigation)
+4. **Aucune recherche/filtre visible** — scroll manuel uniquement (mais c'est aussi le mode d'accès dans le formulaire : onglets par lettre)
+
+---
+
+### État d'exploration — PHASE 2 COMPLÈTE ✅
+
 | Item | Statut |
 |------|--------|
 | Formulaire d'enregistrement complet | ✅ Documenté |
@@ -598,8 +642,10 @@ Position correcte: screen x≈-1553, y≈168
 | Menu Enregistrements → Liste N°Chassis | ✅ Documenté |
 | Imprimantes réseau | ✅ Liste complète |
 | Menu Fichier — items | ✅ Listés |
-| Menu Fichier → Marques et modèles | ❌ NON exploré |
+| Menu Fichier → Marques et modèles | ✅ **EXPLORÉ** |
+
+**Phase 2 — Exploration STCA II : 100% complète**
 
 ---
 
-*Dernière mise à jour : 06/06/2026 — Session 4 — Roue de navigation + formulaire complet documentés*
+*Dernière mise à jour : 06/06/2026 — Session 4 complète — Phase 2 terminée*

@@ -151,10 +151,11 @@ STCA-Electron\
 | Phase | Description | Statut |
 |-------|-------------|--------|
 | 1 | Analyse & Architecture | ✅ Terminé |
-| 2 | Exploration STCA II | 🔄 En cours |
-| 2.3 | Menu Analyse → rapports | 🔄 **Reprendre ici** |
-| 2.4 | Menu Assurances | ❌ |
-| 2.5 | Menu Outils+Config. | ❌ |
-| 2.6 | Tables PARAMDESTINATION + TYPEASSURANCE | ❌ |
-| 3 | Développement Electron | ❌ |
-| 4 | Tests & Déploiement | ❌ |
+| 2 | Exploration STCA II | ✅ Terminé (06/06/2026) |
+| 3 | Développement Electron (app principale) | ❌ |
+| 4 | Applications connexes | ❌ |
+| 5 | Tests & Déploiement | ❌ |
+
+**Phase 4 — Applications connexes prévues :**
+- App affichage **N° de Tri** (192.168.0.25:8000) — source fournie par l'utilisateur
+- Autres petites apps connexes à identifier
