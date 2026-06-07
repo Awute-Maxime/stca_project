@@ -16,7 +16,10 @@
       "@components/*": ["src/renderer/src/components/*"],
       "@pages/*": ["src/renderer/src/pages/*"],
       "@api/*": ["src/renderer/src/api/*"],
-      "@store/*": ["src/renderer/src/store/*"]
+      "@store/*": ["src/renderer/src/store/*"],
+      "@theme/*": ["src/renderer/src/theme/*"],
+      "@mock/*": ["src/renderer/src/mock/*"],
+      "@windows/*": ["src/renderer/src/windows/*"]
     }
   },
   "include": ["src/renderer/src/**/*"]
