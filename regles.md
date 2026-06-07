@@ -10,7 +10,7 @@
   - Packaging : Electron Builder (.exe)
 - **Architecture :** Client/Serveur — clients Electron sur postes, serveur Node.js+PG (LAN ou VPS)
 - **Repo GitHub :** https://github.com/Awute-Maxime/stca_project.git
-- **Dossier de travail :** `D:\Programmation Doc\AI PROJECTS\STCA-Electron\`
+- **Dossier de travail :** `F:\AI PROJECTS\STCA-Electron\`
 - **Phase actuelle :** Phase 2 — Exploration STCA II (en cours) → interrompu au menu Analyse (choix type rapport)
 
 ---
@@ -46,7 +46,7 @@
 Quand l'utilisateur dit **"sauvegarde"**, exécuter dans l'ordre :
 
 1. **Créer/mettre à jour** `docs/session-AAAA-MM-JJ.md` avec le résumé complet de la session
-2. **Mettre à jour la mémoire** Claude : `C:\Users\MaxFox\.claude\projects\C--Users-MaxFox\memory\`
+2. **Mettre à jour la mémoire** Claude : `C:\Users\MaxFox II\.claude\projects\C--Users-MaxFox-II\memory\`
    - Mettre à jour `project-stca-electron.md` (phase actuelle, dernière étape)
    - Mettre à jour `MEMORY.md` (index)
 3. **Git commit + push** :
@@ -114,7 +114,7 @@ $gh  = "C:\Program Files\GitHub CLI\gh.exe"
 
 Tout output (captures d'écran, fichiers temporaires, notes) doit aller directement dans le dossier projet :
 ```
-D:\Programmation Doc\AI PROJECTS\STCA-Electron\
+F:\AI PROJECTS\STCA-Electron\
 ```
 - Captures d'écran → `docs\screenshots\`
 - Notes session → `docs\`
