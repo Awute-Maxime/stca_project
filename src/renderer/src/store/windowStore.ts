@@ -1,10 +1,15 @@
 import { create } from 'zustand'
 
-export type WindowId = 'enregistrement' | 'liste' | 'statistiques'
-
-interface WindowState {
-  id: WindowId
+export interface WindowConfig {
   title: string
+  defaultX: number
+  defaultY: number
+  width: number
+  height: number
+}
+
+export interface WindowState extends WindowConfig {
+  id: string
   isOpen: boolean
   isMinimized: boolean
   x: number
@@ -12,83 +17,66 @@ interface WindowState {
   zIndex: number
 }
 
-export const WINDOW_CONFIG: Record<WindowId, { title: string; defaultX: number; defaultY: number; width: number; height: number }> = {
-  enregistrement: { title: 'Enregistrement des véhicules', defaultX: 60,  defaultY: 30, width: 880, height: 580 },
-  liste:          { title: 'Liste des véhicules',          defaultX: 80,  defaultY: 50, width: 980, height: 580 },
-  statistiques:   { title: 'Statistiques',                 defaultX: 100, defaultY: 40, width: 920, height: 620 },
-}
-
 let maxZ = 10
 
-const initialWindows = (): Record<WindowId, WindowState> => {
-  const keys = Object.keys(WINDOW_CONFIG) as WindowId[]
-  return Object.fromEntries(
-    keys.map(id => [
-      id,
-      {
-        id,
-        title: WINDOW_CONFIG[id].title,
-        isOpen: false,
-        isMinimized: false,
-        x: WINDOW_CONFIG[id].defaultX,
-        y: WINDOW_CONFIG[id].defaultY,
-        zIndex: 10,
-      }
-    ])
-  ) as Record<WindowId, WindowState>
-}
-
 interface WindowStore {
-  windows: Record<WindowId, WindowState>
-  openWindow:     (id: WindowId) => void
-  closeWindow:    (id: WindowId) => void
-  focusWindow:    (id: WindowId) => void
-  minimizeWindow: (id: WindowId) => void
-  updatePosition: (id: WindowId, x: number, y: number) => void
+  windows: Record<string, WindowState>
+  openWindow:     (id: string, config: WindowConfig) => void
+  closeWindow:    (id: string) => void
+  focusWindow:    (id: string) => void
+  minimizeWindow: (id: string) => void
+  updatePosition: (id: string, x: number, y: number) => void
 }
 
 export const useWindowStore = create<WindowStore>((set) => ({
-  windows: initialWindows(),
+  windows: {},
 
-  openWindow: (id) => set(state => {
+  openWindow: (id, config) => set(state => {
     maxZ++
-    const win = state.windows[id]
+    const existing = state.windows[id]
     return {
       windows: {
         ...state.windows,
-        [id]: { ...win, isOpen: true, isMinimized: false, zIndex: maxZ }
+        [id]: existing
+          ? { ...existing, isOpen: true, isMinimized: false, zIndex: maxZ }
+          : {
+              id,
+              ...config,
+              isOpen: true,
+              isMinimized: false,
+              x: config.defaultX,
+              y: config.defaultY,
+              zIndex: maxZ
+            }
       }
     }
   }),
 
-  closeWindow: (id) => set(state => ({
-    windows: {
-      ...state.windows,
-      [id]: { ...state.windows[id], isOpen: false, isMinimized: false }
-    }
-  })),
+  closeWindow: (id) => set(state => {
+    const win = state.windows[id]
+    if (!win) return state
+    return { windows: { ...state.windows, [id]: { ...win, isOpen: false, isMinimized: false } } }
+  }),
 
   focusWindow: (id) => set(state => {
+    const win = state.windows[id]
+    if (!win) return state
     maxZ++
-    return {
-      windows: {
-        ...state.windows,
-        [id]: { ...state.windows[id], zIndex: maxZ }
-      }
-    }
+    return { windows: { ...state.windows, [id]: { ...win, zIndex: maxZ } } }
   }),
 
-  minimizeWindow: (id) => set(state => ({
-    windows: {
-      ...state.windows,
-      [id]: { ...state.windows[id], isMinimized: !state.windows[id].isMinimized }
-    }
-  })),
+  minimizeWindow: (id) => set(state => {
+    const win = state.windows[id]
+    if (!win) return state
+    return { windows: { ...state.windows, [id]: { ...win, isMinimized: !win.isMinimized } } }
+  }),
 
-  updatePosition: (id, x, y) => set(state => ({
-    windows: {
-      ...state.windows,
-      [id]: { ...state.windows[id], x, y }
-    }
-  })),
+  updatePosition: (id, x, y) => set(state => {
+    const win = state.windows[id]
+    if (!win) return state
+    return { windows: { ...state.windows, [id]: { ...win, x, y } } }
+  })
 }))
+
+// Conservé pour compatibilité de lecture par les futurs composants de fenêtre
+export const getWindow = (id: string): WindowState | undefined => useWindowStore.getState().windows[id]
