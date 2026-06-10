@@ -146,16 +146,99 @@ STCA-Electron\
 
 ---
 
+## Règle 10 — Architecture MDI Electron (ajoutée 10/06/2026)
+
+**Règle absolue : les fenêtres MDI = BrowserWindows Electron séparées, jamais des éléments HTML.**
+
+Raison : les éléments HTML (même avec `position:fixed`) ne peuvent jamais dépasser le bord de la fenêtre Electron hôte au niveau OS. Pour des fenêtres vraiment libres (comme STCA-II original), il faut de vraies `BrowserWindow`.
+
+Architecture implémentée :
+- Sidebar/menu click → `electronApi.mdiOpen({ id, x, y, width, height })`
+- IPC `mdi:open` → main process crée une `BrowserWindow` frameless
+- Chaque enfant charge `#/mdi/:id` → `MdiWindowHost` component
+- Barre de titre : `WebkitAppRegion: 'drag'` (drag natif OS, va partout)
+- Boutons : IPC `mdi:self:close/minimize/maximize` → `BrowserWindow.fromWebContents(e.sender)`
+- Un seul instance par id (focus si déjà ouverte)
+
+---
+
+## Règle 11 — Variable d'environnement ELECTRON_RUN_AS_NODE (ajoutée 10/06/2026)
+
+**Toujours exécuter `unset ELECTRON_RUN_AS_NODE` avant `npm run dev` dans Bash.**
+
+Raison : si `ELECTRON_RUN_AS_NODE=1`, Electron se comporte comme Node.js et `require('electron')` retourne le chemin de l'exécutable (string) au lieu du module Electron. Résultat : `electron.app` est `undefined` et l'app plante au démarrage avec `TypeError: Cannot read properties of undefined (reading 'whenReady')`.
+
+Dans PowerShell : `$env:ELECTRON_RUN_AS_NODE = $null`
+
+---
+
+## Règle 12 — Design visuel : PREMIUM DARK uniquement (ajoutée 10/06/2026)
+
+**Ne jamais proposer un design "safe" ou basique pour STCA-Electron.**
+
+L'utilisateur veut un design digne d'un designer senior 15 ans grands comptes. Référence : Vercel, Linear, Stripe dashboard — dark, clean, premium.
+
+Palette officielle du projet :
+```
+bg:          #080f1d   (deep navy — fond principal fenêtres MDI)
+surface:     rgba(255,255,255,0.04)
+border:      rgba(255,255,255,0.09)
+borderFocus: rgba(79,156,249,0.55)
+accent:      #4F9CF9   (electric blue — interactions)
+gold:        #F5A623   (gold — badge IMMAT, highlights importants)
+green:       #10B981   (montant, succès)
+text:        #E8EDF5
+muted:       #7890A8
+label:       #546A82
+```
+
+Animations obligatoires : `formEnter`, `immatReveal`, `immatPulse`, `shimmer` (définis dans `index.css`).
+Classe CSS `.mdi-dark` sur le container root de chaque fenêtre enfant.
+
+---
+
+## Règle 13 — Formulaire enregistrement : compact, une page, sans scroll (ajoutée 10/06/2026)
+
+Le formulaire d'enregistrement (`EnregistrementPage.tsx`) DOIT tenir en une seule page sans scroll dans une fenêtre de ~590px de hauteur.
+
+Contraintes :
+- Pas de `<Card>` Ant Design (trop de padding)
+- Labels : 10px, inputs : 26-28px de hauteur
+- Grid layout 2 colonnes pour les sections
+- N° Tri + Date N° Tri sur la même rangée
+- `MdiWindow body padding` = 8px (pas 16px)
+- `WINDOW_REGISTRY enregistrement height` = 590px
+
+---
+
+## Règle 14 — Port Vite dev (ajoutée 10/06/2026)
+
+Le serveur Vite dev peut utiliser le port **5174** si 5173 est occupé (par une session précédente non terminée).
+Toujours tuer les processus Electron/Vite avant de relancer : `pkill -f electron; pkill -f vite`
+Puis vérifier le port réel dans la sortie de `npm run dev`.
+
+---
+
 ## Plan d'exécution (rappel rapide)
 
 | Phase | Description | Statut |
 |-------|-------------|--------|
 | 1 | Analyse & Architecture | ✅ Terminé |
 | 2 | Exploration STCA II | ✅ Terminé (06/06/2026) |
-| 3 | Développement Electron (app principale) | ❌ |
-| 4 | Applications connexes | ❌ |
+| 3 | Développement Electron (app principale) | 🔄 En cours |
+| 4 | Backend PostgreSQL + Express + Prisma | ❌ |
 | 5 | Tests & Déploiement | ❌ |
+
+**Phase 3 — État au 10/06/2026 :**
+- ✅ Splash screen bleu radial + voiture SVG cyan
+- ✅ Login glassmorphism transparent
+- ✅ MainScreen (sidebar + menu + statusbar)
+- ✅ Architecture MDI multi-BrowserWindow (fenêtres vraiment libres)
+- ✅ EnregistrementPage compact (une page, sans scroll)
+- ✅ Mock data : 52 véhicules, 10 destinations
+- 🔄 Redesign premium dark (interrompu — reprendre avec MdiWindowHost + EnregistrementPage)
+- ❌ Autres fenêtres (Destination, Analyse, Liste, Recherche...)
 
 **Phase 4 — Applications connexes prévues :**
 - App affichage **N° de Tri** (192.168.0.25:8000) — source fournie par l'utilisateur
-- Autres petites apps connexes à identifier
+- Connexion PostgreSQL via Express/Prisma
