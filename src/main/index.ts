@@ -11,6 +11,7 @@ function createWindow(): void {
     center: true,
     show: false,
     frame: false,
+    transparent: true,
     autoHideMenuBar: true,
     title: 'TCIT — Contrôle et Immatriculation Transit',
     webPreferences: {
@@ -21,7 +22,7 @@ function createWindow(): void {
 
   ipcMain.on('window:resize-for-login', () => {
     win.setResizable(true)
-    win.setSize(440, 290)
+    win.setSize(440, 320)
     win.setResizable(false)
     win.center()
   })

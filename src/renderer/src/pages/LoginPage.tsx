@@ -39,7 +39,7 @@ export default function LoginPage(): JSX.Element {
 
   const outerStyle: DragCSS = {
     width: '100vw', height: '100vh',
-    background: 'linear-gradient(145deg, #050A18 0%, #0B1535 45%, #060C1E 100%)',
+    background: 'transparent',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     overflow: 'hidden', userSelect: 'none',
     WebkitAppRegion: 'drag',
@@ -49,27 +49,13 @@ export default function LoginPage(): JSX.Element {
 
   return (
     <div style={outerStyle}>
-      {/* Grille décorative */}
-      <div style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none',
-        backgroundImage: 'radial-gradient(circle, rgba(37,99,235,0.08) 1px, transparent 1px)',
-        backgroundSize: '28px 28px',
-      }} />
-
-      {/* Halo bleu central */}
-      <div style={{
-        position: 'absolute', width: 500, height: 300, pointerEvents: 'none',
-        background: 'radial-gradient(ellipse, rgba(37,99,235,0.18) 0%, transparent 70%)',
-        borderRadius: '50%',
-      }} />
-
       {/* Carte glass */}
       <div style={{
         position: 'relative', width: 400,
-        background: 'rgba(255,255,255,0.04)',
+        background: 'linear-gradient(160deg, rgba(8,16,48,0.97) 0%, rgba(12,22,60,0.95) 100%)',
         borderRadius: 16,
-        border: '1px solid rgba(255,255,255,0.1)',
-        boxShadow: '0 32px 64px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.03) inset, 0 1px 0 rgba(255,255,255,0.12) inset',
+        border: '1px solid rgba(255,255,255,0.12)',
+        boxShadow: '0 24px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.04) inset, 0 1px 0 rgba(255,255,255,0.15) inset',
         overflow: 'hidden',
         animation: shaking ? 'cardShake 0.4s ease' : 'cardSlideUp 0.55s cubic-bezier(0.16,1,0.3,1) both',
         ...noDrag,
@@ -139,7 +125,7 @@ export default function LoginPage(): JSX.Element {
           )}
 
           <div style={{ marginBottom: 12 }}>
-            <label style={{ display: 'block', fontSize: 10, color: 'rgba(255,255,255,0.4)', marginBottom: 6, letterSpacing: 0.8 }}>
+            <label style={{ display: 'block', fontSize: 10, color: 'rgba(255,255,255,0.55)', marginBottom: 6, letterSpacing: 0.8 }}>
               NOM D'UTILISATEUR
             </label>
             <div style={{ position: 'relative' }}>
@@ -172,7 +158,7 @@ export default function LoginPage(): JSX.Element {
           </div>
 
           <div style={{ marginBottom: 20 }}>
-            <label style={{ display: 'block', fontSize: 10, color: 'rgba(255,255,255,0.4)', marginBottom: 6, letterSpacing: 0.8 }}>
+            <label style={{ display: 'block', fontSize: 10, color: 'rgba(255,255,255,0.55)', marginBottom: 6, letterSpacing: 0.8 }}>
               MOT DE PASSE
             </label>
             <div style={{ position: 'relative' }}>
@@ -224,7 +210,7 @@ export default function LoginPage(): JSX.Element {
               style={{
                 flex: 1, height: 36,
                 background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
-                borderRadius: 8, color: 'rgba(255,255,255,0.55)', fontSize: 12,
+                borderRadius: 8, color: 'rgba(255,255,255,0.8)', fontSize: 12,
                 cursor: 'pointer', transition: 'all 0.15s',
                 fontFamily: "'Segoe UI', Arial, sans-serif",
               }}
