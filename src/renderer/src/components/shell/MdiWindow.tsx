@@ -137,7 +137,7 @@ export default function MdiWindow({ id, children }: MdiWindowProps): JSX.Element
           flex: 1,
           overflow: 'auto',
           background: appColors.mdiBodyBg,
-          padding: 16,
+          padding: 8,
           position: 'relative',
         }}>
           {children}
