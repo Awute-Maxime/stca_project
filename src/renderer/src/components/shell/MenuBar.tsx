@@ -1,6 +1,9 @@
 import { Menu } from 'antd'
 import type { MenuProps } from 'antd'
 import { appColors } from '@theme/windev-theme'
+import { electronApi } from '@api/electron'
+
+type DragCSS = React.CSSProperties & { WebkitAppRegion?: 'drag' | 'no-drag' }
 
 interface MenuBarProps {
   utilisateurLogin: string
@@ -28,7 +31,7 @@ const items: MenuProps['items'] = [
     key: 'analyse',
     label: 'Analyse',
     children: [
-      { key: 'analyse.stca', label: 'Edition des rapports d\'analyse — STCA' },
+      { key: 'analyse.stca', label: "Edition des rapports d'analyse — STCA" },
       { key: 'analyse.assurance', label: 'Gain généré par les assurances' }
     ]
   },
@@ -44,10 +47,10 @@ const items: MenuProps['items'] = [
     label: 'Outils+Config.',
     children: [
       { key: 'outils.sauvegardeBd', label: 'Sauvegarde la Base de Données', disabled: true },
-      { key: 'outils.clefAdmin', label: 'Clef d\'administration' },
+      { key: 'outils.clefAdmin', label: "Clef d'administration" },
       { key: 'outils.archivage', label: 'Archivage' },
       { key: 'outils.fixerRef', label: 'Fixer N° Référence' },
-      { key: 'outils.impressionPlaque', label: 'Impression de plaque d\'immatriculation', disabled: true },
+      { key: 'outils.impressionPlaque', label: "Impression de plaque d'immatriculation", disabled: true },
       { key: 'outils.posteImmat', label: 'Config. Poste N° IMMAT.' },
       { key: 'outils.configAssurances', label: 'Configuration Assurances' },
       { key: 'outils.typesVehicule', label: 'Types Véhicule' },
@@ -69,26 +72,89 @@ const items: MenuProps['items'] = [
 ]
 
 export default function MenuBar({ utilisateurLogin, onMenuItemClick }: MenuBarProps): JSX.Element {
+  const btnBase: React.CSSProperties = {
+    width: 28, height: 28,
+    border: 'none', borderRadius: 4,
+    cursor: 'pointer', fontSize: 13,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    transition: 'background 0.15s',
+    background: 'transparent',
+    color: appColors.windowChromeText,
+    flexShrink: 0,
+  }
+
   return (
     <div style={{ flexShrink: 0 }}>
-      {/* Barre de titre — chrome Windows natif gris clair */}
+      {/* Barre de titre — draggable, chrome personnalisé */}
       <div style={{
-        height: 30,
+        height: 32,
         background: appColors.windowChromeBg,
         borderBottom: '1px solid #D4D4D4',
         display: 'flex',
         alignItems: 'center',
-        padding: '0 10px',
+        paddingLeft: 12,
+        paddingRight: 4,
         fontSize: 12,
         color: appColors.windowChromeText,
-        gap: 24
-      }}>
-        <span style={{ fontWeight: 600 }}>STCA : Enregistrement des Véhicules</span>
-        <span style={{ color: '#666' }}>{`utilisateur connecté : ${utilisateurLogin}`}</span>
-        <span style={{ color: '#666' }}>utilisateur avec pouvoir : OUI</span>
+        WebkitAppRegion: 'drag',
+        userSelect: 'none',
+      } as DragCSS}>
+
+        {/* Informations utilisateur */}
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 20 }}>
+          <span style={{ fontWeight: 700, fontSize: 12 }}>STCA : Enregistrement des Véhicules</span>
+          <span style={{ color: '#888', fontSize: 11 }}>{`utilisateur : ${utilisateurLogin}`}</span>
+        </div>
+
+        {/* Boutons de fenêtre — no-drag */}
+        <div style={{
+          display: 'flex', gap: 2, alignItems: 'center',
+          WebkitAppRegion: 'no-drag',
+        } as DragCSS}>
+          {/* Réduire */}
+          <button
+            style={btnBase}
+            title="Réduire"
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#E0E0E0' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+            onClick={electronApi.minimizeWindow}
+          >
+            <span style={{ fontSize: 16, lineHeight: 1, marginTop: -2 }}>−</span>
+          </button>
+
+          {/* Agrandir */}
+          <button
+            style={btnBase}
+            title="Agrandir"
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#E0E0E0' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+            onClick={electronApi.maximizeWindow}
+          >
+            <span style={{ fontSize: 10, border: `1.5px solid ${appColors.windowChromeText}`, width: 10, height: 10, display: 'block' }} />
+          </button>
+
+          {/* Fermer */}
+          <button
+            style={{ ...btnBase, borderRadius: 4 }}
+            title="Fermer"
+            onMouseEnter={e => {
+              const b = e.currentTarget as HTMLButtonElement
+              b.style.background = '#C42B1C'
+              b.style.color = '#fff'
+            }}
+            onMouseLeave={e => {
+              const b = e.currentTarget as HTMLButtonElement
+              b.style.background = 'transparent'
+              b.style.color = appColors.windowChromeText
+            }}
+            onClick={electronApi.closeWindow}
+          >
+            ✕
+          </button>
+        </div>
       </div>
 
-      {/* Barre de menus — fond blanc, liens bleus */}
+      {/* Barre de menus */}
       <Menu
         mode="horizontal"
         selectable={false}
@@ -99,7 +165,7 @@ export default function MenuBar({ utilisateurLogin, onMenuItemClick }: MenuBarPr
           borderBottom: '1px solid #D4D4D4',
           color: appColors.menuBarText,
           fontSize: 13,
-          lineHeight: '32px'
+          lineHeight: '32px',
         }}
       />
     </div>
