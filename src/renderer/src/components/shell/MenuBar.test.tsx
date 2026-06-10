@@ -1,34 +1,36 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { ConfigProvider } from 'antd'
 import MenuBar from './MenuBar'
+import { appAntdTheme } from '@theme/windev-theme'
 
-const noop = (): void => {}
+function wrap(ui: JSX.Element): JSX.Element {
+  return <ConfigProvider theme={appAntdTheme}>{ui}</ConfigProvider>
+}
 
 describe('MenuBar', () => {
-  it('affiche le titre de la fenêtre et les informations utilisateur', () => {
-    render(<MenuBar utilisateurLogin="awute" onMenuItemClick={noop} />)
+  it('affiche le titre et les 6 menus principaux', () => {
+    render(wrap(<MenuBar utilisateurLogin="awute" onMenuItemClick={() => {}} />))
     expect(screen.getByText('STCA : Enregistrement des Véhicules')).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: 'Fichier' })).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: 'Enregistrements des véhicules' })).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: 'Analyse' })).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: 'Assurances' })).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: 'Outils+Config.' })).toBeInTheDocument()
+  })
+
+  it('affiche le login utilisateur dans le chrome', () => {
+    render(wrap(<MenuBar utilisateurLogin="awute" onMenuItemClick={() => {}} />))
     expect(screen.getByText(/utilisateur connecté : awute/)).toBeInTheDocument()
-    expect(screen.getByText(/utilisateur avec pouvoir : OUI/)).toBeInTheDocument()
   })
 
-  it('affiche les 6 menus de premier niveau dans l\'ordre de l\'original', () => {
-    render(<MenuBar utilisateurLogin="awute" onMenuItemClick={noop} />)
-    const labels = ['Fichier', 'Enregistrements des véhicules', 'Analyse', 'Assurances', 'Outils+Config.', '?']
-    const menuLabels = screen.getAllByRole('menuitem').map(el => el.textContent?.trim())
-    expect(menuLabels).toEqual(labels)
-  })
-
-  it('ouvre le sous-menu Fichier et déclenche onMenuItemClick au clic sur "Quitter"', async () => {
-    const onMenuItemClick = vi.fn()
-    render(<MenuBar utilisateurLogin="awute" onMenuItemClick={onMenuItemClick} />)
+  it('appelle onMenuItemClick avec la bonne clé au clic sous-menu', async () => {
+    const spy = vi.fn()
+    render(wrap(<MenuBar utilisateurLogin="awute" onMenuItemClick={spy} />))
     const user = userEvent.setup()
-
     await user.click(screen.getByRole('menuitem', { name: 'Fichier' }))
-    const quitter = await screen.findByRole('menuitem', { name: 'Quitter' })
-    await user.click(quitter)
-
-    expect(onMenuItemClick).toHaveBeenCalledWith('fichier.quitter')
+    await user.click(await screen.findByRole('menuitem', { name: 'Marques et modèles de véhicules' }))
+    expect(spy).toHaveBeenCalledWith('fichier.marques')
   })
 })

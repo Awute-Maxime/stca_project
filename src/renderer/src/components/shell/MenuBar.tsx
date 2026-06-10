@@ -1,6 +1,6 @@
 import { Menu } from 'antd'
 import type { MenuProps } from 'antd'
-import { winDevColors } from '@theme/windev-theme'
+import { appColors } from '@theme/windev-theme'
 
 interface MenuBarProps {
   utilisateurLogin: string
@@ -74,13 +74,13 @@ export default function MenuBar({ utilisateurLogin, onMenuItemClick }: MenuBarPr
       {/* Barre de titre — chrome Windows natif gris clair */}
       <div style={{
         height: 30,
-        background: winDevColors.windowChromeBg,
+        background: appColors.windowChromeBg,
         borderBottom: '1px solid #D4D4D4',
         display: 'flex',
         alignItems: 'center',
         padding: '0 10px',
         fontSize: 12,
-        color: winDevColors.windowChromeText,
+        color: appColors.windowChromeText,
         gap: 24
       }}>
         <span style={{ fontWeight: 600 }}>STCA : Enregistrement des Véhicules</span>
@@ -95,11 +95,11 @@ export default function MenuBar({ utilisateurLogin, onMenuItemClick }: MenuBarPr
         items={items}
         onClick={({ key }) => onMenuItemClick(key)}
         style={{
-          background: winDevColors.menuBarBg,
+          background: appColors.menuBarBg,
           borderBottom: '1px solid #D4D4D4',
-          color: winDevColors.menuBarText,
-          fontSize: 12,
-          lineHeight: '28px'
+          color: appColors.menuBarText,
+          fontSize: 13,
+          lineHeight: '32px'
         }}
       />
     </div>
