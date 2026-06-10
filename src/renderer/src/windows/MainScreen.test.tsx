@@ -4,10 +4,10 @@ import userEvent from '@testing-library/user-event'
 import { ConfigProvider } from 'antd'
 import MainScreen from './MainScreen'
 import { useWindowStore } from '@store/windowStore'
-import { winDevAntdTheme } from '@theme/windev-theme'
+import { appAntdTheme } from '@theme/windev-theme'
 
 function renderWithTheme(ui: JSX.Element): ReturnType<typeof render> {
-  return render(<ConfigProvider theme={winDevAntdTheme}>{ui}</ConfigProvider>)
+  return render(<ConfigProvider theme={appAntdTheme}>{ui}</ConfigProvider>)
 }
 
 describe('MainScreen', () => {
@@ -15,18 +15,18 @@ describe('MainScreen', () => {
     useWindowStore.setState({ windows: {} })
   })
 
-  it('affiche la barre de menus, la roue de navigation et la barre de statut', () => {
+  it('affiche la barre de menus, la sidebar et la barre de statut', () => {
     renderWithTheme(<MainScreen utilisateurLogin="awute" />)
     expect(screen.getByText('STCA : Enregistrement des Véhicules')).toBeInTheDocument()
-    expect(screen.getByText('Enregistrement')).toBeInTheDocument()
-    expect(screen.getByText('Fonctionnement en Mode Client/Serveur')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /enregistrement/i })).toBeInTheDocument()
+    expect(screen.getByText(/Mode Client\/Serveur/i)).toBeInTheDocument()
   })
 
-  it('ouvre une fenêtre MDI au clic sur un item de la roue', async () => {
+  it('ouvre une fenêtre MDI au clic sur un bouton sidebar', async () => {
     renderWithTheme(<MainScreen utilisateurLogin="awute" />)
     const user = userEvent.setup()
 
-    await user.click(screen.getByText('Recherche IMMAT.'))
+    await user.click(screen.getByRole('button', { name: /recherche immat/i }))
 
     expect(await screen.findByText('Recherche par N° Immatriculation')).toBeInTheDocument()
     expect(useWindowStore.getState().windows['rechercheImmat'].isOpen).toBe(true)
