@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, screen } from 'electron'
 import { join } from 'path'
 
 const isDev = process.env['NODE_ENV'] === 'development' || !app.isPackaged
@@ -29,10 +29,11 @@ function createWindow(): void {
   })
 
   ipcMain.on('window:resize-for-main', () => {
+    const { width, height } = screen.getPrimaryDisplay().workAreaSize
     win.setResizable(true)
     win.setMinimumSize(1024, 700)
-    win.setSize(1280, 800)
-    win.center()
+    win.setSize(width, height)
+    win.setPosition(0, 0)
   })
 
   ipcMain.on('window:close',    () => win.close())
