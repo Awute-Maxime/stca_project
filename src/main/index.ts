@@ -12,6 +12,7 @@ function createWindow(): void {
     show: false,
     frame: false,
     transparent: true,
+    backgroundColor: '#00000000',
     autoHideMenuBar: true,
     title: 'TCIT — Contrôle et Immatriculation Transit',
     webPreferences: {
