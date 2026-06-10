@@ -1,6 +1,6 @@
 import { ReactNode, useState } from 'react'
 import { useWindowStore } from '@store/windowStore'
-import { winDevColors } from '@theme/windev-theme'
+import { appColors } from '@theme/windev-theme'
 
 interface MdiWindowProps {
   id: string
@@ -50,18 +50,18 @@ export default function MdiWindow({ id, children }: MdiWindowProps): JSX.Element
         zIndex: win.zIndex,
         display: 'flex',
         flexDirection: 'column',
-        border: '1px solid #2A4018',
+        border: '1px solid #1B3A6B',
         boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
         overflow: 'hidden'
       }}
     >
-      {/* Barre de titre — dégradé vert olive fidèle à l'original */}
+      {/* Barre de titre — fond bleu marine */}
       <div
         onMouseDown={handleTitleMouseDown}
         style={{
           height: 30,
           flexShrink: 0,
-          background: `linear-gradient(180deg, ${winDevColors.mdiTitleGradientStart} 0%, ${winDevColors.mdiTitleGradientEnd} 100%)`,
+          background: appColors.mdiTitleBg,
           display: 'flex',
           alignItems: 'center',
           padding: '0 6px 0 12px',
@@ -70,7 +70,7 @@ export default function MdiWindow({ id, children }: MdiWindowProps): JSX.Element
         }}
       >
         <span style={{
-          color: winDevColors.mdiTitleText,
+          color: appColors.mdiTitleText,
           fontSize: 13,
           fontStyle: 'italic',
           fontWeight: 600,
@@ -95,7 +95,7 @@ export default function MdiWindow({ id, children }: MdiWindowProps): JSX.Element
 
       {/* Corps */}
       {!win.isMinimized && (
-        <div style={{ flex: 1, overflow: 'auto', background: winDevColors.formPanelBg, padding: 16 }}>
+        <div style={{ flex: 1, overflow: 'auto', background: appColors.mdiBodyBg, padding: 16 }}>
           {children}
         </div>
       )}
