@@ -9,28 +9,16 @@ import {
 } from '@ant-design/icons'
 import { motion } from 'framer-motion'
 import dayjs from 'dayjs'
+import { mockDestinations } from '@mock/destinations'
 
 const { Title, Text } = Typography
 const { Option } = Select
 
-// ─── Données statiques (à remplacer par appels API) ───────────────────────────
-
-const DESTINATIONS = [
-  { code: 'AFO', nom: 'Afolé',             lettre: 'C' },
-  { code: 'CK',  nom: 'Cinkassé',          lettre: 'T' },
-  { code: 'KA',  nom: 'Kambolé',           lettre: 'E' },
-  { code: 'KE',  nom: 'Kétao',             lettre: 'C' },
-  { code: 'KP',  nom: 'Kpadapé',           lettre: 'C' },
-  { code: 'KW',  nom: 'Kwodjoviakope',     lettre: 'C' },
-  { code: 'NO',  nom: 'Noépé',             lettre: 'A' },
-  { code: 'TO',  nom: 'Tohoum',            lettre: 'C' },
-  { code: 'S/C', nom: 'Sanvi condji',      lettre: 'A' },
-  { code: 'POL', nom: 'Réexportation',     lettre: 'A' },
-]
-
-const TYPES_VEHICULE = ['Voiture', 'Camion', 'Autre']
-
+const DESTINATIONS = mockDestinations.map(d => ({ code: d.code, nom: d.nom, lettre: d.lettre }))
+const TYPES_VEHICULE = ['Voiture', 'Camion', 'Moto', 'Bus', 'Pick-up', 'Minibus']
 const MONTANT_FIXE = 10000
+const BLUE = '#1B3A6B'
+const ACCENT = '#2563EB'
 
 // ─── Composant principal ──────────────────────────────────────────────────────
 
@@ -97,7 +85,7 @@ export default function EnregistrementPage(): JSX.Element {
       {/* En-tête page */}
       <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <Title level={4} style={{ margin: 0, color: '#006A4E' }}>
+          <Title level={4} style={{ margin: 0, color: '#1B3A6B' }}>
             <CarOutlined style={{ marginRight: 8 }} />
             Enregistrement d'un véhicule
           </Title>
@@ -112,7 +100,7 @@ export default function EnregistrementPage(): JSX.Element {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             style={{
-              background: '#006A4E',
+              background: '#1B3A6B',
               borderRadius: 10,
               padding: '10px 24px',
               textAlign: 'center'
@@ -141,7 +129,7 @@ export default function EnregistrementPage(): JSX.Element {
             {/* Section En-tête */}
             <Card
               size="small"
-              title={<><FileTextOutlined style={{ color: '#006A4E', marginRight: 6 }} />Référence</>}
+              title={<><FileTextOutlined style={{ color: '#1B3A6B', marginRight: 6 }} />Référence</>}
               style={{ borderRadius: 8, marginBottom: 12 }}
             >
               <Row gutter={12}>
@@ -167,7 +155,7 @@ export default function EnregistrementPage(): JSX.Element {
                   readOnly
                   placeholder="Cliquer pour sélectionner..."
                   onClick={() => setParcModalOpen(true)}
-                  suffix={<SearchOutlined style={{ color: '#006A4E', cursor: 'pointer' }} />}
+                  suffix={<SearchOutlined style={{ color: '#1B3A6B', cursor: 'pointer' }} />}
                   style={{ cursor: 'pointer' }}
                 />
               </Form.Item>
@@ -176,7 +164,7 @@ export default function EnregistrementPage(): JSX.Element {
             {/* Section Acheteur */}
             <Card
               size="small"
-              title={<><UserOutlined style={{ color: '#006A4E', marginRight: 6 }} />Coordonnées acheteur</>}
+              title={<><UserOutlined style={{ color: '#1B3A6B', marginRight: 6 }} />Coordonnées acheteur</>}
               style={{ borderRadius: 8, marginBottom: 12 }}
             >
               <Form.Item
@@ -218,7 +206,7 @@ export default function EnregistrementPage(): JSX.Element {
             {/* Section Véhicule */}
             <Card
               size="small"
-              title={<><CarOutlined style={{ color: '#006A4E', marginRight: 6 }} />Description du véhicule</>}
+              title={<><CarOutlined style={{ color: '#1B3A6B', marginRight: 6 }} />Description du véhicule</>}
               style={{ borderRadius: 8, marginBottom: 12 }}
             >
               {/* Type véhicule — DOIT être rempli en premier */}
@@ -283,7 +271,7 @@ export default function EnregistrementPage(): JSX.Element {
                   readOnly
                   placeholder="Cliquer pour sélectionner..."
                   onClick={() => setMarqueModalOpen(true)}
-                  suffix={<SearchOutlined style={{ color: '#006A4E', cursor: 'pointer' }} />}
+                  suffix={<SearchOutlined style={{ color: '#1B3A6B', cursor: 'pointer' }} />}
                   style={{ cursor: 'pointer' }}
                 />
               </Form.Item>
@@ -321,7 +309,7 @@ export default function EnregistrementPage(): JSX.Element {
                 icon={<ReloadOutlined />}
                 onClick={onReset}
                 size="large"
-                style={{ borderColor: '#006A4E', color: '#006A4E' }}
+                style={{ borderColor: '#1B3A6B', color: '#1B3A6B' }}
               >
                 Réinitialiser
               </Button>
@@ -343,7 +331,7 @@ export default function EnregistrementPage(): JSX.Element {
                 icon={<CheckOutlined />}
                 loading={loading}
                 size="large"
-                style={{ background: '#006A4E', borderColor: '#006A4E', fontWeight: 600, minWidth: 160 }}
+                style={{ background: '#1B3A6B', borderColor: '#1B3A6B', fontWeight: 600, minWidth: 160 }}
               >
                 Enregistrer
               </Button>
@@ -417,7 +405,7 @@ function MarqueModeleModal({
               borderRadius: 4,
               transition: 'background 0.15s'
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = '#f0faf0')}
+            onMouseEnter={(e) => (e.currentTarget.style.background = '#eff6ff')}
             onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
           >
             {item}
@@ -464,7 +452,7 @@ function ParcModal({
             key={item}
             onClick={() => onSelect(item)}
             style={{ padding: '8px 12px', cursor: 'pointer', borderRadius: 4 }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = '#f0faf0')}
+            onMouseEnter={(e) => (e.currentTarget.style.background = '#eff6ff')}
             onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
           >
             {item}

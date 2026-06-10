@@ -13,8 +13,8 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
         locale={frFR}
         theme={{
           token: {
-            colorPrimary: '#006A4E',
-            colorLink: '#006A4E',
+            colorPrimary: '#1B3A6B',
+            colorLink: '#2563EB',
             borderRadius: 6,
             fontFamily: "'Segoe UI', 'Arial', sans-serif"
           }

@@ -4,30 +4,19 @@ import { SearchOutlined, ReloadOutlined, FileExcelOutlined } from '@ant-design/i
 import { motion } from 'framer-motion'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
+import { mockVehicules, type MockVehicule } from '@mock/vehicules'
+import { mockDestinations } from '@mock/destinations'
 
 const { Title } = Typography
 const { RangePicker } = DatePicker
 
-type Vehicule = {
-  id: number
-  immat: string
-  typeVehicule: string
-  marqueModele: string
-  destination: string
-  dateEnregistrement: string
-  montant: number
-  agent: string
-}
+type Vehicule = MockVehicule
 
-const DESTINATIONS = [
-  'AFO', 'CK', 'KA', 'KE', 'KP', 'KW', 'NO', 'TO', 'S/C', 'POL'
-]
+const DESTINATIONS = mockDestinations.map(d => d.code)
 
-const DEST_LABELS: Record<string, string> = {
-  AFO: 'Afolé', CK: 'Cinkassé', KA: 'Kambolé', KE: 'Kétao',
-  KP: 'Kpadapé', KW: 'Kwodjoviakope', NO: 'Noépé', TO: 'Tohoum',
-  'S/C': 'Sanvi condji', POL: 'Réexportation'
-}
+const DEST_LABELS: Record<string, string> = Object.fromEntries(
+  mockDestinations.map(d => [d.code, d.nom])
+)
 
 const DEST_COLORS: Record<string, string> = {
   AFO: 'green', CK: 'blue', KA: 'cyan', KE: 'orange',
@@ -35,17 +24,7 @@ const DEST_COLORS: Record<string, string> = {
   'S/C': 'lime', POL: 'red'
 }
 
-// Données de démo
-const mockData: Vehicule[] = Array.from({ length: 38 }, (_, i) => ({
-  id: i + 1,
-  immat: `${String.fromCharCode(65 + (i % 26))}${String(i + 1).padStart(4, '0')}`,
-  typeVehicule: ['Voiture', 'Camion', 'Moto', 'Bus', 'Pick-up'][i % 5],
-  marqueModele: ['Toyota Corolla', 'Mercedes Actros', 'Honda CB', 'Toyota Hiace', 'Nissan Navara'][i % 5],
-  destination: DESTINATIONS[i % DESTINATIONS.length],
-  dateEnregistrement: dayjs().subtract(i, 'day').format('YYYY-MM-DD HH:mm'),
-  montant: 10000,
-  agent: i % 3 === 0 ? 'Awute' : i % 3 === 1 ? 'Kofi' : 'Amara'
-}))
+const mockData = mockVehicules
 
 export default function ListePage(): JSX.Element {
   const [search, setSearch] = useState('')
@@ -60,7 +39,7 @@ export default function ListePage(): JSX.Element {
       if (destFilter && v.destination !== destFilter) return false
       if (typeFilter && v.typeVehicule !== typeFilter) return false
       if (dateRange) {
-        const d = dayjs(v.dateEnregistrement)
+        const d = dayjs(v.date)
         if (d.isBefore(dateRange[0], 'day') || d.isAfter(dateRange[1], 'day')) return false
       }
       return true
@@ -74,7 +53,7 @@ export default function ListePage(): JSX.Element {
     },
     {
       title: 'Immatriculation', dataIndex: 'immat',
-      render: v => <strong style={{ color: '#006A4E', letterSpacing: 1 }}>{v}</strong>
+      render: v => <strong style={{ color: '#1B3A6B', letterSpacing: 1 }}>{v}</strong>
     },
     { title: 'Type', dataIndex: 'typeVehicule', width: 100 },
     { title: 'Marque / Modèle', dataIndex: 'marqueModele' },
@@ -87,12 +66,12 @@ export default function ListePage(): JSX.Element {
       )
     },
     {
-      title: 'Date', dataIndex: 'dateEnregistrement', width: 140,
+      title: 'Date', dataIndex: 'date', width: 140,
       render: v => <span style={{ fontSize: 12, color: '#666' }}>{dayjs(v).format('DD/MM/YY HH:mm')}</span>
     },
     {
       title: 'Montant', dataIndex: 'montant', width: 110, align: 'right',
-      render: v => <strong style={{ color: '#006A4E' }}>{v.toLocaleString('fr-FR')} F</strong>
+      render: v => <strong style={{ color: '#1B3A6B' }}>{v.toLocaleString('fr-FR')} F</strong>
     },
     {
       title: 'Agent', dataIndex: 'agent', width: 90,
@@ -110,10 +89,10 @@ export default function ListePage(): JSX.Element {
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <Title level={4} style={{ margin: 0, color: '#006A4E' }}>
+        <Title level={4} style={{ margin: 0, color: '#1B3A6B' }}>
           Liste des véhicules enregistrés
         </Title>
-        <Button icon={<FileExcelOutlined />} style={{ borderColor: '#006A4E', color: '#006A4E' }}>
+        <Button icon={<FileExcelOutlined />} style={{ borderColor: '#1B3A6B', color: '#1B3A6B' }}>
           Exporter
         </Button>
       </div>

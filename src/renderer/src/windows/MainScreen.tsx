@@ -5,6 +5,9 @@ import StatusBar from '@components/shell/StatusBar'
 import NavSidebar, { type SidebarItem } from '@components/shell/NavSidebar'
 import MdiWindow from '@components/shell/MdiWindow'
 import { WINDOW_REGISTRY } from './WINDOW_REGISTRY'
+import { renderWindowContent } from './WindowContent'
+import { mockVehicules } from '@mock/vehicules'
+import dayjs from 'dayjs'
 
 interface MainScreenProps {
   utilisateurLogin: string
@@ -43,15 +46,15 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: appColors.desktopBg }}>
           {openWindowIds.map(id => (
             <MdiWindow key={id} id={id}>
-              <p style={{ fontSize: 13, color: '#555' }}>
-                {`Contenu à venir — fenêtre "${windows[id].title}" sera développée dans un plan ultérieur.`}
-              </p>
+              {renderWindowContent(id)}
             </MdiWindow>
           ))}
         </div>
       </div>
 
-      <StatusBar nbVehiculesAujourdhui={0} />
+      <StatusBar nbVehiculesAujourdhui={
+        mockVehicules.filter(v => dayjs(v.date).isSame(dayjs(), 'day')).length
+      } />
     </div>
   )
 }
