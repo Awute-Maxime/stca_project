@@ -1,59 +1,80 @@
 import type { ThemeConfig } from 'antd'
 
-/**
- * Tokens de couleur extraits des captures de référence STCA II
- * (docs/screenshots/). Source par couleur indiquée en commentaire.
- */
-export const winDevColors = {
-  // Chrome de fenêtre principale — natif Windows 10 (stca_menubar_zoom.png)
-  windowChromeBg:    '#F0F0F0',
-  windowChromeText:  '#000000',
-  menuBarBg:         '#FFFFFF',
-  menuBarText:       '#0000CC',
-  menuBarHoverBg:    '#E5F1FB',
+export const appColors = {
+  // Chrome fenêtre principale
+  windowChromeBg:   '#F5F5F5',
+  windowChromeText: '#1B3A6B',
 
-  // Fenêtres MDI internes — dégradé vert olive (stca_enreg_form_full.png)
-  mdiTitleGradientStart: '#5A7840',
-  mdiTitleGradientEnd:   '#2A4018',
-  mdiTitleText:          '#FFFFFF',
+  // Sidebar navigation
+  sidebarBg:        '#1B3A6B',
+  sidebarText:      '#FFFFFF',
+  sidebarHoverBg:   '#2563EB',
+  sidebarActiveBg:  '#2563EB',
 
-  // Bureau MDI et formulaires (stca_main_clean.png, stca_form_bottom_zoom.png)
-  desktopBg:        '#C8CAC8',
-  formPanelBg:      '#E8E6D8',
+  // Barre de menus
+  menuBarBg:        '#FFFFFF',
+  menuBarText:      '#1B3A6B',
+  menuBarHoverBg:   '#EEF2FF',
+
+  // Fenêtres MDI internes
+  mdiTitleBg:       '#1B3A6B',
+  mdiTitleText:     '#FFFFFF',
+  mdiBodyBg:        '#FFFFFF',
+
+  // Bureau MDI
+  desktopBg:        '#F0F2F5',
+
+  // Barre de statut
+  statusBarBg:      '#1B3A6B',
+  statusBarText:    '#FFFFFF',
+  statusBarBorder:  'rgba(255,255,255,0.2)',
+
+  // Boutons d'action
+  btnValiderBg:     '#2563EB',
+  btnAnnulerBg:     '#6B7280',
+
+  // Inputs
   inputBg:          '#FFFFFF',
-  inputRequiredBg:  '#FFFDE7',
+  inputRequiredBg:  '#EFF6FF',
 
-  // Barre de statut (live_statusbar.png, stca_main_clean.png)
-  statusBarBg:   '#ECE9D8',
-  statusBarText: '#8B0000',
+  // Accents
+  accentBlue:       '#2563EB',
+  accentGold:       '#F59E0B',
+  accentDanger:     '#DC2626',
 
-  // Boutons d'action (stca_enreg_form_full.png — Valider vert / Annuler rouge)
-  btnValiderBg: '#4CAF50',
-  btnAnnulerBg: '#D32F2F',
-
-  // Bandeau destination sélectionnée (stca_dest2_AFO.png)
-  destHighlightBg:   '#E81313',
-  destHighlightText: '#FFFFFF'
+  // Alias de compatibilité (anciens tokens utilisés par les autres composants)
+  primaryBlue:             '#1B3A6B',
+  mdiTitleGradientStart:   '#1B3A6B',
+  mdiTitleGradientEnd:     '#1B3A6B',
+  formPanelBg:             '#FFFFFF',
 } as const
 
-/**
- * Configuration Ant Design — applique le look WinDev partout
- * (police système, rayons plats, palette restreinte).
- */
-export const winDevAntdTheme: ThemeConfig = {
+// Alias compat pour fichiers non encore migrés
+export const winDevColors = appColors
+
+export const appAntdTheme: ThemeConfig = {
   token: {
-    colorPrimary:   winDevColors.btnValiderBg,
-    colorLink:      winDevColors.menuBarText,
-    borderRadius:   2,
-    fontFamily:     "'Tahoma', 'Segoe UI', Arial, sans-serif",
-    fontSize:       12,
-    controlHeight:  26
+    colorPrimary:  '#2563EB',
+    colorLink:     '#2563EB',
+    borderRadius:  4,
+    fontFamily:    "'Segoe UI', Arial, sans-serif",
+    fontSize:      13,
+    controlHeight: 32,
   },
   components: {
-    Button: { borderRadius: 2, controlHeight: 26 },
-    Input:  { borderRadius: 2, controlHeight: 24 },
-    Select: { borderRadius: 2, controlHeight: 24 },
-    Table:  { borderRadius: 0, headerBg: '#E5F1FB' },
-    Modal:  { borderRadiusLG: 2 }
-  }
+    Button: { borderRadius: 4, controlHeight: 32 },
+    Input:  { borderRadius: 4, controlHeight: 32 },
+    Select: { borderRadius: 4, controlHeight: 32 },
+    Table:  { borderRadius: 4, headerBg: '#EEF2FF' },
+    Modal:  { borderRadiusLG: 6 },
+    Menu: {
+      itemColor:         '#1B3A6B',
+      itemHoverBg:       '#EEF2FF',
+      itemSelectedBg:    '#DBEAFE',
+      itemSelectedColor: '#1B3A6B',
+    },
+  },
 }
+
+// Alias compat
+export const winDevAntdTheme = appAntdTheme
