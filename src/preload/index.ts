@@ -1,7 +1,8 @@
-import { contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 
 const api = {
-  // API native à exposer au renderer si besoin
+  resizeForLogin: () => ipcRenderer.send('window:resize-for-login'),
+  resizeForMain:  () => ipcRenderer.send('window:resize-for-main'),
 }
 
 if (process.contextIsolated) {

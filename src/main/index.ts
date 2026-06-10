@@ -1,14 +1,14 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 
 const isDev = process.env['NODE_ENV'] === 'development' || !app.isPackaged
 
 function createWindow(): void {
   const win = new BrowserWindow({
-    width: 1280,
-    height: 800,
-    minWidth: 1024,
-    minHeight: 700,
+    width: 500,
+    height: 320,
+    resizable: false,
+    center: true,
     show: false,
     autoHideMenuBar: true,
     title: 'TCIT — Contrôle et Immatriculation Transit',
@@ -16,6 +16,20 @@ function createWindow(): void {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
     }
+  })
+
+  ipcMain.on('window:resize-for-login', () => {
+    win.setResizable(true)
+    win.setSize(440, 360)
+    win.setResizable(false)
+    win.center()
+  })
+
+  ipcMain.on('window:resize-for-main', () => {
+    win.setResizable(true)
+    win.setMinimumSize(1024, 700)
+    win.setSize(1280, 800)
+    win.center()
   })
 
   win.on('ready-to-show', () => win.show())
