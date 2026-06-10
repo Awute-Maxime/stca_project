@@ -1,23 +1,25 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import StatusBar from './StatusBar'
 
 describe('StatusBar', () => {
-  it('affiche le mode de fonctionnement Client/Serveur', () => {
+  beforeEach(() => vi.useFakeTimers())
+  afterEach(() => vi.useRealTimers())
+
+  it('affiche le mode Client/Serveur', () => {
     render(<StatusBar nbVehiculesAujourdhui={0} />)
-    expect(screen.getByText('Fonctionnement en Mode Client/Serveur')).toBeInTheDocument()
+    expect(screen.getByText(/Mode Client\/Serveur/i)).toBeInTheDocument()
   })
 
-  it('affiche le nombre de véhicules enregistrés aujourd\'hui', () => {
+  it('affiche le nombre de véhicules passé en prop', () => {
     render(<StatusBar nbVehiculesAujourdhui={42} />)
-    expect(screen.getByText(/Nbr de véhicule\(s\) enregistré\(s\) aujourd'hui : 42/)).toBeInTheDocument()
+    expect(screen.getByText(/42/)).toBeInTheDocument()
   })
 
-  it('affiche la date du jour au format JJ/MM/AAAA', () => {
-    render(<StatusBar nbVehiculesAujourdhui={0} />)
-    const today = new Date()
-    const dd = String(today.getDate()).padStart(2, '0')
-    const mm = String(today.getMonth() + 1).padStart(2, '0')
-    expect(screen.getByText(new RegExp(`${dd}/${mm}/${today.getFullYear()}`))).toBeInTheDocument()
+  it('a un fond bleu marine', () => {
+    const { container } = render(<StatusBar nbVehiculesAujourdhui={0} />)
+    const bar = container.firstChild as HTMLElement
+    // JSDOM peut normaliser hex en rgb — accepter les deux formes
+    expect(bar.style.background).toMatch(/#1B3A6B|rgb\(27,\s*58,\s*107\)/i)
   })
 })

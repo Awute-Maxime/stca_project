@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { winDevColors } from '@theme/windev-theme'
+import { appColors } from '@theme/windev-theme'
 
 interface StatusBarProps {
   nbVehiculesAujourdhui: number
@@ -29,19 +29,19 @@ export default function StatusBar({ nbVehiculesAujourdhui }: StatusBarProps): JS
   return (
     <div style={{
       height: 24,
-      background: winDevColors.statusBarBg,
-      borderTop: '1px solid #C0BCA8',
+      background: appColors.statusBarBg,
+      borderTop: `1px solid ${appColors.statusBarBorder}`,
       display: 'flex',
       alignItems: 'center',
       padding: '0 10px',
       fontSize: 11,
-      color: winDevColors.statusBarText,
+      color: appColors.statusBarText,
       fontWeight: 600
     }}>
-      <span style={{ paddingRight: 16, borderRight: '1px solid #C0BCA8' }}>
+      <span style={{ paddingRight: 16, borderRight: `1px solid ${appColors.statusBarBorder}` }}>
         Fonctionnement en Mode Client/Serveur
       </span>
-      <span style={{ padding: '0 16px', borderRight: '1px solid #C0BCA8', flex: 1 }}>
+      <span style={{ padding: '0 16px', borderRight: `1px solid ${appColors.statusBarBorder}`, flex: 1 }}>
         {`Nbr de véhicule(s) enregistré(s) aujourd'hui : ${nbVehiculesAujourdhui}`}
       </span>
       <span style={{ paddingLeft: 16, fontFamily: 'monospace' }}>
