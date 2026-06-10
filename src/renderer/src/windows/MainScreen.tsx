@@ -1,8 +1,8 @@
-import { winDevColors } from '@theme/windev-theme'
+import { appColors } from '@theme/windev-theme'
 import { useWindowStore } from '@store/windowStore'
 import MenuBar from '@components/shell/MenuBar'
 import StatusBar from '@components/shell/StatusBar'
-import NavigationWheel, { type WheelItem } from '@components/shell/NavigationWheel'
+import NavSidebar, { type SidebarItem } from '@components/shell/NavSidebar'
 import MdiWindow from '@components/shell/MdiWindow'
 import { WINDOW_REGISTRY } from './WINDOW_REGISTRY'
 
@@ -20,7 +20,7 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
     openWindow(id, config)
   }
 
-  const handleWheelSelect = (id: WheelItem['id']): void => openById(id)
+  const handleSidebarSelect = (id: SidebarItem['id']): void => openById(id)
 
   const handleMenuItemClick = (key: string): void => {
     // Ignorer les clés de menus parents (ex: "fichier") — seules les feuilles ouvrent une fenêtre
@@ -33,23 +33,18 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw' }}>
       <MenuBar utilisateurLogin={utilisateurLogin} onMenuItemClick={handleMenuItemClick} />
 
-      <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: winDevColors.desktopBg }}>
-        {openWindowIds.length === 0 && (
-          <div style={{
-            position: 'absolute', inset: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
-            <NavigationWheel onSelect={handleWheelSelect} />
-          </div>
-        )}
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        <NavSidebar onSelect={handleSidebarSelect} />
 
-        {openWindowIds.map(id => (
-          <MdiWindow key={id} id={id}>
-            <p style={{ fontSize: 13, color: '#555' }}>
-              {`Contenu à venir — fenêtre "${windows[id].title}" sera développée dans un plan ultérieur.`}
-            </p>
-          </MdiWindow>
-        ))}
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: appColors.desktopBg }}>
+          {openWindowIds.map(id => (
+            <MdiWindow key={id} id={id}>
+              <p style={{ fontSize: 13, color: '#555' }}>
+                {`Contenu à venir — fenêtre "${windows[id].title}" sera développée dans un plan ultérieur.`}
+              </p>
+            </MdiWindow>
+          ))}
+        </div>
       </div>
 
       <StatusBar nbVehiculesAujourdhui={0} />
