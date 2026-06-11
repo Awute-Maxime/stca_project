@@ -27,6 +27,7 @@ export const WINDOW_REGISTRY: Record<string, WindowConfig> = {
   'assurances.montantRestituer':    { title: 'Montant à restituer',                              defaultX: 200, defaultY: 124, width: 980, height: 660 },
 
   // ── Menu Outils ───────────────────────────────────────────────
+  'outils.gestionUtilisateurs':      { title: 'Gestion des utilisateurs',                          defaultX: 260, defaultY: 154, width: 720, height: 520 },
   'outils.clefAdmin':               { title: 'Clef d\'administration',                           defaultX: 260, defaultY: 154, width: 640, height: 480 },
   'outils.archivage':               { title: 'Enregistrements archivés',                         defaultX: 200, defaultY: 124, width: 980, height: 660 },
   'outils.fixerRef':                { title: 'Fixer N° Référence',                               defaultX: 340, defaultY: 204, width: 580, height: 340 },

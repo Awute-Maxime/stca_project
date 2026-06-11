@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { appColors } from '@theme/windev-theme'
 import MenuBar from '@components/shell/MenuBar'
 import StatusBar from '@components/shell/StatusBar'
@@ -13,6 +15,7 @@ interface MainScreenProps {
 }
 
 export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.Element {
+  const location = useLocation()
 
   const openById = (id: string): void => {
     const config = WINDOW_REGISTRY[id]
@@ -26,6 +29,14 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
       height: config.height,
     })
   }
+
+  useEffect(() => {
+    const state = location.state as { autoOpen?: string } | null
+    if (state?.autoOpen && WINDOW_REGISTRY[state.autoOpen]) {
+      setTimeout(() => openById(state.autoOpen!), 400)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleSidebarSelect = (id: SidebarItem['id']): void => openById(id)
 

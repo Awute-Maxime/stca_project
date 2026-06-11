@@ -1,8 +1,9 @@
-import { useState, useRef } from 'react'
-import { LockOutlined, UserOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons'
+import { useState, useRef, useEffect } from 'react'
+import { LockOutlined, UserOutlined, EyeOutlined, EyeInvisibleOutlined, TeamOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@store/authStore'
 import { electronApi } from '@api/electron'
+import { mockUtilisateurs } from '@mock/utilisateurs'
 
 type DragCSS = React.CSSProperties & { WebkitAppRegion?: 'drag' | 'no-drag' }
 
@@ -17,18 +18,56 @@ export default function LoginPage(): JSX.Element {
   const login    = useAuthStore(s => s.login)
   const navigate = useNavigate()
 
+  const isAdminUsername = mockUtilisateurs.some(
+    u => u.login.toLowerCase() === username.toLowerCase() && u.administrateur && u.compteActif
+  )
+
+  useEffect(() => {
+    if (isAdminUsername) {
+      electronApi.resizeForLoginAdmin()
+    } else {
+      electronApi.resizeForLogin()
+    }
+  }, [isAdminUsername])
+
   const handleValider = async (): Promise<void> => {
     if (loading) return
     setLoading(true)
     setError(null)
     try {
       await new Promise(r => setTimeout(r, 380))
-      if (username === 'awute' && password === 'Awmax') {
+      const found = mockUtilisateurs.find(
+        u => u.login.toLowerCase() === username.toLowerCase() && u.motDePasse === password && u.compteActif
+      )
+      if (found) {
         electronApi.resizeForMain()
-        login({ id: 1, login: 'awute', nom: 'Awute Maxime', role: 'admin' }, 'mock-token')
+        login({ id: found.id, login: found.login, nom: found.nom, role: found.administrateur ? 'admin' : 'agent' }, 'mock-token')
         navigate('/')
       } else {
         setError("Identifiants incorrects — vérifiez les minuscules / majuscules")
+        setShaking(true)
+        setTimeout(() => setShaking(false), 500)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGestionUtilisateurs = async (): Promise<void> => {
+    if (loading) return
+    setLoading(true)
+    setError(null)
+    try {
+      await new Promise(r => setTimeout(r, 380))
+      const found = mockUtilisateurs.find(
+        u => u.login.toLowerCase() === username.toLowerCase() && u.motDePasse === password && u.administrateur && u.compteActif
+      )
+      if (found) {
+        electronApi.resizeForMain()
+        login({ id: found.id, login: found.login, nom: found.nom, role: 'admin' }, 'mock-token')
+        navigate('/', { state: { autoOpen: 'outils.gestionUtilisateurs' }, replace: true })
+      } else {
+        setError("Identifiants incorrects ou droits administrateur requis")
         setShaking(true)
         setTimeout(() => setShaking(false), 500)
       }
@@ -51,11 +90,9 @@ export default function LoginPage(): JSX.Element {
     <div style={outerStyle}>
       {/* Carte glass */}
       <div style={{
-        position: 'relative', width: 400,
-        background: 'linear-gradient(160deg, rgba(8,16,48,0.97) 0%, rgba(12,22,60,0.95) 100%)',
-        borderRadius: 16,
-        border: '1px solid rgba(255,255,255,0.12)',
-        boxShadow: '0 24px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.04) inset, 0 1px 0 rgba(255,255,255,0.15) inset',
+        width: '100%', height: '100%',
+        background: 'linear-gradient(160deg, #081030 0%, #0a122c 100%)',
+        display: 'flex', flexDirection: 'column',
         overflow: 'hidden',
         animation: shaking ? 'cardShake 0.4s ease' : 'cardSlideUp 0.55s cubic-bezier(0.16,1,0.3,1) both',
         ...noDrag,
@@ -112,7 +149,7 @@ export default function LoginPage(): JSX.Element {
         </div>
 
         {/* Corps */}
-        <div style={{ padding: '22px 24px 18px', ...noDrag } as React.CSSProperties}>
+        <div style={{ padding: '22px 24px 18px', flex: 1, ...noDrag } as React.CSSProperties}>
           {error && (
             <div style={{
               background: 'rgba(220,38,38,0.12)', border: '1px solid rgba(220,38,38,0.3)',
@@ -203,6 +240,33 @@ export default function LoginPage(): JSX.Element {
               </button>
             </div>
           </div>
+
+          {isAdminUsername && (
+            <div style={{ marginBottom: 10 }}>
+              <button
+                onClick={handleGestionUtilisateurs}
+                disabled={loading}
+                style={{
+                  width: '100%', height: 32,
+                  background: 'rgba(245,158,11,0.1)',
+                  border: '1px solid rgba(245,158,11,0.35)',
+                  borderRadius: 8,
+                  color: '#F59E0B',
+                  fontSize: 11, cursor: loading ? 'not-allowed' : 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+                  transition: 'all 0.15s',
+                  fontFamily: "'Segoe UI', Arial, sans-serif",
+                  letterSpacing: 0.3,
+                  ...noDrag,
+                } as React.CSSProperties}
+                onMouseEnter={e => { if (!loading) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(245,158,11,0.2)' }}
+                onMouseLeave={e => { if (!loading) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(245,158,11,0.1)' }}
+              >
+                <TeamOutlined style={{ fontSize: 13 }} />
+                Gestion des utilisateurs
+              </button>
+            </div>
+          )}
 
           <div style={{ display: 'flex', gap: 8 }}>
             <button

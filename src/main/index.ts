@@ -77,8 +77,8 @@ function createWindow(): void {
     center: true,
     show: false,
     frame: false,
-    transparent: true,
-    backgroundColor: '#00000000',
+    transparent: false,
+    backgroundColor: '#081030',
     autoHideMenuBar: true,
     title: 'TCIT — Contrôle et Immatriculation Transit',
     webPreferences: {
@@ -91,7 +91,14 @@ function createWindow(): void {
 
   ipcMain.on('window:resize-for-login', () => {
     win.setResizable(true)
-    win.setSize(440, 320)
+    win.setSize(440, 360)
+    win.setResizable(false)
+    win.center()
+  })
+
+  ipcMain.on('window:resize-for-login-admin', () => {
+    win.setResizable(true)
+    win.setSize(440, 400)
     win.setResizable(false)
     win.center()
   })

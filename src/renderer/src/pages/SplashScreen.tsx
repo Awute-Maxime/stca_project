@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { electronApi } from '@api/electron'
 
-const SPLASH_DURATION = 2800
+const SPLASH_DURATION = 1400
 
 type DragCSS = React.CSSProperties & { WebkitAppRegion?: 'drag' | 'no-drag' }
 
@@ -198,7 +198,6 @@ export default function SplashScreen(): JSX.Element {
     userSelect: 'none',
     WebkitAppRegion: 'drag',
     animation: 'splashFadeIn 0.5s ease-out both',
-    borderRadius: 12,
   }
 
   return (
@@ -291,7 +290,7 @@ export default function SplashScreen(): JSX.Element {
       </div>
 
       {/* Bande drapeau Togo */}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 4, display: 'flex', borderRadius: '0 0 12px 12px', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 4, display: 'flex' }}>
         <div style={{ flex: 1, background: '#006A4E' }} />
         <div style={{ flex: 1, background: '#FFDF00' }} />
         <div style={{ flex: 1, background: '#D21034' }} />

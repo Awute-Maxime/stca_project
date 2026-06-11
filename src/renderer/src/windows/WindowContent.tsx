@@ -14,6 +14,7 @@ import {
   TypesVehiculeWindow, ParamDestinationsWindow,
   ConfigAssurancesWindow, ConfigImprimantesWindow,
 } from '@pages/OutilsConfigWindows'
+import UserManagementWindow from '@pages/UserManagementWindow'
 
 export function renderWindowContent(id: string): JSX.Element {
   switch (id) {
@@ -49,6 +50,8 @@ export function renderWindowContent(id: string): JSX.Element {
       return <MontantRestituerWindow />
 
     // ── Menu Outils ───────────────────────────────────────────────
+    case 'outils.gestionUtilisateurs':
+      return <UserManagementWindow />
     case 'outils.clefAdmin':
       return <ClefAdminWindow />
     case 'outils.archivage':

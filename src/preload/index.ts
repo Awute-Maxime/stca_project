@@ -2,8 +2,9 @@ import { contextBridge, ipcRenderer } from 'electron'
 
 const api = {
   // Main window controls
-  resizeForLogin: () => ipcRenderer.send('window:resize-for-login'),
-  resizeForMain:  () => ipcRenderer.send('window:resize-for-main'),
+  resizeForLogin:      () => ipcRenderer.send('window:resize-for-login'),
+  resizeForLoginAdmin: () => ipcRenderer.send('window:resize-for-login-admin'),
+  resizeForMain:       () => ipcRenderer.send('window:resize-for-main'),
   closeWindow:    () => ipcRenderer.send('window:close'),
   minimizeWindow: () => ipcRenderer.send('window:minimize'),
   maximizeWindow: () => ipcRenderer.send('window:maximize'),
