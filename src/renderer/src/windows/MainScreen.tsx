@@ -41,7 +41,13 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
         <NavSidebar onSelect={handleSidebarSelect} activeId={undefined} />
 
         {/* Bureau MDI — dashboard en fond, les BrowserWindows flottent par-dessus */}
-        <div style={{ flex: 1, background: appColors.desktopBg, overflow: 'hidden' }}>
+        <div style={{
+          flex: 1,
+          background: '#EEF2F9',
+          backgroundImage: 'radial-gradient(circle, rgba(27,58,107,0.07) 1px, transparent 1px)',
+          backgroundSize: '22px 22px',
+          overflow: 'hidden',
+        }}>
           <DashboardHome />
         </div>
       </div>

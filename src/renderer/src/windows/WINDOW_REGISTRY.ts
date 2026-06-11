@@ -6,7 +6,7 @@ import type { WindowConfig } from '@store/windowStore'
 
 export const WINDOW_REGISTRY: Record<string, WindowConfig> = {
   // ── Fenêtres principales (sidebar) ────────────────────────────
-  enregistrement:           { title: 'Enregistrement des véhicules',                       defaultX: 160, defaultY:  94, width: 980, height: 580 },
+  enregistrement:           { title: 'Enregistrement des véhicules',                       defaultX: 160, defaultY:  94, width: 980, height: 640 },
   destination:              { title: 'Nombre Véhicules par Frontières',                    defaultX: 180, defaultY: 114, width: 900, height: 640 },
   analyse:                  { title: 'Edition des rapports d\'analyse',                    defaultX: 200, defaultY: 124, width: 820, height: 580 },
   listeVehicules:           { title: 'Liste des Véhicules Enregistrés',                    defaultX: 180, defaultY: 114, width: 940, height: 660 },
@@ -20,7 +20,7 @@ export const WINDOW_REGISTRY: Record<string, WindowConfig> = {
   'enregistrements.listeChassis':   { title: 'Liste Véhicules Enregistrés par N°Chassis (VIN)', defaultX: 200, defaultY: 124, width: 940, height: 660 },
 
   // ── Menu Analyse ───────────────────────────────────────────────
-  'analyse.stca':                   { title: 'Edition des rapports d\'analyse — STCA',           defaultX: 200, defaultY: 124, width: 820, height: 580 },
+  'analyse.stca':                   { title: 'Edition des rapports d\'analyse — TCIT',           defaultX: 200, defaultY: 124, width: 820, height: 580 },
   'analyse.assurance':              { title: 'Gain généré par les assurances',                   defaultX: 200, defaultY: 124, width: 980, height: 660 },
 
   // ── Menu Assurances ────────────────────────────────────────────

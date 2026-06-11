@@ -36,13 +36,27 @@ interface StatCardProps {
 }
 function StatCard({ label, value, icon, color, sub }: StatCardProps): JSX.Element {
   return (
-    <div style={{
-      flex: 1, background: '#fff', borderRadius: 10,
-      borderLeft: `4px solid ${color}`,
-      padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14,
-      boxShadow: '0 1px 4px rgba(0,0,0,0.07)',
-      animation: 'formEnter 0.4s ease',
-    }}>
+    <div
+      style={{
+        flex: 1, background: '#fff', borderRadius: 12,
+        borderLeft: `4px solid ${color}`,
+        padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14,
+        boxShadow: '0 2px 12px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04)',
+        animation: 'formEnter 0.4s ease',
+        transition: 'box-shadow 0.2s, transform 0.2s',
+        cursor: 'default',
+      }}
+      onMouseEnter={e => {
+        const el = e.currentTarget as HTMLDivElement
+        el.style.boxShadow = '0 6px 24px rgba(0,0,0,0.11), 0 2px 6px rgba(0,0,0,0.06)'
+        el.style.transform = 'translateY(-1px)'
+      }}
+      onMouseLeave={e => {
+        const el = e.currentTarget as HTMLDivElement
+        el.style.boxShadow = '0 2px 12px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04)'
+        el.style.transform = 'translateY(0)'
+      }}
+    >
       <div style={{
         width: 44, height: 44, borderRadius: 10,
         background: `${color}18`,
@@ -306,7 +320,7 @@ export default function DashboardHome(): JSX.Element {
       {/* Footer discret */}
       <div style={{ textAlign: 'center', paddingBottom: 4 }}>
         <Text style={{ fontSize: 10, color: '#D1D5DB' }}>
-          STCA — Système de Transit des Véhicules · Données mock · {dayjs().format('DD/MM/YYYY')}
+          TCIT — Contrôle et Immatriculation Transit · Données mock · {dayjs().format('DD/MM/YYYY')}
         </Text>
       </div>
     </div>

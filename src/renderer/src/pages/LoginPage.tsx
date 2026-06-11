@@ -83,7 +83,7 @@ export default function LoginPage(): JSX.Element {
                 Identification de l'utilisateur
               </div>
               <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 10, marginTop: 1 }}>
-                STCA — Enregistrement des Véhicules
+                TCIT — Contrôle et Immatriculation Transit
               </div>
             </div>
           </div>

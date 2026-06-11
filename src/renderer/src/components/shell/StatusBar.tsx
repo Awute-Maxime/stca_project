@@ -26,26 +26,53 @@ export default function StatusBar({ nbVehiculesAujourdhui }: StatusBarProps): JS
     return () => clearInterval(timer)
   }, [])
 
+  const dot = (color: string): JSX.Element => (
+    <span style={{
+      display: 'inline-block', width: 6, height: 6, borderRadius: '50%',
+      background: color, marginRight: 5, flexShrink: 0,
+      boxShadow: `0 0 4px ${color}`,
+    }} />
+  )
+
   return (
     <div style={{
       height: 24,
-      background: appColors.statusBarBg,
-      borderTop: `1px solid ${appColors.statusBarBorder}`,
+      background: 'linear-gradient(90deg, #112654 0%, #1B3A6B 100%)',
+      borderTop: '1px solid rgba(255,255,255,0.06)',
       display: 'flex',
       alignItems: 'center',
-      padding: '0 10px',
-      fontSize: 11,
-      color: appColors.statusBarText,
-      fontWeight: 600
+      padding: '0 12px',
+      fontSize: 10.5,
+      color: 'rgba(255,255,255,0.85)',
+      fontWeight: 500,
+      gap: 0,
     }}>
-      <span style={{ paddingRight: 16, borderRight: `1px solid ${appColors.statusBarBorder}` }}>
-        Fonctionnement en Mode Client/Serveur
+      <span style={{
+        display: 'flex', alignItems: 'center',
+        paddingRight: 14, borderRight: '1px solid rgba(255,255,255,0.12)',
+        letterSpacing: 0.3,
+      }}>
+        {dot('#4ADE80')}
+        Mode Client/Serveur
       </span>
-      <span style={{ padding: '0 16px', borderRight: `1px solid ${appColors.statusBarBorder}`, flex: 1 }}>
-        {`Nbr de véhicule(s) enregistré(s) aujourd'hui : ${nbVehiculesAujourdhui}`}
+      <span style={{
+        display: 'flex', alignItems: 'center',
+        padding: '0 14px', borderRight: '1px solid rgba(255,255,255,0.12)',
+        flex: 1,
+      }}>
+        {dot('#60A5FA')}
+        {`${nbVehiculesAujourdhui} véhicule(s) enregistré(s) aujourd'hui`}
       </span>
-      <span style={{ paddingLeft: 16, fontFamily: 'monospace' }}>
-        {`${formatDate(now)} — ${formatHeure(now)}`}
+      <span style={{
+        display: 'flex', alignItems: 'center',
+        paddingLeft: 14,
+        fontFamily: "'Courier New', monospace",
+        fontSize: 10,
+        color: 'rgba(255,255,255,0.65)',
+        letterSpacing: 0.5,
+      }}>
+        {dot('#F59E0B')}
+        {`${formatDate(now)} · ${formatHeure(now)}`}
       </span>
     </div>
   )

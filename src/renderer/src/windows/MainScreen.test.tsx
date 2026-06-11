@@ -17,7 +17,7 @@ describe('MainScreen', () => {
 
   it('affiche la barre de menus, la sidebar et la barre de statut', () => {
     renderWithTheme(<MainScreen utilisateurLogin="awute" />)
-    expect(screen.getByText('STCA : Enregistrement des Véhicules')).toBeInTheDocument()
+    expect(screen.getByText('TCIT : Enregistrement des Véhicules')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /enregistrement/i })).toBeInTheDocument()
     expect(screen.getByText(/Mode Client\/Serveur/i)).toBeInTheDocument()
   })

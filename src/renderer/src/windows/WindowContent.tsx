@@ -4,20 +4,24 @@ import AnalysePage from '@pages/AnalysePage'
 import ListePage from '@pages/ListePage'
 import RechercheWindow from '@pages/RechercheWindow'
 import { CopyrightWindow, VersionWindow, IdReseauWindow } from '@pages/InfoWindows'
-
-const placeholder = (label: string): JSX.Element => (
-  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#aaa', fontSize: 13 }}>
-    {label} — à implémenter
-  </div>
-)
+import FichierMarquesPage from '@pages/FichierMarquesPage'
+import ArchivagePage from '@pages/ArchivagePage'
+import PointagePage from '@pages/PointagePage'
+import ExportPage from '@pages/ExportPage'
+import { AnalyseAssuranceWindow, MontantRestituerWindow } from '@pages/AssuranceWindows'
+import { ClefAdminWindow, FixerRefWindow, PosteImmatWindow } from '@pages/OutilsSimpleWindows'
+import {
+  TypesVehiculeWindow, ParamDestinationsWindow,
+  ConfigAssurancesWindow, ConfigImprimantesWindow,
+} from '@pages/OutilsConfigWindows'
 
 export function renderWindowContent(id: string): JSX.Element {
   switch (id) {
-    // Fenêtres principales (sidebar)
+    // ── Fenêtres principales (sidebar) ────────────────────────────
     case 'enregistrement':
       return <EnregistrementPage />
-    case 'enregistrements.listeChassis':
-    case 'fichier.marques':
+    case 'destination':
+      return <DestinationPage />
     case 'listeVehicules':
       return <ListePage />
     case 'rechercheImmat':
@@ -25,45 +29,48 @@ export function renderWindowContent(id: string): JSX.Element {
     case 'rechercheChassis':
       return <RechercheWindow mode="chassis" />
 
-    // Analyse
+    // ── Menu Fichier ───────────────────────────────────────────────
+    case 'fichier.marques':
+      return <FichierMarquesPage />
+
+    // ── Menu Enregistrements ───────────────────────────────────────
+    case 'enregistrements.listeChassis':
+      return <ListePage />
+
+    // ── Menu Analyse ───────────────────────────────────────────────
     case 'analyse':
     case 'analyse.stca':
       return <AnalysePage />
-
     case 'analyse.assurance':
-      return placeholder('Gain généré par les assurances')
+      return <AnalyseAssuranceWindow />
 
-    // Assurances
+    // ── Menu Assurances ────────────────────────────────────────────
     case 'assurances.montantRestituer':
-      return placeholder('Montant à restituer')
+      return <MontantRestituerWindow />
 
-    // Destination
-    case 'destination':
-      return <DestinationPage />
-
-    // Outils
+    // ── Menu Outils ───────────────────────────────────────────────
     case 'outils.clefAdmin':
-      return placeholder('Clef d\'administration')
+      return <ClefAdminWindow />
     case 'outils.archivage':
-      return placeholder('Enregistrements archivés')
+      return <ArchivagePage />
     case 'outils.fixerRef':
-      return placeholder('Fixer N° Référence')
+      return <FixerRefWindow />
     case 'outils.posteImmat':
-      return placeholder('Configuration poste N° IMMAT')
+      return <PosteImmatWindow />
     case 'outils.configAssurances':
-      return placeholder('Configuration Assurances')
+      return <ConfigAssurancesWindow />
     case 'outils.typesVehicule':
-      return placeholder('Types Véhicule')
+      return <TypesVehiculeWindow />
     case 'outils.paramDestinations':
-      return placeholder('Paramètres Destinations')
+      return <ParamDestinationsWindow />
     case 'outils.configImprimantes':
-      return placeholder('Configuration Imprimantes')
+      return <ConfigImprimantesWindow />
     case 'outils.exporter':
-      return placeholder('Exportation des enregistrements')
+      return <ExportPage />
     case 'outils.pointage':
-      return placeholder('Pointage / Dépointage')
+      return <PointagePage />
 
-    // Aide
+    // ── Menu Aide ─────────────────────────────────────────────────
     case 'aide.copyright':
       return <CopyrightWindow />
     case 'aide.version':
@@ -72,6 +79,10 @@ export function renderWindowContent(id: string): JSX.Element {
       return <IdReseauWindow />
 
     default:
-      return placeholder(id)
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#aaa', fontSize: 13 }}>
+          {id} — fenêtre non configurée
+        </div>
+      )
   }
 }

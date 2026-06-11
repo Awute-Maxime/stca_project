@@ -31,7 +31,7 @@ const items: MenuProps['items'] = [
     key: 'analyse',
     label: 'Analyse',
     children: [
-      { key: 'analyse.stca', label: "Edition des rapports d'analyse — STCA" },
+      { key: 'analyse.stca', label: "Edition des rapports d'analyse — TCIT" },
       { key: 'analyse.assurance', label: 'Gain généré par les assurances' }
     ]
   },
@@ -102,7 +102,7 @@ export default function MenuBar({ utilisateurLogin, onMenuItemClick }: MenuBarPr
 
         {/* Informations utilisateur */}
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 20 }}>
-          <span style={{ fontWeight: 700, fontSize: 12 }}>STCA : Enregistrement des Véhicules</span>
+          <span style={{ fontWeight: 700, fontSize: 12 }}>TCIT : Enregistrement des Véhicules</span>
           <span style={{ color: '#888', fontSize: 11 }}>{`utilisateur : ${utilisateurLogin}`}</span>
         </div>
 
@@ -162,7 +162,8 @@ export default function MenuBar({ utilisateurLogin, onMenuItemClick }: MenuBarPr
         onClick={({ key }) => onMenuItemClick(key)}
         style={{
           background: appColors.menuBarBg,
-          borderBottom: '1px solid #D4D4D4',
+          borderBottom: 'none',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
           color: appColors.menuBarText,
           fontSize: 13,
           lineHeight: '32px',

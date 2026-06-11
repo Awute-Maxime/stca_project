@@ -12,7 +12,7 @@ function wrap(ui: JSX.Element): JSX.Element {
 describe('MenuBar', () => {
   it('affiche le titre et les 6 menus principaux', () => {
     render(wrap(<MenuBar utilisateurLogin="awute" onMenuItemClick={() => {}} />))
-    expect(screen.getByText('STCA : Enregistrement des Véhicules')).toBeInTheDocument()
+    expect(screen.getByText('TCIT : Enregistrement des Véhicules')).toBeInTheDocument()
     expect(screen.getByRole('menuitem', { name: 'Fichier' })).toBeInTheDocument()
     expect(screen.getByRole('menuitem', { name: 'Enregistrements des véhicules' })).toBeInTheDocument()
     expect(screen.getByRole('menuitem', { name: 'Analyse' })).toBeInTheDocument()

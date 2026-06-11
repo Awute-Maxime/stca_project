@@ -12,6 +12,9 @@ body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   background: transparent;
   overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 #root {
@@ -161,6 +164,23 @@ input.light-input--warm        { background: #FFFEF0 !important; }
 input.light-input--chassis     { font-family: 'Courier New', monospace; letter-spacing: 1px; color: #1B3A6B; }
 input.light-input--amount      { color: #16A34A; font-weight: 700; background: #F0FDF4 !important; }
 input.light-input--ref         { color: #2563EB; font-weight: 700; background: #EFF6FF !important; letter-spacing: 1px; }
+
+/* ── Filled state (input has a value) ──────────────────── */
+input.light-input--filled {
+  border-left: 3px solid #16A34A !important;
+  border-color: #86EFAC !important;
+  padding-left: 6px !important;
+}
+input.light-input--filled:focus {
+  border-color: #16A34A !important;
+  box-shadow: 0 0 0 3px rgba(22,163,74,0.12) !important;
+}
+
+/* ── Submit button pulse when form is ready ─────────────── */
+@keyframes btnPulse {
+  0%, 100% { box-shadow: 0 3px 12px rgba(37,99,235,0.4); transform: translateY(0); }
+  50%       { box-shadow: 0 5px 22px rgba(37,99,235,0.65), 0 0 0 4px rgba(37,99,235,0.12); transform: translateY(-1px); }
+}
 
 /* ── Dark native input fields ──────────────────────── */
 .mdi-dark input.dark-input {
