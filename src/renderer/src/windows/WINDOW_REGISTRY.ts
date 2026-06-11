@@ -6,7 +6,7 @@ import type { WindowConfig } from '@store/windowStore'
 
 export const WINDOW_REGISTRY: Record<string, WindowConfig> = {
   // ── Fenêtres principales (sidebar) ────────────────────────────
-  enregistrement:           { title: 'Enregistrement des véhicules',                       defaultX: 160, defaultY:  94, width: 980, height: 720 },
+  enregistrement:           { title: 'Enregistrement des véhicules',                       defaultX: 160, defaultY:  94, width: 980, height: 580 },
   destination:              { title: 'Nombre Véhicules par Frontières',                    defaultX: 180, defaultY: 114, width: 900, height: 640 },
   analyse:                  { title: 'Edition des rapports d\'analyse',                    defaultX: 200, defaultY: 124, width: 820, height: 580 },
   listeVehicules:           { title: 'Liste des Véhicules Enregistrés',                    defaultX: 180, defaultY: 114, width: 940, height: 660 },
