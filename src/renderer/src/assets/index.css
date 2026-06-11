@@ -136,3 +136,34 @@ body {
 
 /* Disabled state */
 .mdi-dark .ant-select-disabled .ant-select-selector { opacity: 0.4 !important; }
+
+/* ── Dark native input fields ──────────────────────── */
+.mdi-dark input.dark-input {
+  width: 100%; height: 28px; font-size: 12px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 6px; padding: 0 8px;
+  color: #E8EDF5; outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+  font-family: 'Segoe UI', sans-serif;
+  box-sizing: border-box;
+}
+.mdi-dark input.dark-input:focus {
+  border-color: rgba(79,156,249,0.55);
+  box-shadow: 0 0 0 3px rgba(79,156,249,0.12);
+  background: rgba(255,255,255,0.07);
+}
+.mdi-dark input.dark-input::placeholder { color: #243348; }
+.mdi-dark input.dark-input[disabled]    { opacity: 0.28; cursor: default; }
+.mdi-dark input.dark-input--clickable   { cursor: pointer; }
+.mdi-dark input.dark-input--clickable:hover {
+  border-color: rgba(79,156,249,0.3);
+  background: rgba(255,255,255,0.065);
+}
+.mdi-dark input.dark-input--chassis {
+  font-family: 'Courier New', monospace;
+  letter-spacing: 1.5px; color: #7EC8E3;
+}
+.mdi-dark input.dark-input--amount { color: #10B981; font-weight: 700; }
+.mdi-dark input.dark-input--ref    { color: #4F9CF9; font-weight: 700; letter-spacing: 2px; }
+.mdi-dark input.dark-input--warm   { border-color: rgba(245,166,35,0.18) !important; }
