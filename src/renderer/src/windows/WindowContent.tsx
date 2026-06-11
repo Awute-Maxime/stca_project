@@ -1,4 +1,6 @@
 import EnregistrementPage from '@pages/EnregistrementPage'
+import DestinationPage from '@pages/DestinationPage'
+import AnalysePage from '@pages/AnalysePage'
 import ListePage from '@pages/ListePage'
 import RechercheWindow from '@pages/RechercheWindow'
 import { CopyrightWindow, VersionWindow, IdReseauWindow } from '@pages/InfoWindows'
@@ -26,7 +28,8 @@ export function renderWindowContent(id: string): JSX.Element {
     // Analyse
     case 'analyse':
     case 'analyse.stca':
-      return placeholder('Rapports d\'analyse STCA')
+      return <AnalysePage />
+
     case 'analyse.assurance':
       return placeholder('Gain généré par les assurances')
 
@@ -36,7 +39,7 @@ export function renderWindowContent(id: string): JSX.Element {
 
     // Destination
     case 'destination':
-      return placeholder('Nombre de véhicules par frontières')
+      return <DestinationPage />
 
     // Outils
     case 'outils.clefAdmin':
