@@ -10,17 +10,17 @@ const { Option } = Select
 const TYPES_VEHICULE = ['Voiture', 'Camion', 'Moto', 'Bus', 'Pick-up', 'Minibus']
 const MONTANT_FIXE   = 10000
 
-// ── Dark palette ──────────────────────────────────────────────────────────────
-const D = {
-  accent:   '#4F9CF9',
-  gold:     '#F5A623',
-  green:    '#10B981',
-  muted:    '#7890A8',
-  label:    '#3D5570',
-  border:   'rgba(255,255,255,0.09)',
-  surface:  'rgba(255,255,255,0.04)',
-  surfaceD: 'rgba(255,255,255,0.025)',
-  danger:   '#EF4444',
+// ── Palette — cohérente avec appColors de MainScreen ──────────────────────────
+const C = {
+  blue:    '#1B3A6B',   // sidebar color
+  accent:  '#2563EB',   // hover / focus
+  gold:    '#F59E0B',   // IMMAT badge text
+  green:   '#16A34A',
+  text:    '#1E293B',
+  muted:   '#6B7280',
+  border:  '#D1D5DB',
+  bgPanel: '#F3F4F6',
+  danger:  '#DC2626',
 }
 
 // ── Micro-composants ──────────────────────────────────────────────────────────
@@ -28,9 +28,8 @@ const D = {
 function Label({ children }: { children: ReactNode }): JSX.Element {
   return (
     <div style={{
-      fontSize: 9, color: D.label, marginBottom: 3,
-      letterSpacing: 0.8, textTransform: 'uppercase',
-      fontWeight: 700, whiteSpace: 'nowrap',
+      fontSize: 9, color: C.muted, marginBottom: 3,
+      letterSpacing: 0.8, textTransform: 'uppercase', fontWeight: 700,
     }}>
       {children}
     </div>
@@ -38,9 +37,7 @@ function Label({ children }: { children: ReactNode }): JSX.Element {
 }
 
 function FieldBox({ label, children, style }: {
-  label: string
-  children: ReactNode
-  style?: CSSProperties
+  label: string; children: ReactNode; style?: CSSProperties
 }): JSX.Element {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', ...style }}>
@@ -52,30 +49,20 @@ function FieldBox({ label, children, style }: {
 
 function SectionBar({ title }: { title: string }): JSX.Element {
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 8,
-      marginBottom: 6, marginTop: 8,
-      animation: 'sectionSlide 0.3s ease',
-    }}>
-      <div style={{
-        width: 2, height: 12, borderRadius: 1, flexShrink: 0,
-        background: D.accent, boxShadow: `0 0 7px ${D.accent}`,
-      }} />
-      <span style={{
-        fontSize: 9, fontWeight: 700, color: D.muted,
-        letterSpacing: 1.5, textTransform: 'uppercase',
-      }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, marginTop: 8 }}>
+      <div style={{ width: 2, height: 12, background: C.blue, borderRadius: 1 }} />
+      <span style={{ fontSize: 9, fontWeight: 700, color: C.blue, letterSpacing: 1.5, textTransform: 'uppercase' }}>
         {title}
       </span>
-      <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.05)' }} />
+      <div style={{ flex: 1, height: 1, background: '#E5E7EB' }} />
     </div>
   )
 }
 
 const SEL: CSSProperties = { width: '100%', fontSize: 12 }
-const ICON_STYLE: CSSProperties = {
+const ICON: CSSProperties = {
   position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
-  color: 'rgba(79,156,249,0.4)', fontSize: 11, pointerEvents: 'none',
+  color: '#9CA3AF', fontSize: 11, pointerEvents: 'none',
 }
 
 // ── Page principale ───────────────────────────────────────────────────────────
@@ -130,82 +117,76 @@ export default function EnregistrementPage(): JSX.Element {
 
   // ── Rendu ──────────────────────────────────────────────────────────────────
   return (
-    <div style={{ padding: '4px 8px', fontSize: 12, userSelect: 'none', animation: 'formEnter 0.4s cubic-bezier(0.16,1,0.3,1)' }}>
+    <div style={{ padding: '4px 8px', fontSize: 12, userSelect: 'none', animation: 'formEnter 0.35s cubic-bezier(0.16,1,0.3,1)', background: '#fff' }}>
 
-      {/* ── Ligne 1 : Référence + Date + Parc + IMMAT ───────────────── */}
+      {/* ── Ligne 1 : Référence + Date + Parc + IMMAT ────────────────── */}
       <div style={{ display: 'grid', gridTemplateColumns: '120px 150px 1fr auto', gap: 8, marginBottom: 4 }}>
 
         <FieldBox label="Référence">
-          <input className="dark-input dark-input--ref"
+          <input className="light-input light-input--ref"
             value={immatGenere ?? ''} readOnly placeholder="Auto-généré" />
         </FieldBox>
 
         <FieldBox label="En date du">
-          <DatePicker
-            value={date} onChange={v => v && setDate(v)}
+          <DatePicker value={date} onChange={v => v && setDate(v)}
             format="DD/MM/YYYY" size="small"
-            style={{ width: '100%', height: 28 }} allowClear={false}
-          />
+            style={{ width: '100%', height: 28 }} allowClear={false} />
         </FieldBox>
 
         <FieldBox label="Parc / Zone d'importation">
           <div style={{ position: 'relative' }}>
-            <input className="dark-input dark-input--clickable"
+            <input className="light-input light-input--clickable"
               value={parc} readOnly placeholder="Cliquer pour sélectionner..."
-              onClick={() => setParcModalOpen(true)}
-              style={{ paddingRight: 28 }}
-            />
-            <SearchOutlined style={ICON_STYLE} />
+              onClick={() => setParcModalOpen(true)} style={{ paddingRight: 28 }} />
+            <SearchOutlined style={ICON} />
           </div>
         </FieldBox>
 
         {immatGenere && (
           <div style={{
-            background: 'linear-gradient(135deg, rgba(13,27,48,0.96), rgba(6,14,28,0.98))',
-            border: '1px solid rgba(245,166,35,0.35)',
-            borderRadius: 8, padding: '3px 14px', minWidth: 96,
+            background: C.blue, borderRadius: 5, padding: '3px 14px',
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            animation: 'immatReveal 0.4s cubic-bezier(0.16,1,0.3,1), immatPulse 2.5s ease-in-out 0.4s infinite',
-            boxShadow: '0 4px 20px rgba(245,166,35,0.1)',
+            minWidth: 96, boxShadow: '0 2px 12px rgba(27,58,107,0.35)',
+            animation: 'immatReveal 0.4s cubic-bezier(0.16,1,0.3,1)',
           }}>
-            <div style={{ color: 'rgba(245,166,35,0.5)', fontSize: 8, letterSpacing: 2, textTransform: 'uppercase', fontWeight: 700 }}>
+            <div style={{ color: 'rgba(245,158,11,0.7)', fontSize: 8, letterSpacing: 2, textTransform: 'uppercase', fontWeight: 700 }}>
               N° IMMAT
             </div>
-            <div style={{ color: D.gold, fontSize: 22, fontWeight: 900, letterSpacing: 3, lineHeight: 1.1, textShadow: '0 0 20px rgba(245,166,35,0.6)' }}>
+            <div style={{ color: C.gold, fontSize: 22, fontWeight: 900, letterSpacing: 3, lineHeight: 1.1 }}>
               {immatGenere}
             </div>
           </div>
         )}
       </div>
 
-      {/* ── Section Acheteur ──────────────────────────────────────────── */}
+      {/* ── Section Acheteur ─────────────────────────────────────────── */}
       <SectionBar title="Coordonnées Acheteur" />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 6 }}>
         <FieldBox label="Nom et prénom *">
-          <input className="dark-input" value={nomAcheteur}
+          <input className="light-input light-input--req" value={nomAcheteur}
             onChange={e => setNomAcheteur(e.target.value)}
             placeholder="Nom et prénom de l'acheteur" />
         </FieldBox>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           <FieldBox label="Pays de résidence">
-            <input className="dark-input dark-input--warm" value={paysResidence}
+            <input className="light-input light-input--warm" value={paysResidence}
               onChange={e => setPaysResidence(e.target.value)} placeholder="Pays résidence" />
           </FieldBox>
           <FieldBox label="Pays de destination">
-            <input className="dark-input dark-input--warm" value={paysDestination}
+            <input className="light-input light-input--warm" value={paysDestination}
               onChange={e => setPaysDestination(e.target.value)} placeholder="Pays destination" />
           </FieldBox>
         </div>
 
         <FieldBox label="Maison de transit">
-          <input className="dark-input" value={maisonTransit}
+          <input className="light-input" value={maisonTransit}
             onChange={e => setMaisonTransit(e.target.value)} placeholder="Maison de transit" />
         </FieldBox>
       </div>
 
-      {/* ── Section Véhicule ──────────────────────────────────────────── */}
+      {/* ── Section Véhicule ─────────────────────────────────────────── */}
       <SectionBar title="Description du véhicule" />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
@@ -220,12 +201,10 @@ export default function EnregistrementPage(): JSX.Element {
 
         <FieldBox label="Marque - Modèle *">
           <div style={{ position: 'relative' }}>
-            <input className="dark-input dark-input--clickable" value={marqueModele} readOnly
+            <input className="light-input light-input--clickable" value={marqueModele} readOnly
               placeholder="Cliquer pour sélectionner..."
-              onClick={() => setMarqueModalOpen(true)}
-              style={{ paddingRight: 28 }}
-            />
-            <SearchOutlined style={ICON_STYLE} />
+              onClick={() => setMarqueModalOpen(true)} style={{ paddingRight: 28 }} />
+            <SearchOutlined style={ICON} />
           </div>
         </FieldBox>
 
@@ -236,7 +215,7 @@ export default function EnregistrementPage(): JSX.Element {
             onChange={handleDestinationChange}>
             {mockDestinations.map(d => (
               <Option key={d.code} value={d.code}>
-                <span style={{ fontWeight: 600, color: D.accent, marginRight: 6 }}>{d.code}</span>
+                <span style={{ fontWeight: 600, color: C.blue, marginRight: 6 }}>{d.code}</span>
                 {d.nom}
               </Option>
             ))}
@@ -244,13 +223,13 @@ export default function EnregistrementPage(): JSX.Element {
         </FieldBox>
 
         <FieldBox label="Montant (FCFA)">
-          <input className="dark-input dark-input--amount"
+          <input className="light-input light-input--amount"
             value={montant != null ? `${montant.toLocaleString('fr-FR')} FCFA` : ''}
             readOnly placeholder="—" />
         </FieldBox>
 
         <FieldBox label="N° de Châssis (VIN)">
-          <input className="dark-input dark-input--chassis"
+          <input className="light-input light-input--chassis"
             value={chassis}
             onChange={e => setChassis(e.target.value.toUpperCase())}
             placeholder="Ex : ZFA29000000302873" maxLength={17} />
@@ -258,7 +237,7 @@ export default function EnregistrementPage(): JSX.Element {
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 140px', gap: 6 }}>
           <FieldBox label="N° de Tri">
-            <input className="dark-input" value={numTri}
+            <input className="light-input" value={numTri}
               onChange={e => setNumTri(e.target.value)} placeholder="N° de tri" />
           </FieldBox>
           <FieldBox label="Date N° de Tri">
@@ -272,19 +251,18 @@ export default function EnregistrementPage(): JSX.Element {
       <div style={{
         display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8,
         marginTop: 8, padding: '6px 8px',
-        background: D.surfaceD,
-        border: `1px solid ${D.border}`, borderRadius: 8,
+        background: C.bgPanel, border: `1px solid ${C.border}`, borderRadius: 6,
       }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
             <Checkbox checked={saisirAncienne} onChange={e => setSaisirAncienne(e.target.checked)}>
-              <span style={{ fontSize: 10, color: '#EF9944', fontWeight: 600, letterSpacing: 0.2 }}>
+              <span style={{ fontSize: 10, color: '#B45309', fontWeight: 600 }}>
                 Saisir ancienne immatriculation
               </span>
             </Checkbox>
           </div>
-          <input className="dark-input" value={ancienneImmat}
-            disabled={!saisirAncienne}
+          <input className="light-input"
+            value={ancienneImmat} disabled={!saisirAncienne}
             onChange={e => setAncienneImmat(e.target.value)}
             placeholder="Ancienne immatriculation" />
         </div>
@@ -294,8 +272,8 @@ export default function EnregistrementPage(): JSX.Element {
           <Radio.Group value={recycler ? 'oui' : 'non'}
             onChange={e => setRecycler(e.target.value === 'oui')}
             style={{ marginTop: 5 }}>
-            <Radio value="oui">Oui</Radio>
-            <Radio value="non">Non</Radio>
+            <Radio value="oui" style={{ fontSize: 11 }}>Oui</Radio>
+            <Radio value="non" style={{ fontSize: 11 }}>Non</Radio>
           </Radio.Group>
         </div>
       </div>
@@ -304,31 +282,27 @@ export default function EnregistrementPage(): JSX.Element {
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, marginTop: 8 }}>
         <button onClick={handleReset} style={{
           height: 28, padding: '0 14px', fontSize: 11, fontWeight: 600, cursor: 'pointer',
-          border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6,
-          background: 'rgba(255,255,255,0.04)', color: D.muted, letterSpacing: 0.3,
-          transition: 'all 0.18s',
+          border: `1px solid ${C.border}`, borderRadius: 4,
+          background: '#fff', color: C.muted, transition: 'all 0.15s',
         }}>
           Réinitialiser
         </button>
         <button onClick={handleReset} style={{
           height: 28, padding: '0 14px', fontSize: 11, fontWeight: 600, cursor: 'pointer',
-          border: `1px solid rgba(239,68,68,0.3)`, borderRadius: 6,
-          background: 'transparent', color: D.danger, letterSpacing: 0.3,
-          transition: 'all 0.18s',
+          border: `1px solid ${C.danger}`, borderRadius: 4,
+          background: '#fff', color: C.danger, transition: 'all 0.15s',
         }}>
           Annuler
         </button>
         <button onClick={handleEnregistrer} disabled={loading} style={{
           height: 28, padding: '0 18px', fontSize: 11, fontWeight: 700,
-          border: 'none', borderRadius: 6, letterSpacing: 0.5,
-          cursor: loading ? 'not-allowed' : 'pointer', color: '#fff',
+          border: 'none', borderRadius: 4, cursor: loading ? 'not-allowed' : 'pointer',
+          color: '#fff',
           background: loading
-            ? 'rgba(79,156,249,0.15)'
-            : 'linear-gradient(90deg, #1E4DB7 0%, #4F9CF9 35%, #6DBEFF 50%, #4F9CF9 65%, #1E4DB7 100%)',
-          backgroundSize: '300% 100%',
-          boxShadow: loading ? 'none' : '0 4px 20px rgba(79,156,249,0.35)',
-          animation: loading ? 'none' : 'shimmer 2.5s linear infinite',
-          transition: 'box-shadow 0.18s',
+            ? '#9EB3D0'
+            : `linear-gradient(135deg, ${C.accent} 0%, ${C.blue} 100%)`,
+          boxShadow: loading ? 'none' : '0 2px 10px rgba(37,99,235,0.35)',
+          transition: 'all 0.15s',
         }}>
           {loading ? '⟳ Enregistrement...' : '✓ Enregistrer'}
         </button>
@@ -367,17 +341,17 @@ function MarqueModeleModal({ open, onSelect, onCancel }: {
   const filtered = MARQUES.filter(m => m.toLowerCase().includes(search.toLowerCase()))
   return (
     <Modal
-      title={<><CarOutlined style={{ color: '#4F9CF9', marginRight: 6 }} />Sélectionner Marque / Modèle</>}
+      title={<><CarOutlined style={{ color: '#1B3A6B', marginRight: 6 }} />Sélectionner Marque / Modèle</>}
       open={open} onCancel={onCancel} footer={null} width={460}
     >
-      <Input placeholder="Rechercher…" prefix={<SearchOutlined style={{ color: '#4F9CF9' }} />}
+      <Input placeholder="Rechercher…" prefix={<SearchOutlined />}
         value={search} onChange={e => setSearch(e.target.value)}
         style={{ marginBottom: 10 }} autoFocus />
       <div style={{ maxHeight: 320, overflowY: 'auto' }}>
         {filtered.map(m => (
           <div key={m} onClick={() => onSelect(m)}
-            style={{ padding: '7px 10px', cursor: 'pointer', borderRadius: 4, fontSize: 12, color: '#C8D8EA', transition: 'background 0.12s' }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(79,156,249,0.1)')}
+            style={{ padding: '7px 10px', cursor: 'pointer', borderRadius: 3, fontSize: 12, transition: 'background 0.1s' }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#EFF6FF')}
             onMouseLeave={e => (e.currentTarget.style.background  = 'transparent')}>
             {m}
           </div>
@@ -404,14 +378,14 @@ function ParcModal({ open, onSelect, onCancel }: {
       title="Sélectionner le Parc / Zone d'importation"
       open={open} onCancel={onCancel} footer={null} width={440}
     >
-      <Input placeholder="Rechercher…" prefix={<SearchOutlined style={{ color: '#4F9CF9' }} />}
+      <Input placeholder="Rechercher…" prefix={<SearchOutlined />}
         value={search} onChange={e => setSearch(e.target.value)}
         style={{ marginBottom: 10 }} autoFocus />
       <div style={{ maxHeight: 260, overflowY: 'auto' }}>
         {filtered.map(p => (
           <div key={p} onClick={() => onSelect(p)}
-            style={{ padding: '7px 10px', cursor: 'pointer', borderRadius: 4, fontSize: 12, color: '#C8D8EA', transition: 'background 0.12s' }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(79,156,249,0.1)')}
+            style={{ padding: '7px 10px', cursor: 'pointer', borderRadius: 3, fontSize: 12, transition: 'background 0.1s' }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#EFF6FF')}
             onMouseLeave={e => (e.currentTarget.style.background  = 'transparent')}>
             {p}
           </div>

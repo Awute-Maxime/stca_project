@@ -27,7 +27,7 @@ function setupMdiIPC(): void {
       height: payload.height,
       frame: false,
       transparent: false,
-      backgroundColor: '#080f1d',
+      backgroundColor: '#FFFFFF',
       hasShadow: true,
       resizable: true,
       minimizable: true,
