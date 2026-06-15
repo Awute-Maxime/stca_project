@@ -2207,16 +2207,145 @@ function riOpenEditionDocs(type){
 
 // RECHERCHE CHASSIS
 function buildRechChassis(){
-  return`<div style="padding:14px">
-    <div class="sf">
-      <div style="flex:1"><label class="fl" style="color:rgba(255,255,255,.4)">N° Chassis (VIN)</label><input class="fi" id="rc-val" placeholder="Ex: WDB9636032L487321" style="margin-top:3px"></div>
-      <button class="be" onclick="doSearchChassis()">🔍 Rechercher</button>
+  const winId='rechercheChassis';
+  const btnBase='width:100%;padding:5px 6px;font-size:11px;border-radius:4px;cursor:pointer;border:1px solid';
+  return`<div style="display:flex;height:100%;overflow:hidden">
+    <div style="flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden">
+      <!-- Barre recherche -->
+      <div style="display:flex;align-items:center;gap:6px;padding:7px 10px;background:#F8FAFF;border-bottom:1px solid #E2E8F0;flex-shrink:0;flex-wrap:wrap">
+        <label style="font-size:11.5px;color:#374151;white-space:nowrap">N° Chassis (VIN) :</label>
+        <input class="fi" id="rc-num" placeholder="ex: WDB9636032L487321" style="padding:3px 5px;font-size:11px;width:180px;text-transform:uppercase;font-family:'Courier New',monospace" onkeydown="if(event.key==='Enter')doSearchChassis()">
+        <button onclick="doSearchChassis()" class="be" style="padding:4px 12px;font-size:11.5px;display:flex;align-items:center;gap:4px">🔍 Rechercher</button>
+      </div>
+      <!-- Table scrollable -->
+      <div style="flex:1;overflow:auto">
+        <table class="lt" style="width:100%;min-width:680px;table-layout:auto">
+          <thead><tr>
+            <th style="white-space:nowrap">Réf ↕</th>
+            <th style="white-space:nowrap">Nom et prénom ↕</th>
+            <th style="white-space:nowrap">Adresse ↕</th>
+            <th style="white-space:nowrap">Code ↕</th>
+            <th style="white-space:nowrap">Immatriculation ↕</th>
+            <th style="white-space:nowrap">Marque et modèle ↕</th>
+            <th style="white-space:nowrap">N° Chassis ↕</th>
+            <th style="white-space:nowrap">N° de Tri ↕</th>
+          </tr></thead>
+          <tbody id="rc-tbody"><tr><td colspan="8" style="text-align:center;padding:40px;color:#94A3B8;font-style:italic">Entrez un numéro de châssis (VIN) et cliquez sur Rechercher</td></tr></tbody>
+        </table>
+      </div>
+      <!-- Barre statut -->
+      <div style="padding:4px 10px;background:#FFFEF0;border-top:1px solid #E2E8F0;font-size:11px;color:#475569;flex-shrink:0">
+        <span id="rc-status">Nbr de Véhicule(s) : 0</span>
+      </div>
     </div>
-    <div class="sr" id="rc-res" style="display:none">
-      <div class="srt">Résultat de la recherche</div>
-      <div class="srg" id="rc-grid"></div>
+    <!-- Panneau actions droit -->
+    <div style="width:160px;flex-shrink:0;display:flex;flex-direction:column;gap:5px;padding:7px 6px;background:#F8FAFF;border-left:1px solid #E2E8F0;overflow-y:auto">
+      <button onclick="rcOpenEditionDocs('duplicata')" style="${btnBase} #BFDBFE;background:#EFF6FF;color:#1D4ED8;font-weight:700;line-height:1.4;padding:7px 6px">
+        🖨 Rééditer un<br>DUPLICATA
+      </button>
+      <button onclick="rcModifier()" style="${btnBase} #CBD5E1;background:#fff;color:#1E293B;display:flex;align-items:center;justify-content:center;gap:5px">
+        ✏ Modifier
+      </button>
+      <button onclick="rcSupprimer()" style="${btnBase} #FECACA;background:#FFF5F5;color:#DC2626;font-weight:600;display:flex;align-items:center;justify-content:center;gap:5px">
+        ⊖ Supprimer
+      </button>
+      <button onclick="rcOpenEditionDocs('renouvel')" style="${btnBase} #BFDBFE;background:#EFF6FF;color:#1D4ED8;font-weight:700;line-height:1.4;padding:7px 6px">
+        🖨 Rééditer un<br>Renouvellem.
+      </button>
+      <fieldset style="border:1px solid #E2E8F0;border-radius:5px;padding:6px 8px;background:#fff;margin-top:2px">
+        <legend style="font-size:10.5px;font-weight:600;color:#374151;padding:0 3px">Filtrage Frontière</legend>
+        <input type="text" id="rc-fr-filter" class="fi" placeholder="ex: AFO" style="width:100%;padding:3px 5px;font-size:11px;text-transform:uppercase" oninput="rcFilterFr()">
+      </fieldset>
+      <div style="flex:1"></div>
+      <button onclick="closeWin('${winId}')" style="${btnBase} #FECACA;background:#FFF5F5;color:#DC2626;font-weight:600;display:flex;align-items:center;justify-content:center;gap:5px">
+        ✕ Fermer
+      </button>
     </div>
   </div>`;
+}
+
+let _rcSelected=null;
+let _rcResults=[];
+
+function doSearchChassis(){
+  const q=(document.getElementById('rc-num')?.value||'').toUpperCase().trim();
+  if(!q){showWinAlert('Veuillez entrer un numéro de châssis (VIN).','rechercheChassis');return;}
+  _rcResults=VEHICULES.filter(v=>v.chassis.toUpperCase().includes(q));
+  _rcSelected=null;
+  rcRenderResults();
+}
+
+function rcFilterFr(){
+  _rcSelected=null;
+  rcRenderResults();
+}
+
+function rcRenderResults(){
+  const frFilter=(document.getElementById('rc-fr-filter')?.value||'').toUpperCase().trim();
+  const list=frFilter?_rcResults.filter(v=>v.fr===frFilter):_rcResults;
+  const tbody=document.getElementById('rc-tbody');
+  if(tbody)tbody.innerHTML=rcListeRows(list);
+  const st=document.getElementById('rc-status');
+  if(st)st.textContent=`Nbr de Véhicule(s) : ${list.length}`;
+}
+
+function rcListeRows(list){
+  if(!list.length)return`<tr><td colspan="8" style="text-align:center;padding:30px;color:#94A3B8;font-style:italic">Aucun véhicule trouvé</td></tr>`;
+  return list.map(v=>`<tr onclick="rcSelect(this,'${v.ref}')" ondblclick="loadEnreg('${v.ref}')" style="cursor:pointer" title="Double-clic pour modifier">
+    <td style="color:#64748B">${v.ref}</td>
+    <td style="color:#1E293B;font-weight:500">${v.nom||'—'}</td>
+    <td style="color:#475569">${v.resid||'—'}</td>
+    <td style="text-align:center"><span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;color:${destTxt(DEST_COLORS[v.fr])};background:${DEST_COLORS[v.fr]||'#6B7280'}">${v.fr}</span></td>
+    <td><span class="im" style="font-size:10.5px">${v.im}</span></td>
+    <td style="color:#1E293B">${v.marque}</td>
+    <td style="font-family:'Courier New',monospace;font-size:10px;color:#2563EB">${v.chassis}</td>
+    <td style="text-align:center;color:#7C3AED;font-weight:600">${v.tri||'—'}</td>
+  </tr>`).join('');
+}
+
+function rcSelect(tr,ref){
+  document.querySelectorAll('#rc-tbody tr.lv-sel').forEach(r=>r.classList.remove('lv-sel'));
+  tr.classList.add('lv-sel');
+  _rcSelected=ref;
+}
+
+function rcCheckSelection(){
+  if(_rcSelected)return true;
+  const tbody=document.getElementById('rc-tbody');
+  const hasRows=tbody&&tbody.querySelector('td[colspan]')==null&&tbody.children.length>0;
+  const msg=hasRows
+    ?'Veuillez sélectionner un enregistrement<br>dans la liste avant d\'effectuer cette opération.'
+    :'Aucun enregistrement affiché.<br>Entrez un N° de châssis et cliquez sur <strong>Rechercher</strong>,<br>puis choisissez un enregistrement.';
+  showWinAlert(msg,'rechercheChassis');
+  return false;
+}
+
+function rcModifier(){
+  if(!rcCheckSelection())return;
+  loadEnreg(_rcSelected);
+}
+
+function rcSupprimer(){
+  if(!rcCheckSelection())return;
+  showWinConfirm('Voulez-vous supprimer cet enregistrement ?', ()=>{
+    const idx=VEHICULES.findIndex(v=>v.ref===_rcSelected);
+    if(idx!==-1)VEHICULES.splice(idx,1);
+    _rcSelected=null;
+    doSearchChassis();
+    showToast('✅ Enregistrement supprimé',2000);
+  },'rechercheChassis');
+}
+
+function rcOpenEditionDocs(type){
+  if(!rcCheckSelection())return;
+  _editionDocsType=type;
+  const title=document.getElementById('m-edition-docs-title');
+  if(title)title.textContent='Edition Documents : '+(type==='duplicata'?'DUPLICATA':'Renouvel.');
+  const r=document.querySelector('input[name="ed-doc"][value="tous"]');
+  if(r)r.checked=true;
+  const cb=document.getElementById('ed-preview');
+  if(cb)cb.checked=false;
+  document.getElementById('m-edition-docs').classList.add('op');
 }
 
 // AIDE
