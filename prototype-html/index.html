@@ -2064,16 +2064,145 @@ function editionDocsImprimer(){
 
 // RECHERCHE IMMAT
 function buildRechImmat(){
-  return`<div style="padding:14px">
-    <div class="sf">
-      <div style="flex:1"><label class="fl" style="color:rgba(255,255,255,.4)">N° Immatriculation</label><input class="fi" id="ri-val" placeholder="Ex: TG-8821-T" style="margin-top:3px"></div>
-      <button class="be" onclick="doSearchImmat()">🔍 Rechercher</button>
+  const winId='rechercheImmat';
+  const btnBase='width:100%;padding:5px 6px;font-size:11px;border-radius:4px;cursor:pointer;border:1px solid';
+  return`<div style="display:flex;height:100%;overflow:hidden">
+    <div style="flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden">
+      <!-- Barre recherche -->
+      <div style="display:flex;align-items:center;gap:6px;padding:7px 10px;background:#F8FAFF;border-bottom:1px solid #E2E8F0;flex-shrink:0;flex-wrap:wrap">
+        <label style="font-size:11.5px;color:#374151;white-space:nowrap">N° Immatriculation :</label>
+        <input class="fi" id="ri-num" placeholder="ex: A2050" style="padding:3px 5px;font-size:11px;width:120px;text-transform:uppercase" onkeydown="if(event.key==='Enter')doSearchImmat()">
+        <button onclick="doSearchImmat()" class="be" style="padding:4px 12px;font-size:11.5px;display:flex;align-items:center;gap:4px">🔍 Rechercher</button>
+      </div>
+      <!-- Table scrollable -->
+      <div style="flex:1;overflow:auto">
+        <table class="lt" style="width:100%;min-width:680px;table-layout:auto">
+          <thead><tr>
+            <th style="white-space:nowrap">Réf ↕</th>
+            <th style="white-space:nowrap">Nom et prénom ↕</th>
+            <th style="white-space:nowrap">Adresse ↕</th>
+            <th style="white-space:nowrap">Code ↕</th>
+            <th style="white-space:nowrap">Immatriculation ↕</th>
+            <th style="white-space:nowrap">Marque et modèle ↕</th>
+            <th style="white-space:nowrap">N° Chassis ↕</th>
+            <th style="white-space:nowrap">N° de Tri ↕</th>
+          </tr></thead>
+          <tbody id="ri-tbody"><tr><td colspan="8" style="text-align:center;padding:40px;color:#94A3B8;font-style:italic">Entrez un numéro d'immatriculation et cliquez sur Rechercher</td></tr></tbody>
+        </table>
+      </div>
+      <!-- Barre statut -->
+      <div style="padding:4px 10px;background:#FFFEF0;border-top:1px solid #E2E8F0;font-size:11px;color:#475569;flex-shrink:0">
+        <span id="ri-status">Nbr de Véhicule(s) : 0</span>
+      </div>
     </div>
-    <div class="sr" id="ri-res" style="display:none">
-      <div class="srt">Résultat de la recherche</div>
-      <div class="srg" id="ri-grid"></div>
+    <!-- Panneau actions droit -->
+    <div style="width:160px;flex-shrink:0;display:flex;flex-direction:column;gap:5px;padding:7px 6px;background:#F8FAFF;border-left:1px solid #E2E8F0;overflow-y:auto">
+      <button onclick="riOpenEditionDocs('duplicata')" style="${btnBase} #BFDBFE;background:#EFF6FF;color:#1D4ED8;font-weight:700;line-height:1.4;padding:7px 6px">
+        🖨 Rééditer un<br>DUPLICATA
+      </button>
+      <button onclick="riModifier()" style="${btnBase} #CBD5E1;background:#fff;color:#1E293B;display:flex;align-items:center;justify-content:center;gap:5px">
+        ✏ Modifier
+      </button>
+      <button onclick="riSupprimer()" style="${btnBase} #FECACA;background:#FFF5F5;color:#DC2626;font-weight:600;display:flex;align-items:center;justify-content:center;gap:5px">
+        ⊖ Supprimer
+      </button>
+      <button onclick="riOpenEditionDocs('renouvel')" style="${btnBase} #BFDBFE;background:#EFF6FF;color:#1D4ED8;font-weight:700;line-height:1.4;padding:7px 6px">
+        🖨 Rééditer un<br>Renouvellem.
+      </button>
+      <fieldset style="border:1px solid #E2E8F0;border-radius:5px;padding:6px 8px;background:#fff;margin-top:2px">
+        <legend style="font-size:10.5px;font-weight:600;color:#374151;padding:0 3px">Filtrage Frontière</legend>
+        <input type="text" id="ri-fr-filter" class="fi" placeholder="ex: AFO" style="width:100%;padding:3px 5px;font-size:11px;text-transform:uppercase" oninput="riFilterFr()">
+      </fieldset>
+      <div style="flex:1"></div>
+      <button onclick="closeWin('${winId}')" style="${btnBase} #FECACA;background:#FFF5F5;color:#DC2626;font-weight:600;display:flex;align-items:center;justify-content:center;gap:5px">
+        ✕ Fermer
+      </button>
     </div>
   </div>`;
+}
+
+let _riSelected=null;
+let _riResults=[];
+
+function doSearchImmat(){
+  const q=(document.getElementById('ri-num')?.value||'').toUpperCase().trim();
+  if(!q){showWinAlert('Veuillez entrer un numéro d\'immatriculation.','rechercheImmat');return;}
+  _riResults=VEHICULES.filter(v=>v.im.toUpperCase().includes(q));
+  _riSelected=null;
+  riRenderResults();
+}
+
+function riFilterFr(){
+  _riSelected=null;
+  riRenderResults();
+}
+
+function riRenderResults(){
+  const frFilter=(document.getElementById('ri-fr-filter')?.value||'').toUpperCase().trim();
+  const list=frFilter?_riResults.filter(v=>v.fr===frFilter):_riResults;
+  const tbody=document.getElementById('ri-tbody');
+  if(tbody)tbody.innerHTML=riListeRows(list);
+  const st=document.getElementById('ri-status');
+  if(st)st.textContent=`Nbr de Véhicule(s) : ${list.length}`;
+}
+
+function riListeRows(list){
+  if(!list.length)return`<tr><td colspan="8" style="text-align:center;padding:30px;color:#94A3B8;font-style:italic">Aucun véhicule trouvé</td></tr>`;
+  return list.map(v=>`<tr onclick="riSelect(this,'${v.ref}')" ondblclick="loadEnreg('${v.ref}')" style="cursor:pointer" title="Double-clic pour modifier">
+    <td style="color:#64748B">${v.ref}</td>
+    <td style="color:#1E293B;font-weight:500">${v.nom||'—'}</td>
+    <td style="color:#475569">${v.resid||'—'}</td>
+    <td style="text-align:center"><span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;color:${destTxt(DEST_COLORS[v.fr])};background:${DEST_COLORS[v.fr]||'#6B7280'}">${v.fr}</span></td>
+    <td><span class="im" style="font-size:10.5px">${v.im}</span></td>
+    <td style="color:#1E293B">${v.marque}</td>
+    <td style="font-family:'Courier New',monospace;font-size:10px;color:#2563EB">${v.chassis}</td>
+    <td style="text-align:center;color:#7C3AED;font-weight:600">${v.tri||'—'}</td>
+  </tr>`).join('');
+}
+
+function riSelect(tr,ref){
+  document.querySelectorAll('#ri-tbody tr.lv-sel').forEach(r=>r.classList.remove('lv-sel'));
+  tr.classList.add('lv-sel');
+  _riSelected=ref;
+}
+
+function riCheckSelection(){
+  if(_riSelected)return true;
+  const tbody=document.getElementById('ri-tbody');
+  const hasRows=tbody&&tbody.querySelector('td[colspan]')==null&&tbody.children.length>0;
+  const msg=hasRows
+    ?'Veuillez sélectionner un enregistrement<br>dans la liste avant d\'effectuer cette opération.'
+    :'Aucun enregistrement affiché.<br>Entrez un numéro d\'immatriculation et cliquez sur <strong>Rechercher</strong>,<br>puis choisissez un enregistrement.';
+  showWinAlert(msg,'rechercheImmat');
+  return false;
+}
+
+function riModifier(){
+  if(!riCheckSelection())return;
+  loadEnreg(_riSelected);
+}
+
+function riSupprimer(){
+  if(!riCheckSelection())return;
+  showWinConfirm('Voulez-vous supprimer cet enregistrement ?', ()=>{
+    const idx=VEHICULES.findIndex(v=>v.ref===_riSelected);
+    if(idx!==-1)VEHICULES.splice(idx,1);
+    _riSelected=null;
+    doSearchImmat();
+    showToast('✅ Enregistrement supprimé',2000);
+  },'rechercheImmat');
+}
+
+function riOpenEditionDocs(type){
+  if(!riCheckSelection())return;
+  _editionDocsType=type;
+  const title=document.getElementById('m-edition-docs-title');
+  if(title)title.textContent='Edition Documents : '+(type==='duplicata'?'DUPLICATA':'Renouvel.');
+  const r=document.querySelector('input[name="ed-doc"][value="tous"]');
+  if(r)r.checked=true;
+  const cb=document.getElementById('ed-preview');
+  if(cb)cb.checked=false;
+  document.getElementById('m-edition-docs').classList.add('op');
 }
 
 // RECHERCHE CHASSIS
@@ -2414,36 +2543,6 @@ function doImprint(){
   showToast(`🖨 Impression : ${label}${prev?' (avec prévisualisation)':''}`,2500);
 }
 
-// SEARCH
-function doSearchImmat(){
-  const val=document.getElementById('ri-val')?.value.trim().toUpperCase();
-  if(!val)return;
-  const v=VEHICULES.find(x=>x.im.toUpperCase()===val)||VEHICULES[0];
-  const res=document.getElementById('ri-res');
-  const grid=document.getElementById('ri-grid');
-  if(!res||!grid)return;
-  grid.innerHTML=buildResultGrid(v);
-  res.style.display='block';
-}
-function doSearchChassis(){
-  const val=document.getElementById('rc-val')?.value.trim().toUpperCase();
-  if(!val)return;
-  const v=VEHICULES.find(x=>x.chassis.toUpperCase()===val)||VEHICULES[0];
-  const res=document.getElementById('rc-res');
-  const grid=document.getElementById('rc-grid');
-  if(!res||!grid)return;
-  grid.innerHTML=buildResultGrid(v);
-  res.style.display='block';
-}
-function buildResultGrid(v){
-  return[
-    ['N° IMMAT',`<span class="im">${v.im}</span>`],
-    ['Type',v.type],['Marque/Modèle',v.marque],
-    ['N°Châssis',`<span style="font-family:'Courier New',monospace;color:#7EC8E3">${v.chassis}</span>`],
-    ['Frontière',`<span style="font-weight:700;color:${DEST_COLORS[v.fr]||'#2563EB'}">${v.fr}</span>`],
-    ['Agent',v.agent],['Montant',`<span class="gt">${(v.fcfa/1000).toFixed(0)} 000 F</span>`],['Date',v.dt]
-  ].map(([l,val])=>`<div><div class="srl">${l}</div><div class="srv">${val}</div></div>`).join('');
-}
 
 // ══════════════════════════════════════════════════
 // MODAL & TOAST
