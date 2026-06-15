@@ -59,6 +59,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#111;height:100vh;ov
 /* DASHBOARD */
 #dash{position:absolute;inset:0;overflow-y:auto;padding:20px;animation:fadeIn .3s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeInScale{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
 .dg{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
 .sc{background:#fff;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);border:1px solid #F1F5F9;border-left-width:4px;cursor:default;transition:box-shadow .2s,transform .2s}
 .sc:hover{box-shadow:0 6px 22px rgba(0,0,0,.1);transform:translateY(-1px)}
@@ -149,7 +150,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#111;height:100vh;ov
 .lt{width:100%;border-collapse:collapse;font-size:11px}
 .lt th{font-size:9px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.4px;padding:8px;border-bottom:2px solid #E2E8F0;text-align:left;white-space:nowrap;background:#F8FAFF}
 .lt td{padding:8px;color:#1E293B;border-bottom:1px solid #F1F5F9}
-.lt tr:hover td{background:#F8FAFF}
+.lt tr:hover td{background:#F8FAFF}.lt tr.lv-sel td{background:#EFF6FF;border-bottom-color:#BFDBFE}
 .im{font-family:'Courier New',monospace;font-weight:700;color:#D97706;font-size:10.5px;background:#FFF7ED;border:1px solid #FED7AA;padding:2px 6px;border-radius:3px}.gt{color:#16A34A;font-weight:700}
 /* MODAL */
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;z-index:800}
@@ -716,6 +717,114 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#111;height:100vh;ov
   </div>
 </div>
 
+<!-- Edition Documents (DUPLICATA / Renouvellement) -->
+<div class="ov" id="m-edition-docs">
+  <div class="mb2" style="width:340px;padding:0">
+    <div class="mh">
+      <span style="font-size:12px;margin-right:8px">🖨</span>
+      <span class="mht" id="m-edition-docs-title">Edition Documents : DUPLICATA</span>
+      <button class="mhc" onclick="document.getElementById('m-edition-docs').classList.remove('op')">✕</button>
+    </div>
+    <div style="background:#fff;padding:14px 16px">
+      <fieldset style="border:1px solid #CBD5E1;border-radius:6px;padding:10px 14px">
+        <legend style="font-size:11px;font-weight:700;color:#1B3A6B;padding:0 6px">Documents à imprimer</legend>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <!-- Option 1 — Tous (par défaut) -->
+          <label style="display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:4px;background:#EFF6FF;cursor:pointer;font-size:12px;font-weight:700;color:#1B3A6B">
+            <input type="radio" name="ed-doc" value="tous" checked style="accent-color:#2563EB">
+            — Tous (Facture - CG - Assurances) —
+          </label>
+          <div style="height:6px"></div>
+          <label style="display:flex;align-items:center;gap:8px;padding:4px 6px;cursor:pointer;font-size:11.5px;color:#1E293B">
+            <input type="radio" name="ed-doc" value="facture_cg" style="accent-color:#2563EB"> Facture + Carte Grise
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;padding:4px 6px;cursor:pointer;font-size:11.5px;color:#1E293B">
+            <input type="radio" name="ed-doc" value="cg_fiche_id" style="accent-color:#2563EB"> Carte Grise + Fiche ID Jaune
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;padding:4px 6px;cursor:pointer;font-size:11.5px;color:#1E293B">
+            <input type="radio" name="ed-doc" value="toutes_assur" style="accent-color:#2563EB"> Toutes Assurances
+          </label>
+          <hr style="border:none;border-top:1px solid #E2E8F0;margin:4px 0">
+          <label style="display:flex;align-items:center;gap:8px;padding:4px 6px;cursor:pointer;font-size:11.5px;color:#1E293B">
+            <input type="radio" name="ed-doc" value="uniq_facture" style="accent-color:#2563EB"> Uniquement Facture
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;padding:4px 6px;cursor:pointer;font-size:11.5px;color:#1E293B">
+            <input type="radio" name="ed-doc" value="uniq_cg" style="accent-color:#2563EB"> Uniquement Carte Grise
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;padding:4px 6px;cursor:pointer;font-size:11.5px;color:#1E293B">
+            <input type="radio" name="ed-doc" value="uniq_fiche_id" style="accent-color:#2563EB"> Uniquement Fiche ID Jaune
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;padding:4px 6px;cursor:pointer;font-size:11.5px;color:#1E293B">
+            <input type="radio" name="ed-doc" value="feuillet1" style="accent-color:#2563EB"> Feuillet N°1 Assurance (Bleu)
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;padding:4px 6px;cursor:pointer;font-size:11.5px;color:#1E293B">
+            <input type="radio" name="ed-doc" value="feuillet2" style="accent-color:#2563EB"> Feuillet N° 2 Assurance (Rose)
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;padding:4px 6px;cursor:pointer;font-size:11.5px;color:#1E293B">
+            <input type="radio" name="ed-doc" value="feuillet3" style="accent-color:#2563EB"> Feuillet N° 3 Cond. Part. (Blanc A4)
+          </label>
+        </div>
+      </fieldset>
+      <!-- Bas : Prévisualiser + Imprimer -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:#475569;cursor:pointer">
+          <input type="checkbox" id="ed-preview" style="accent-color:#2563EB"> Prévisualiser
+        </label>
+        <button onclick="editionDocsImprimer()" class="be" style="display:flex;align-items:center;gap:6px;padding:6px 18px;font-size:12px;font-weight:700">
+          🖨 Imprimer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Rapport impression Liste Véhicules -->
+<div class="ov" id="m-liste-print">
+  <div class="mb2" style="width:900px;max-height:92vh;display:flex;flex-direction:column;padding:0">
+    <div class="mh">
+      <span style="font-size:12px;margin-right:8px">🖨</span>
+      <span class="mht">Aperçu avant impression — Liste des Véhicules</span>
+      <button class="mhc" onclick="document.getElementById('m-liste-print').classList.remove('op')">✕</button>
+    </div>
+    <!-- Barre outils impression -->
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 16px;background:#F8FAFF;border-bottom:1px solid #E2E8F0;flex-shrink:0">
+      <button onclick="window.print()" class="be" style="display:flex;align-items:center;gap:6px;padding:5px 16px;font-size:12px;font-weight:700">🖨 Lancer l'impression</button>
+      <span style="font-size:11px;color:#94A3B8">|</span>
+      <span style="font-size:11px;color:#475569">A4 Paysage</span>
+      <div style="flex:1"></div>
+      <button onclick="document.getElementById('m-liste-print').classList.remove('op')" class="bc" style="padding:4px 14px;font-size:11.5px">Fermer</button>
+    </div>
+    <!-- Zone rapport -->
+    <div style="flex:1;overflow:auto;background:#E5E7EB;padding:20px">
+      <div id="lp-page" style="background:#fff;width:100%;min-height:500px;padding:28px 32px;box-shadow:0 2px 12px rgba(0,0,0,.12)">
+        <!-- Titre rapport -->
+        <div id="lp-title" style="text-align:center;font-size:13px;font-weight:700;color:#1E293B;background:#F1F5F9;border:1px solid #CBD5E1;padding:8px 16px;margin-bottom:16px"></div>
+        <!-- Table rapport -->
+        <table id="lp-table" style="width:100%;border-collapse:collapse;font-size:10.5px">
+          <thead>
+            <tr style="background:#1B3A6B;color:#fff">
+              <th style="padding:5px 6px;border:1px solid #CBD5E1;white-space:nowrap">Ref</th>
+              <th style="padding:5px 6px;border:1px solid #CBD5E1;white-space:nowrap">Nom et prénom</th>
+              <th style="padding:5px 6px;border:1px solid #CBD5E1;white-space:nowrap">Adresse</th>
+              <th style="padding:5px 6px;border:1px solid #CBD5E1;text-align:center">Code</th>
+              <th style="padding:5px 6px;border:1px solid #CBD5E1;white-space:nowrap">Immatriculation</th>
+              <th style="padding:5px 6px;border:1px solid #CBD5E1;white-space:nowrap">Marque et modèle</th>
+              <th style="padding:5px 6px;border:1px solid #CBD5E1;white-space:nowrap">N° Chassis</th>
+              <th style="padding:5px 6px;border:1px solid #CBD5E1;white-space:nowrap;text-align:center">N° de Tri</th>
+              <th style="padding:5px 6px;border:1px solid #CBD5E1;white-space:nowrap">Parc</th>
+              <th style="padding:5px 6px;border:1px solid #CBD5E1;white-space:nowrap;text-align:center">Date</th>
+              <th style="padding:5px 6px;border:1px solid #CBD5E1;white-space:nowrap;text-align:center">Sortie le</th>
+            </tr>
+          </thead>
+          <tbody id="lp-tbody"></tbody>
+        </table>
+        <!-- Pied de rapport -->
+        <div id="lp-footer" style="margin-top:14px;font-size:11px;color:#1E293B;display:flex;gap:40px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Pin modal -->
 <div class="sm" id="sm-pin">
   <div class="smb">
@@ -767,16 +876,36 @@ const DEST_COLORS={AFO:'#DC2626',CK:'#DC2626',KA:'#DC2626',KE:'#DC2626',TO:'#DC2
 const destTxt=c=>(c==='#FFD700'||c==='#94A3B8')?'#1E293B':'#fff';
 const TYPES=[{t:'Voiture',p:45,c:'#2563EB'},{t:'Camion',p:28,c:'#D97706'},{t:'Moto',p:12,c:'#DC2626'},{t:'Bus',p:8,c:'#16A34A'},{t:'Pick-up',p:5,c:'#7C3AED'},{t:'Minibus',p:2,c:'#0891B2'}];
 const VEHICULES=[
-  {ref:'610268',im:'TG-8822-T',type:'Voiture',marque:'Toyota Corolla',chassis:'JTDKB20U993028741',fr:'AFO',agent:'KOFFI',fcfa:45000,dt:'14/06/2026',nom:'AGBEKO Kofi',resid:'Ghana',paydest:'Ghana',transit:'TRANSIT GHANA LOMÉ',tri:'4521',tridate:'2026-06-14',gainAssur:2264,nPolice:155,assurType:'POOL TPV VT - MOTO'},
-  {ref:'610267',im:'TG-8821-T',type:'Camion',marque:'Mercedes Actros',chassis:'WDB9636032L487321',fr:'CK',agent:'AGBO',fcfa:78000,dt:'14/06/2026',nom:'OUEDRAOGO Moussa',resid:'Burkina Faso',paydest:'Burkina Faso',transit:'TRANSIT OUAGA EXPRESS',tri:'4520',tridate:'2026-06-14',gainAssur:2264,nPolice:125,assurType:'POOL TPV VT - MOTO'},
-  {ref:'610266',im:'TG-8820-T',type:'Voiture',marque:'Honda Civic',chassis:'1HGBH41JXMN109186',fr:'KA',agent:'KOFFI',fcfa:45000,dt:'13/06/2026',nom:'ASANTE Emmanuel',resid:'Ghana',paydest:'Ghana',transit:'TRANS KUMASI',tri:'4518',tridate:'2026-06-13',gainAssur:2264,nPolice:124,assurType:'POOL TPV VT - MOTO'},
-  {ref:'610265',im:'TG-8819-T',type:'Moto',marque:'Yamaha FZ150',chassis:'LBPKB4A35G1234567',fr:'NO',agent:'MENSAH',fcfa:15000,dt:'13/06/2026',nom:'ADJOVI Séna',resid:'Bénin',paydest:'Nigeria',transit:'',tri:'4517',tridate:'2026-06-13',gainAssur:1132,nPolice:123,assurType:'POOL TPV VT - MOTO'},
-  {ref:'610264',im:'TG-8818-T',type:'Camion',marque:'Volvo FH16',chassis:'YV2RT8840TA123456',fr:'KE',agent:'AGBO',fcfa:78000,dt:'12/06/2026',nom:'DIALLO Ibrahima',resid:"Côte d'Ivoire",paydest:"Côte d'Ivoire",transit:'TRANS ABIDJAN',tri:'4515',tridate:'2026-06-12',gainAssur:3396,nPolice:122,assurType:'POOL TPV VT - MOTO'},
-  {ref:'610263',im:'TG-8817-T',type:'Bus',marque:'Toyota Coaster',chassis:'JT111EU8200134567',fr:'KP',agent:'KOFFI',fcfa:55000,dt:'12/06/2026',nom:'SAWADOGO Didier',resid:'Burkina Faso',paydest:'Burkina Faso',transit:'TRANSIT KPALIMÉ',tri:'4514',tridate:'2026-06-12',gainAssur:2830,nPolice:121,assurType:'POOL TPV VT - MOTO'},
-  {ref:'610262',im:'TG-8816-T',type:'Voiture',marque:'Nissan Frontier',chassis:'1N6AD0ER2BC123456',fr:'AFO',agent:'MENSAH',fcfa:45000,dt:'11/06/2026',nom:'BOATENG Kwame',resid:'Ghana',paydest:'Ghana',transit:'TRANS AFLAO',tri:'4512',tridate:'2026-06-11',gainAssur:2264,nPolice:120,assurType:'POOL TPV VT - MOTO'},
-  {ref:'610261',im:'TG-8815-T',type:'Pick-up',marque:'Ford Ranger',chassis:'1FTER1EH9MLD12345',fr:'CK',agent:'AGBO',fcfa:62000,dt:'11/06/2026',nom:'KABORÉ Issouf',resid:'Burkina Faso',paydest:'Burkina Faso',transit:'OUAGA TRANSIT',tri:'4511',tridate:'2026-06-11',gainAssur:2830,nPolice:119,assurType:'POOL TPV VT - MOTO'},
-  {ref:'610260',im:'TG-8814-T',type:'Voiture',marque:'Renault Logan',chassis:'VF1LS1A0H43123456',fr:'NO',agent:'KOFFI',fcfa:45000,dt:'10/06/2026',nom:'BELLO Abdoulaye',resid:'Nigeria',paydest:'Nigeria',transit:'',tri:'4509',tridate:'2026-06-10',gainAssur:2264,nPolice:118,assurType:'POOL TPV VT - MOTO'},
-  {ref:'610259',im:'TG-8813-T',type:'Camion',marque:'Scania R500',chassis:'YS2R4X20002432198',fr:'KW',agent:'MENSAH',fcfa:78000,dt:'10/06/2026',nom:'COULIBALY Adama',resid:"Côte d'Ivoire",paydest:"Côte d'Ivoire",transit:'TRANS WEST',tri:'4508',tridate:'2026-06-10',gainAssur:3396,nPolice:117,assurType:'POOL TPV VT - MOTO'},
+  {ref:'610268',im:'TG-8822-T',type:'Voiture',marque:'Toyota Corolla',chassis:'JTDKB20U993028741',fr:'AFO',agent:'KOFFI',fcfa:45000,dt:'14/06/2026',nom:'AGBEKO Kofi',resid:'Ghana',paydest:'Ghana',transit:'TRANSIT GHANA LOMÉ',tri:'4521',tridate:'2026-06-14',gainAssur:2264,nPolice:155,assurType:'POOL TPV VT - MOTO',sortie:true},
+  {ref:'610267',im:'TG-8821-T',type:'Camion',marque:'Mercedes Actros',chassis:'WDB9636032L487321',fr:'CK',agent:'AGBO',fcfa:78000,dt:'14/06/2026',nom:'OUEDRAOGO Moussa',resid:'Burkina Faso',paydest:'Burkina Faso',transit:'TRANSIT OUAGA EXPRESS',tri:'4520',tridate:'2026-06-14',gainAssur:2264,nPolice:125,assurType:'POOL TPV VT - MOTO',sortie:false},
+  {ref:'610266',im:'TG-8820-T',type:'Voiture',marque:'Honda Civic',chassis:'1HGBH41JXMN109186',fr:'KA',agent:'KOFFI',fcfa:45000,dt:'13/06/2026',nom:'ASANTE Emmanuel',resid:'Ghana',paydest:'Ghana',transit:'TRANS KUMASI',tri:'4518',tridate:'2026-06-13',gainAssur:2264,nPolice:124,assurType:'POOL TPV VT - MOTO',sortie:true},
+  {ref:'610265',im:'TG-8819-T',type:'Moto',marque:'Yamaha FZ150',chassis:'LBPKB4A35G1234567',fr:'NO',agent:'MENSAH',fcfa:15000,dt:'13/06/2026',nom:'ADJOVI Séna',resid:'Bénin',paydest:'Nigeria',transit:'',tri:'4517',tridate:'2026-06-13',gainAssur:1132,nPolice:123,assurType:'POOL TPV VT - MOTO',sortie:false},
+  {ref:'610264',im:'TG-8818-T',type:'Camion',marque:'Volvo FH16',chassis:'YV2RT8840TA123456',fr:'KE',agent:'AGBO',fcfa:78000,dt:'12/06/2026',nom:'DIALLO Ibrahima',resid:"Côte d'Ivoire",paydest:"Côte d'Ivoire",transit:'TRANS ABIDJAN',tri:'4515',tridate:'2026-06-12',gainAssur:3396,nPolice:122,assurType:'POOL TPV VT - MOTO',sortie:false},
+  {ref:'610263',im:'TG-8817-T',type:'Bus',marque:'Toyota Coaster',chassis:'JT111EU8200134567',fr:'KP',agent:'KOFFI',fcfa:55000,dt:'12/06/2026',nom:'SAWADOGO Didier',resid:'Burkina Faso',paydest:'Burkina Faso',transit:'TRANSIT KPALIMÉ',tri:'4514',tridate:'2026-06-12',gainAssur:2830,nPolice:121,assurType:'POOL TPV VT - MOTO',sortie:true},
+  {ref:'610262',im:'TG-8816-T',type:'Voiture',marque:'Nissan Frontier',chassis:'1N6AD0ER2BC123456',fr:'AFO',agent:'MENSAH',fcfa:45000,dt:'11/06/2026',nom:'BOATENG Kwame',resid:'Ghana',paydest:'Ghana',transit:'TRANS AFLAO',tri:'4512',tridate:'2026-06-11',gainAssur:2264,nPolice:120,assurType:'POOL TPV VT - MOTO',sortie:false},
+  {ref:'610261',im:'TG-8815-T',type:'Pick-up',marque:'Ford Ranger',chassis:'1FTER1EH9MLD12345',fr:'CK',agent:'AGBO',fcfa:62000,dt:'11/06/2026',nom:'KABORÉ Issouf',resid:'Burkina Faso',paydest:'Burkina Faso',transit:'OUAGA TRANSIT',tri:'4511',tridate:'2026-06-11',gainAssur:2830,nPolice:119,assurType:'POOL TPV VT - MOTO',sortie:false},
+  {ref:'610260',im:'TG-8814-T',type:'Voiture',marque:'Renault Logan',chassis:'VF1LS1A0H43123456',fr:'NO',agent:'KOFFI',fcfa:45000,dt:'10/06/2026',nom:'BELLO Abdoulaye',resid:'Nigeria',paydest:'Nigeria',transit:'',tri:'4509',tridate:'2026-06-10',gainAssur:2264,nPolice:118,assurType:'POOL TPV VT - MOTO',sortie:false},
+  {ref:'610259',im:'TG-8813-T',type:'Camion',marque:'Scania R500',chassis:'YS2R4X20002432198',fr:'KW',agent:'MENSAH',fcfa:78000,dt:'10/06/2026',nom:'COULIBALY Adama',resid:"Côte d'Ivoire",paydest:"Côte d'Ivoire",transit:'TRANS WEST',tri:'4508',tridate:'2026-06-10',gainAssur:3396,nPolice:117,assurType:'POOL TPV VT - MOTO',sortie:false},
+  {ref:'610258',im:'TG-8812-T',type:'Voiture',marque:'Peugeot 308',chassis:'VF3LBHZTXJS123456',fr:'AFO',agent:'AMEKO',fcfa:45000,dt:'15/06/2026',nom:'DARKO Prince',resid:'Ghana',paydest:'Ghana',transit:'TRANS AFLAO GOLD',tri:'4522',tridate:'2026-06-15',gainAssur:2264,nPolice:156,assurType:'POOL TPV VT - MOTO',sortie:false},
+  {ref:'610257',im:'TG-8811-T',type:'Camion',marque:'MAN TGX',chassis:'WMA06XZZ8CM123456',fr:'CK',agent:'DOSSOU',fcfa:78000,dt:'15/06/2026',nom:'TRAORÉ Salif',resid:'Burkina Faso',paydest:'Burkina Faso',transit:'OUAGA TRANSPORT',tri:'4523',tridate:'2026-06-15',gainAssur:3396,nPolice:157,assurType:'POOL TPV VT - MOTO',sortie:false},
+  {ref:'610256',im:'TG-8810-T',type:'Minibus',marque:'Toyota HiAce',chassis:'JTFSK22P000123456',fr:'NO',agent:'KOFFI',fcfa:55000,dt:'15/06/2026',nom:'ABUBAKAR Sani',resid:'Nigeria',paydest:'Nigeria',transit:'LAGOS EXPRESS',tri:'4524',tridate:'2026-06-15',gainAssur:2830,nPolice:158,assurType:'POOL TPV VT - MOTO',sortie:false},
+  {ref:'610255',im:'TG-8809-T',type:'Pick-up',marque:'Toyota Hilux',chassis:'AHTFB3CD9J5123456',fr:'TO',agent:'AGBO',fcfa:62000,dt:'09/06/2026',nom:'KONÉ Mamadou',resid:"Côte d'Ivoire",paydest:"Côte d'Ivoire",transit:'ABIDJAN TRANSIT',tri:'4506',tridate:'2026-06-09',gainAssur:2830,nPolice:116,assurType:'POOL TPV VT - MOTO',sortie:true},
+  {ref:'610254',im:'TG-8808-T',type:'Voiture',marque:'Hyundai Elantra',chassis:'5NPDH4AE3FH123456',fr:'KA',agent:'MENSAH',fcfa:45000,dt:'09/06/2026',nom:'APPIAH George',resid:'Ghana',paydest:'Ghana',transit:'KUMASI TRANS',tri:'4505',tridate:'2026-06-09',gainAssur:2264,nPolice:115,assurType:'POOL TPV VT - MOTO',sortie:true},
+  {ref:'610253',im:'TG-8807-T',type:'Camion',marque:'Iveco Stralis',chassis:'WJMM2BXXA2Y123456',fr:'KW',agent:'AMEKO',fcfa:78000,dt:'09/06/2026',nom:'TOURÉ Seydou',resid:"Côte d'Ivoire",paydest:"Côte d'Ivoire",transit:'TRANS WEST PLUS',tri:'4504',tridate:'2026-06-09',gainAssur:3396,nPolice:114,assurType:'POOL TPV VT - MOTO',sortie:false},
+  {ref:'610252',im:'TG-8806-T',type:'Bus',marque:'Mercedes Sprinter',chassis:'WD3PE8CC7G5123456',fr:'KP',agent:'DOSSOU',fcfa:55000,dt:'08/06/2026',nom:'COMPAORÉ Jules',resid:'Burkina Faso',paydest:'Burkina Faso',transit:'KPALIMÉ VOYAGES',tri:'4502',tridate:'2026-06-08',gainAssur:2830,nPolice:113,assurType:'POOL TPV VT - MOTO',sortie:true},
+  {ref:'610251',im:'TG-8805-T',type:'Voiture',marque:'Kia Rio',chassis:'KNADN4A33G6123456',fr:'AFO',agent:'KOFFI',fcfa:45000,dt:'08/06/2026',nom:'OWUSU Michael',resid:'Ghana',paydest:'Ghana',transit:'GHANA LINK',tri:'4501',tridate:'2026-06-08',gainAssur:2264,nPolice:112,assurType:'POOL TPV VT - MOTO',sortie:false},
+  {ref:'610250',im:'TG-8804-T',type:'Moto',marque:'Honda CB500',chassis:'MLHJC7110G5123456',fr:'NO',agent:'AGBO',fcfa:15000,dt:'08/06/2026',nom:'IBRAHIM Hassan',resid:'Nigeria',paydest:'Nigeria',transit:'',tri:'4500',tridate:'2026-06-08',gainAssur:1132,nPolice:111,assurType:'POOL TPV VT - MOTO',sortie:false},
+  {ref:'610249',im:'TG-8803-T',type:'Camion',marque:'Volvo FM',chassis:'YV2AG8410NB123456',fr:'CK',agent:'MENSAH',fcfa:90000,dt:'07/06/2026',nom:'OUEDRAOGO Rasmané',resid:'Burkina Faso',paydest:'Burkina Faso',transit:'TRANS BOBO',tri:'4498',tridate:'2026-06-07',gainAssur:3396,nPolice:110,assurType:'POOL TPV VT - MOTO',sortie:true},
+  {ref:'610248',im:'TG-8802-T',type:'Pick-up',marque:'Nissan Navara',chassis:'JN1BBUD21Z0123456',fr:'KE',agent:'AMEKO',fcfa:62000,dt:'07/06/2026',nom:'HOUSSOU Romain',resid:'Bénin',paydest:'Bénin',transit:'COTONOU TRANSIT',tri:'4497',tridate:'2026-06-07',gainAssur:2830,nPolice:109,assurType:'POOL TPV VT - MOTO',sortie:false},
+  {ref:'610247',im:'TG-8801-T',type:'Voiture',marque:'Volkswagen Polo',chassis:'WVWZZZ6RZGY123456',fr:'TO',agent:'DOSSOU',fcfa:45000,dt:'07/06/2026',nom:'AHOUANSOU Cédric',resid:'Bénin',paydest:'Bénin',transit:'BENIN ROUTE',tri:'4496',tridate:'2026-06-07',gainAssur:2264,nPolice:108,assurType:'POOL TPV VT - MOTO',sortie:false},
+  {ref:'610246',im:'TG-8800-T',type:'Camion',marque:'DAF XF',chassis:'XLR0470000E123456',fr:'AFO',agent:'KOFFI',fcfa:78000,dt:'06/06/2026',nom:'MENSAH Kweku',resid:'Ghana',paydest:'Ghana',transit:'ACCRA LINK',tri:'4494',tridate:'2026-06-06',gainAssur:3396,nPolice:107,assurType:'POOL TPV VT - MOTO',sortie:true},
+  {ref:'610245',im:'TG-8799-T',type:'Minibus',marque:'Ford Transit',chassis:'WF0XXXTTGXKR12345',fr:'KA',agent:'AGBO',fcfa:55000,dt:'06/06/2026',nom:'ASANTE Nana',resid:'Ghana',paydest:'Ghana',transit:'KUMASI GOLD',tri:'4493',tridate:'2026-06-06',gainAssur:2830,nPolice:106,assurType:'POOL TPV VT - MOTO',sortie:false},
+  {ref:'610244',im:'TG-8798-T',type:'Voiture',marque:'Suzuki Swift',chassis:'JS3RK415174123456',fr:'KP',agent:'MENSAH',fcfa:45000,dt:'06/06/2026',nom:'SAWADOGO Fatou',resid:'Burkina Faso',paydest:'Burkina Faso',transit:'KPALIMÉ EXPRESS',tri:'4492',tridate:'2026-06-06',gainAssur:2264,nPolice:105,assurType:'POOL TPV VT - MOTO',sortie:false},
+  {ref:'610243',im:'TG-8797-T',type:'Moto',marque:'Yamaha MT-07',chassis:'LBPKE7A25H1123456',fr:'NO',agent:'DOSSOU',fcfa:15000,dt:'05/06/2026',nom:'MUSA Aliyu',resid:'Nigeria',paydest:'Nigeria',transit:'',tri:'4490',tridate:'2026-06-05',gainAssur:1132,nPolice:104,assurType:'POOL TPV VT - MOTO',sortie:true},
+  {ref:'610242',im:'TG-8796-T',type:'Camion',marque:'Renault Trucks T',chassis:'VF621GHA000123456',fr:'CK',agent:'AMEKO',fcfa:78000,dt:'05/06/2026',nom:'KABORÉ Raogo',resid:'Burkina Faso',paydest:'Burkina Faso',transit:'OUAGA NORD',tri:'4489',tridate:'2026-06-05',gainAssur:3396,nPolice:103,assurType:'POOL TPV VT - MOTO',sortie:false},
+  {ref:'610241',im:'TG-8795-T',type:'Voiture',marque:'Toyota RAV4',chassis:'JTMRFREV4HJ123456',fr:'KW',agent:'KOFFI',fcfa:45000,dt:'04/06/2026',nom:'COULIBALY Lassina',resid:"Côte d'Ivoire",paydest:"Côte d'Ivoire",transit:'TRANS OUEST CI',tri:'4487',tridate:'2026-06-04',gainAssur:2264,nPolice:102,assurType:'POOL TPV VT - MOTO',sortie:false},
+  {ref:'610240',im:'TG-8794-T',type:'Bus',marque:'Isuzu NQR',chassis:'JALB5B16677123456',fr:'KE',agent:'AGBO',fcfa:55000,dt:'04/06/2026',nom:'DIALLO Fatoumata',resid:"Côte d'Ivoire",paydest:"Côte d'Ivoire",transit:'ABIDJAN CARS',tri:'4486',tridate:'2026-06-04',gainAssur:2830,nPolice:101,assurType:'POOL TPV VT - MOTO',sortie:true},
+  {ref:'610239',im:'TG-8793-T',type:'Pick-up',marque:'Mitsubishi L200',chassis:'MMBJNKB70GD123456',fr:'TO',agent:'MENSAH',fcfa:62000,dt:'03/06/2026',nom:'GBEDJI Arnaud',resid:'Bénin',paydest:'Bénin',transit:'PORTO-NOVO TRANS',tri:'4484',tridate:'2026-06-03',gainAssur:2830,nPolice:100,assurType:'POOL TPV VT - MOTO',sortie:false},
 ];
 const WIN_CFG={
   'enregistrement':{title:'Enregistrement des véhicules',ico:'📄',x:160,y:30,w:980,h:600},
@@ -897,6 +1026,7 @@ function openWin(id){
   makeDraggable(win,tb);
   win.addEventListener('mousedown',()=>bringToFront(id));
   if(id==='enregistrement')initEnreg();
+  if(id==='listeVehicules'||id==='enregistrements.listeChassis')doSearchListe();
 }
 function closeWin(id){
   const w=S.wins[id];if(!w)return;
@@ -932,7 +1062,7 @@ function makeDraggable(win,handle){
 function buildWinContent(id){
   if(id==='enregistrement')return buildEnreg();
   if(id==='destination'||id==='outils.paramDestinations')return buildDest();
-  if(id==='listeVehicules'||id==='enregistrements.listeChassis')return buildListe();
+  if(id==='listeVehicules'||id==='enregistrements.listeChassis')return buildListe(id);
   if(id==='rechercheImmat')return buildRechImmat();
   if(id==='rechercheChassis')return buildRechChassis();
   if(id==='aide.copyright')return buildCopyright();
@@ -952,7 +1082,7 @@ function buildEnreg(){
   <!-- Inner sub-header blanc cassé -->
   <div style="background:#F5F3EE;border-bottom:2px solid #E2D9C8;padding:9px 14px;display:flex;align-items:center;flex-shrink:0">
     <span style="font-size:12px;margin-right:8px">📄</span>
-    <span style="color:#1B3A6B;font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;flex:1">Enregistrement des Véhicules</span>
+    <span id="er-subheader-text" style="color:#1B3A6B;font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;flex:1">Enregistrement des Véhicules</span>
     <div style="display:flex;align-items:center;gap:4px">
       <span style="width:8px;height:8px;border-radius:50%;background:#2563EB;display:inline-block"></span>
       <span style="width:8px;height:8px;border-radius:50%;background:#2563EB;display:inline-block"></span>
@@ -1076,6 +1206,11 @@ function buildEnreg(){
     <button class="bs" onclick="doResetEnreg()">Réinitialiser</button>
     <button class="bs" onclick="closeWin('enregistrement')" style="border-color:#DC2626;color:#DC2626">Annuler</button>
     <button class="be" id="er-btn" onclick="doEnreg()" disabled>💾 Enregistrer</button>
+  </div>
+  <!-- Action bar — mode Modification (masquée par défaut) -->
+  <div id="er-ab-edit" style="display:none;justify-content:flex-end;gap:8px;padding:9px 14px;border-top:1px solid #E2E8F0;background:#FFF7ED;flex-shrink:0">
+    <button class="bs" onclick="erSetNewMode();closeWin('enregistrement')" style="border-color:#DC2626;color:#DC2626">✕ Fermer</button>
+    <button class="be" id="er-btn-edit" onclick="doModifyEnreg()" style="background:#D97706;border-color:#D97706">✏ Modifier</button>
   </div>
 </div>`;
 }
@@ -1625,26 +1760,306 @@ function printAssurGain(){
 }
 
 // LISTE VÉHICULES
-function buildListe(){
-  let rows=VEHICULES.map(v=>`<tr ondblclick="loadEnreg('${v.ref}')" title="Double-clic pour modifier" style="cursor:pointer">
-    <td style="color:#64748B">${v.ref}</td>
-    <td><span class="im">${v.im}</span></td>
-    <td style="color:#1E293B">${v.type}</td>
-    <td style="color:#1E293B">${v.marque}</td>
-    <td style="font-family:'Courier New',monospace;font-size:10px;color:#2563EB">${v.chassis.substring(0,10)}...</td>
-    <td><span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;color:${destTxt(DEST_COLORS[v.fr])};background:${DEST_COLORS[v.fr]||'#2563EB'}">${v.fr}</span></td>
-    <td style="color:#475569">${v.agent}</td>
-    <td style="color:#16A34A;font-weight:600">${(v.fcfa).toLocaleString('fr-FR')} F</td>
-    <td style="color:#64748B">${v.dt}</td>
-  </tr>`).join('');
-  return`<div style="padding:12px">
-    <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
-      <input class="fi" style="flex:1" placeholder="🔍 Rechercher par nom, IMMAT, châssis...">
-      <select class="fs2" style="width:140px"><option>Toutes frontières</option>${DESTS.map(d=>`<option>${d.code}</option>`).join('')}</select>
-      <span style="font-size:10px;color:#94A3B8;white-space:nowrap">💡 Double-clic pour modifier</span>
+function buildListe(winId){
+  winId=winId||'listeVehicules';
+  const today=new Date().toISOString().split('T')[0];
+  const btnBase='width:100%;padding:5px 6px;font-size:11px;border-radius:4px;cursor:pointer;border:1px solid';
+  return`<div style="display:flex;height:100%;overflow:hidden">
+    <!-- Zone principale gauche -->
+    <div style="flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden">
+      <!-- Barre filtres date -->
+      <div style="display:flex;align-items:center;gap:6px;padding:7px 10px;background:#F8FAFF;border-bottom:1px solid #E2E8F0;flex-shrink:0;flex-wrap:wrap">
+        <label style="font-size:11.5px;color:#374151;white-space:nowrap">Date Début :</label>
+        <input type="date" id="lv-from" class="fi" value="${today}" style="padding:3px 5px;font-size:11px;width:126px">
+        <span style="color:#94A3B8;font-weight:700">&gt;&gt;</span>
+        <label style="font-size:11.5px;color:#374151;white-space:nowrap">Date Fin :</label>
+        <input type="date" id="lv-to" class="fi" value="${today}" style="padding:3px 5px;font-size:11px;width:126px">
+        <button onclick="doSearchListe()" class="be" style="padding:4px 12px;font-size:11.5px;display:flex;align-items:center;gap:4px">🔍 Rechercher</button>
+      </div>
+      <!-- Table scrollable -->
+      <div style="flex:1;overflow:auto">
+        <table class="lt" style="width:100%;min-width:720px;table-layout:auto">
+          <thead><tr>
+            <th style="white-space:nowrap">Réf ↕</th>
+            <th style="white-space:nowrap">Nom et prénom ↕</th>
+            <th style="white-space:nowrap">Adresse ↕</th>
+            <th style="white-space:nowrap">Code ↕</th>
+            <th style="white-space:nowrap">Immatriculation ↕</th>
+            <th style="white-space:nowrap">Marque et modèle ↕</th>
+            <th style="white-space:nowrap">N° Chassis ↕</th>
+            <th style="white-space:nowrap">N° de Tri ↕</th>
+            <th style="white-space:nowrap">Sortant du pays ↕</th>
+          </tr></thead>
+          <tbody id="lv-tbody"></tbody>
+        </table>
+      </div>
+      <!-- Barre statut -->
+      <div style="padding:4px 10px;background:#FFFEF0;border-top:1px solid #E2E8F0;font-size:11px;color:#475569;flex-shrink:0">
+        <span id="lv-status">Nbr de Véhicule(s) : 0 &nbsp;-&nbsp; Nbr de Véhicule(s) Sortie(s) : 0</span>
+      </div>
     </div>
-    <table class="lt"><thead><tr><th>Réf.</th><th>N° IMMAT</th><th>Type</th><th>Marque/Modèle</th><th>N°Châssis</th><th>Frontière</th><th>Agent</th><th>Montant</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table>
+    <!-- Panneau actions droit -->
+    <div style="width:160px;flex-shrink:0;display:flex;flex-direction:column;gap:5px;padding:7px 6px;background:#F8FAFF;border-left:1px solid #E2E8F0;overflow-y:auto">
+      <!-- Rééditer DUPLICATA -->
+      <button onclick="openEditionDocs('duplicata')" style="${btnBase} #BFDBFE;background:#EFF6FF;color:#1D4ED8;font-weight:700;line-height:1.4;padding:7px 6px">
+        🖨 Rééditer un<br>DUPLICATA
+      </button>
+      <!-- Rééditer Renouvellement -->
+      <button onclick="openEditionDocs('renouvel')" style="${btnBase} #BFDBFE;background:#EFF6FF;color:#1D4ED8;font-weight:700;line-height:1.4;padding:7px 6px">
+        🖨 Rééditer un<br>Renouvellem.
+      </button>
+      <!-- Modifier -->
+      <button onclick="lvModifier()" style="${btnBase} #CBD5E1;background:#fff;color:#1E293B;display:flex;align-items:center;justify-content:center;gap:5px">
+        ✏ Modifier
+      </button>
+      <!-- Imprimer -->
+      <button onclick="lvImprimer()" style="${btnBase} #CBD5E1;background:#fff;color:#1E293B;display:flex;align-items:center;justify-content:center;gap:5px">
+        🖨 Imprimer
+      </button>
+      <!-- Supprimer -->
+      <button onclick="lvSupprimer()" style="${btnBase} #FECACA;background:#FFF5F5;color:#DC2626;font-weight:600;display:flex;align-items:center;justify-content:center;gap:5px">
+        ⊖ Supprimer
+      </button>
+      <!-- Filtrage Pointage -->
+      <fieldset style="border:1px solid #E2E8F0;border-radius:5px;padding:6px 8px;background:#fff;margin-top:2px">
+        <legend style="font-size:10.5px;font-weight:600;color:#374151;padding:0 3px">Filtrage Pointage</legend>
+        <label style="display:block;font-size:11px;cursor:pointer;margin-bottom:3px"><input type="radio" name="lv-pointage" value="sortie" onchange="doSearchListe()" style="accent-color:#2563EB"> Sortie</label>
+        <label style="display:block;font-size:11px;cursor:pointer;margin-bottom:3px"><input type="radio" name="lv-pointage" value="non_sortie" onchange="doSearchListe()" style="accent-color:#2563EB"> NON sortie</label>
+        <label style="display:block;font-size:11px;cursor:pointer"><input type="radio" name="lv-pointage" value="toutes" checked onchange="doSearchListe()" style="accent-color:#2563EB"> Toutes</label>
+      </fieldset>
+      <!-- Filtrage Frontière -->
+      <fieldset style="border:1px solid #E2E8F0;border-radius:5px;padding:6px 8px;background:#fff">
+        <legend style="font-size:10.5px;font-weight:600;color:#374151;padding:0 3px">Filtrage Frontière</legend>
+        <input type="text" id="lv-fr-filter" class="fi" placeholder="ex: AFO" style="width:100%;padding:3px 5px;font-size:11px;text-transform:uppercase" oninput="doSearchListe()">
+      </fieldset>
+      <!-- Spacer -->
+      <div style="flex:1"></div>
+      <!-- NON Sortie -->
+      <button onclick="lvNonSortie()" style="${btnBase} #FED7AA;background:#FFF7ED;color:#C2410C;font-weight:700">
+        NON Sortie 🔶
+      </button>
+      <!-- Fermer -->
+      <button onclick="closeWin('${winId}')" style="${btnBase} #CBD5E1;background:#F1F5F9;color:#475569;font-weight:600;display:flex;align-items:center;justify-content:center;gap:5px">
+        ✕ Fermer
+      </button>
+    </div>
   </div>`;
+}
+
+function lvListeRows(list){
+  if(!list.length)return`<tr><td colspan="9" style="text-align:center;padding:30px;color:#94A3B8;font-style:italic">Aucun véhicule trouvé</td></tr>`;
+  return list.map(v=>`<tr onclick="lvSelect(this,'${v.ref}')" ondblclick="loadEnreg('${v.ref}')" style="cursor:pointer" title="Double-clic pour modifier">
+    <td style="color:#64748B">${v.ref}</td>
+    <td style="color:#1E293B;font-weight:500">${v.nom||'—'}</td>
+    <td style="color:#475569">${v.resid||'—'}</td>
+    <td style="text-align:center"><span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;color:${destTxt(DEST_COLORS[v.fr])};background:${DEST_COLORS[v.fr]||'#6B7280'}">${v.fr}</span></td>
+    <td><span class="im" style="font-size:10.5px">${v.im}</span></td>
+    <td style="color:#1E293B">${v.marque}</td>
+    <td style="font-family:'Courier New',monospace;font-size:10px;color:#2563EB">${v.chassis}</td>
+    <td style="text-align:center;color:#7C3AED;font-weight:600">${v.tri||'—'}</td>
+    <td style="text-align:center">${v.sortie?'<span style="color:#16A34A;font-weight:700;font-size:13px">✓ Sorti</span>':'<span style="color:#CBD5E1">—</span>'}</td>
+  </tr>`).join('');
+}
+
+let _lvSelected=null;
+function lvSelect(tr,ref){
+  document.querySelectorAll('#lv-tbody tr.lv-sel').forEach(r=>r.classList.remove('lv-sel'));
+  tr.classList.add('lv-sel');
+  _lvSelected=ref;
+}
+
+function doSearchListe(){
+  const from=document.getElementById('lv-from')?.value||'';
+  const to=document.getElementById('lv-to')?.value||'';
+  const frFilter=(document.getElementById('lv-fr-filter')?.value||'').toUpperCase().trim();
+  const ptq=document.querySelector('input[name="lv-pointage"]:checked')?.value||'toutes';
+  let list=VEHICULES.filter(v=>{
+    const d=dmyToISO(v.dt);
+    if(from&&d<from)return false;
+    if(to&&d>to)return false;
+    if(frFilter&&v.fr!==frFilter)return false;
+    if(ptq==='sortie'&&!v.sortie)return false;
+    if(ptq==='non_sortie'&&v.sortie)return false;
+    return true;
+  });
+  const tbody=document.getElementById('lv-tbody');
+  if(tbody)tbody.innerHTML=lvListeRows(list);
+  const sorties=list.filter(v=>v.sortie).length;
+  const st=document.getElementById('lv-status');
+  if(st)st.textContent=`Nbr de Véhicule(s) : ${list.length}  -  Nbr de Véhicule(s) Sortie(s) : ${sorties}`;
+}
+
+// ══════════════════════════════════════════════════
+// ALERTE CENTRÉE — réutilisable dans toute fenêtre MDI
+// showWinAlert(msg)          → fenêtre MDI active
+// showWinAlert(msg, 'winId') → fenêtre MDI spécifique
+// showWinAlert(msg, domEl)   → élément DOM quelconque
+// showWinConfirm(msg, onOui, target) — dialogue Oui/Non centré dans une fenêtre MDI
+let _confirmCb=null;
+function _runConfirm(){const ID='g-win-confirm';document.getElementById(ID)?.remove();if(_confirmCb){_confirmCb();_confirmCb=null;}}
+function showWinConfirm(msg, onOui, target){
+  const ID='g-win-confirm';
+  document.getElementById(ID)?.remove();
+  _confirmCb=onOui;
+  let container;
+  if(!target){const activeId=S.activeWin;container=activeId?document.getElementById('win-'+activeId):document.querySelector('.mw');}
+  else if(typeof target==='string'){container=document.getElementById('win-'+target)||document.getElementById(target);}
+  else{container=target;}
+  if(!container)return;
+  if(getComputedStyle(container).position==='static')container.style.position='relative';
+  const el=document.createElement('div');
+  el.id=ID;
+  el.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:9999;pointer-events:none';
+  el.innerHTML=`<div style="pointer-events:auto;background:#fff;border:1px solid #CBD5E1;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.18);padding:24px 32px;max-width:360px;text-align:center;animation:fadeInScale .18s ease">
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px">
+      <span style="font-size:32px;line-height:1">⚠️</span>
+      <span style="font-size:13px;font-weight:600;color:#1E293B;line-height:1.5;text-align:left">${msg}</span>
+    </div>
+    <div style="display:flex;justify-content:center;gap:12px">
+      <button onclick="_runConfirm()" style="padding:6px 28px;background:#2563EB;color:#fff;border:none;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer">Oui</button>
+      <button onclick="document.getElementById('${ID}')?.remove();_confirmCb=null" style="padding:6px 28px;background:#F1F5F9;color:#1E293B;border:1px solid #CBD5E1;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer">Non</button>
+    </div>
+  </div>`;
+  container.appendChild(el);
+}
+
+// ══════════════════════════════════════════════════
+function showWinAlert(msg, target){
+  const ALERT_ID='g-win-alert';
+  document.getElementById(ALERT_ID)?.remove();
+  // Résoudre le conteneur
+  let container;
+  if(!target){
+    // Fenêtre active ou première fenêtre ouverte
+    const activeId=S.activeWin;
+    container=activeId?document.getElementById('win-'+activeId):null;
+    if(!container)container=document.querySelector('.mw');
+  } else if(typeof target==='string'){
+    container=document.getElementById('win-'+target)||document.getElementById(target);
+  } else {
+    container=target;
+  }
+  if(!container)return;
+  // S'assurer que le conteneur est positionné
+  const pos=getComputedStyle(container).position;
+  if(pos==='static')container.style.position='relative';
+  const el=document.createElement('div');
+  el.id=ALERT_ID;
+  el.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:9999;pointer-events:none';
+  el.innerHTML=`<div style="pointer-events:auto;background:#fff;border:2px solid #F59E0B;border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,.2);padding:22px 32px;max-width:380px;text-align:center;animation:fadeInScale .18s ease">
+    <div style="font-size:28px;margin-bottom:8px">⚠️</div>
+    <div style="font-size:12.5px;color:#1E293B;font-weight:600;line-height:1.7">${msg}</div>
+    <button onclick="document.getElementById('${ALERT_ID}')?.remove()" style="margin-top:14px;padding:5px 22px;background:#F59E0B;color:#fff;border:none;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer">OK</button>
+  </div>`;
+  container.appendChild(el);
+  setTimeout(()=>el.remove(),4000);
+}
+
+function lvImprimer(){
+  const tbody=document.getElementById('lv-tbody');
+  const hasRows=tbody&&tbody.querySelector('td[colspan]')==null&&tbody.children.length>0;
+  if(!hasRows){
+    showWinAlert('Aucun enregistrement à imprimer.<br>Sélectionnez une période et cliquez sur <strong>Rechercher</strong>.','listeVehicules');
+    return;
+  }
+  // Lire la liste filtrée actuelle
+  const from=document.getElementById('lv-from')?.value||'';
+  const to=document.getElementById('lv-to')?.value||'';
+  const frFilter=(document.getElementById('lv-fr-filter')?.value||'').toUpperCase().trim();
+  const ptq=document.querySelector('input[name="lv-pointage"]:checked')?.value||'toutes';
+  const list=VEHICULES.filter(v=>{
+    const d=dmyToISO(v.dt);
+    if(from&&d<from)return false;
+    if(to&&d>to)return false;
+    if(frFilter&&v.fr!==frFilter)return false;
+    if(ptq==='sortie')return false;
+    return true;
+  });
+  // Formater les dates pour le titre
+  const fmtISO=s=>{if(!s)return'—';const[y,m,d]=s.split('-');return`${d}/${m}/${y}`;};
+  document.getElementById('lp-title').textContent=
+    `Liste des véhicules enregistrés pour la période du : ${fmtISO(from)}  au  ${fmtISO(to)}`;
+  // Remplir la table
+  document.getElementById('lp-tbody').innerHTML=list.map((v,i)=>`
+    <tr style="background:${i%2===0?'#fff':'#F8FAFF'}">
+      <td style="padding:4px 6px;border:1px solid #E2E8F0">${v.ref}</td>
+      <td style="padding:4px 6px;border:1px solid #E2E8F0;font-weight:500">${v.nom||'—'}</td>
+      <td style="padding:4px 6px;border:1px solid #E2E8F0">${v.resid||'—'}</td>
+      <td style="padding:4px 6px;border:1px solid #E2E8F0;text-align:center;font-weight:700;color:${destTxt(DEST_COLORS[v.fr])};background:${DEST_COLORS[v.fr]||'#6B7280'}">${v.fr}</td>
+      <td style="padding:4px 6px;border:1px solid #E2E8F0;font-weight:700">${v.im}</td>
+      <td style="padding:4px 6px;border:1px solid #E2E8F0">${v.marque}</td>
+      <td style="padding:4px 6px;border:1px solid #E2E8F0;font-family:'Courier New',monospace;font-size:9.5px">${v.chassis}</td>
+      <td style="padding:4px 6px;border:1px solid #E2E8F0;text-align:center">${v.tri||'—'}</td>
+      <td style="padding:4px 6px;border:1px solid #E2E8F0;font-size:9.5px">${v.transit||''}</td>
+      <td style="padding:4px 6px;border:1px solid #E2E8F0;text-align:center">${v.dt}</td>
+      <td style="padding:4px 6px;border:1px solid #E2E8F0;text-align:center;color:#94A3B8">__/__</td>
+    </tr>`).join('');
+  // Pied
+  document.getElementById('lp-footer').innerHTML=
+    `<span>Nombre de véhicules &nbsp; <strong>${list.length}</strong></span>
+     <span>Nombre de véhicules sorties : &nbsp; <strong>0</strong></span>`;
+  document.getElementById('m-liste-print').classList.add('op');
+}
+
+function lvNonSortie(){
+  if(!lvCheckSelection())return;
+  const v=VEHICULES.find(x=>x.ref===_lvSelected);
+  if(!v)return;
+  if(!v.sortie){showToast('Ce véhicule n\'est pas encore pointé comme sorti.',2000);return;}
+  showWinConfirm(
+    'Décocher le pointage de sortie de ce véhicule ?<br><small style="color:#64748B">Il sera considéré comme non sorti.</small>',
+    ()=>{v.sortie=false;_lvSelected=null;doSearchListe();showToast('✅ Véhicule remis en NON Sortie',2000);},
+    'listeVehicules'
+  );
+}
+
+function lvCheckSelection(){
+  if(_lvSelected)return true;
+  const tbody=document.getElementById('lv-tbody');
+  const hasRows=tbody&&tbody.querySelector('td[colspan]')==null&&tbody.children.length>0;
+  const msg=hasRows
+    ?'Veuillez sélectionner un enregistrement<br>dans la liste avant d\'effectuer cette opération.'
+    :'Aucun enregistrement affiché.<br>Sélectionnez une période, cliquez sur <strong>Rechercher</strong>,<br>puis choisissez un enregistrement dans la liste.';
+  showWinAlert(msg,'listeVehicules');
+  return false;
+}
+
+function lvModifier(){
+  if(!lvCheckSelection())return;
+  loadEnreg(_lvSelected);
+}
+
+function lvSupprimer(){
+  if(!lvCheckSelection())return;
+  showWinConfirm('Voulez-vous supprimer cet enregistrement ?', ()=>{
+    const idx=VEHICULES.findIndex(v=>v.ref===_lvSelected);
+    if(idx!==-1)VEHICULES.splice(idx,1);
+    _lvSelected=null;
+    doSearchListe();
+    showToast('✅ Enregistrement supprimé',2000);
+  },'listeVehicules');
+}
+
+let _editionDocsType='duplicata';
+function openEditionDocs(type){
+  if(!lvCheckSelection())return;
+  _editionDocsType=type;
+  const title=document.getElementById('m-edition-docs-title');
+  if(title)title.textContent='Edition Documents : '+(type==='duplicata'?'DUPLICATA':'Renouvel.');
+  // Réinitialiser : sélectionner "Tous" par défaut
+  const r=document.querySelector('input[name="ed-doc"][value="tous"]');
+  if(r)r.checked=true;
+  const cb=document.getElementById('ed-preview');
+  if(cb)cb.checked=false;
+  document.getElementById('m-edition-docs').classList.add('op');
+}
+
+function editionDocsImprimer(){
+  const doc=document.querySelector('input[name="ed-doc"]:checked')?.value||'tous';
+  const preview=document.getElementById('ed-preview')?.checked;
+  const typeLabel=_editionDocsType==='duplicata'?'DUPLICATA':'Renouvellement';
+  showToast(`${typeLabel} — ${doc}${preview?' (prévisualisation)':''} — à implémenter`,2000);
+  document.getElementById('m-edition-docs').classList.remove('op');
 }
 
 // RECHERCHE IMMAT
@@ -1846,13 +2261,57 @@ function loadEnreg(ref){
       const amt=document.getElementById('er-amount');
       if(amt)amt.value=v.fcfa.toLocaleString('fr-FR')+' FCFA';
       erCheck();
-      // Toast confirmation
+      // Basculer en mode Modification
+      erSetEditMode(v.ref);
       showToast(`📋 Chargé : ${v.im} — ${v.nom||v.marque}`,2500);
     },60);
     // Compteur châssis
     erChassisCount();
   },120);
 }
+function erSetEditMode(ref){
+  const sub=document.getElementById('er-subheader-text');
+  if(sub)sub.textContent='Modification d\'un Enregistrement';
+  const ab=document.getElementById('er-ab');
+  const abEdit=document.getElementById('er-ab-edit');
+  if(ab)ab.style.display='none';
+  if(abEdit)abEdit.style.display='flex';
+  // Titre de la fenêtre MDI
+  const win=document.getElementById('win-enregistrement');
+  if(win){const t=win.querySelector('.mwt');if(t)t.textContent='Modification — '+ref;}
+}
+
+function erSetNewMode(){
+  const sub=document.getElementById('er-subheader-text');
+  if(sub)sub.textContent='Enregistrement des Véhicules';
+  const ab=document.getElementById('er-ab');
+  const abEdit=document.getElementById('er-ab-edit');
+  if(ab)ab.style.display='flex';
+  if(abEdit)abEdit.style.display='none';
+  // Restaurer titre MDI
+  const win=document.getElementById('win-enregistrement');
+  if(win){const t=win.querySelector('.mwt');if(t)t.textContent='Enregistrement des véhicules';}
+}
+
+function doModifyEnreg(){
+  const ref=document.getElementById('er-ref')?.value;
+  const v=VEHICULES.find(x=>x.ref===ref);
+  if(!v){showToast('Véhicule introuvable',1500);return;}
+  // Mettre à jour les champs modifiables dans VEHICULES
+  v.nom=document.getElementById('er-nom')?.value||v.nom;
+  v.resid=document.getElementById('er-resid')?.value||v.resid;
+  v.paydest=document.getElementById('er-paydest')?.value||v.paydest;
+  v.transit=document.getElementById('er-transit')?.value||v.transit;
+  v.marque=document.getElementById('er-marque')?.value||v.marque;
+  v.chassis=document.getElementById('er-chassis')?.value||v.chassis;
+  v.tri=document.getElementById('er-tri')?.value||v.tri;
+  v.type=document.getElementById('er-type')?.value||v.type;
+  v.fr=document.getElementById('er-dest')?.value||v.fr;
+  showToast(`✅ Enregistrement ${ref} modifié avec succès`,2500);
+  erSetNewMode();
+  closeWin('enregistrement');
+}
+
 function doResetEnreg(){
   ['er-nom','er-resid','er-paydest','er-transit','er-vdesc','er-marque','er-chassis','er-tri','er-ancien'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
@@ -1944,6 +2403,8 @@ function doNewEnreg(){
   erSaved=false;
   const body=w.querySelector('.mwb');
   if(body){body.innerHTML=buildEnreg();initEnreg();}
+  erSetNewMode();
+  const t=w.querySelector('.mwt');if(t)t.textContent='Enregistrement des véhicules';
 }
 function doImprint(){
   const sel=document.querySelector('input[name="ed"]:checked');
