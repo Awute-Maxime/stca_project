@@ -273,14 +273,17 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#111;height:100vh;ov
       </div>
     </div>
     <div class="mi" id="m-enr" onclick="toggleMenu('enr',event)">Enregistrements des véhicules
-      <div class="md" id="md-enr">
-        <div class="mo" onclick="openWin('enregistrements.listeChassis')">Liste véhicules par N°Chassis (VIN)</div>
+      <div class="md" id="md-enr" style="min-width:320px">
+        <div class="mo off">Affichage fenêtre outils lancement fonctions STCA</div>
+        <div class="mo" onclick="navTo('enregistrement')">Enregistrer un véhicule</div>
+        <div class="mo" onclick="openWin('listeVehicules')">Consulter / Modifier / Supprimer un véhicule enregistré</div>
+        <div class="mo" onclick="openWin('enregistrements.listeParDest')">Liste des véhicules enregistrés par destination</div>
+        <div class="mo" onclick="openWin('enregistrements.opsParticulieres')">Liste des Opérations Particulières</div>
       </div>
     </div>
     <div class="mi" id="m-ana" onclick="toggleMenu('ana',event)">Analyse
       <div class="md" id="md-ana">
-        <div class="mo" onclick="openWin('analyse.stca')">Edition des rapports d'analyse — TCIT</div>
-        <div class="mo" onclick="openWin('analyse.assurance')">Gain généré par les assurances</div>
+        <div class="mo" onclick="openAnalyse()">Edition des rapports d'analyse</div>
       </div>
     </div>
     <div class="mi" id="m-ass" onclick="toggleMenu('ass',event)">Assurances
@@ -293,12 +296,12 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#111;height:100vh;ov
         <div class="mo off">Sauvegarde la Base de Données</div>
         <div class="mo" onclick="openWin('outils.clefAdmin')">Clef d'administration</div>
         <div class="mo" onclick="openWin('outils.archivage')">Archivage</div>
+        <div class="ms"></div>
         <div class="mo" onclick="openWin('outils.fixerRef')">Fixer N° Référence</div>
         <div class="ms"></div>
         <div class="mo off">Impression de plaque d'immatriculation</div>
         <div class="mo" onclick="openWin('outils.posteImmat')">Config. Poste N° IMMAT.</div>
         <div class="mo" onclick="openWin('outils.configAssurances')">Configuration Assurances</div>
-        <div class="ms"></div>
         <div class="mo" onclick="openWin('outils.typesVehicule')">Types Véhicule</div>
         <div class="mo" onclick="openWin('outils.paramDestinations')">Paramètres Destinations</div>
         <div class="mo" onclick="openWin('outils.configImprimantes')">Config. Imprimantes</div>
@@ -907,6 +910,76 @@ const VEHICULES=[
   {ref:'610240',im:'TG-8794-T',type:'Bus',marque:'Isuzu NQR',chassis:'JALB5B16677123456',fr:'KE',agent:'AGBO',fcfa:55000,dt:'04/06/2026',nom:'DIALLO Fatoumata',resid:"Côte d'Ivoire",paydest:"Côte d'Ivoire",transit:'ABIDJAN CARS',tri:'4486',tridate:'2026-06-04',gainAssur:2830,nPolice:101,assurType:'POOL TPV VT - MOTO',sortie:true},
   {ref:'610239',im:'TG-8793-T',type:'Pick-up',marque:'Mitsubishi L200',chassis:'MMBJNKB70GD123456',fr:'TO',agent:'MENSAH',fcfa:62000,dt:'03/06/2026',nom:'GBEDJI Arnaud',resid:'Bénin',paydest:'Bénin',transit:'PORTO-NOVO TRANS',tri:'4484',tridate:'2026-06-03',gainAssur:2830,nPolice:100,assurType:'POOL TPV VT - MOTO',sortie:false},
 ];
+const MARQUES_LIST=[
+  {id:1,nom:'140 H'},{id:2,nom:'3256 33'},{id:3,nom:'A.C.M. VQ-2485SA3/ ALLOY TIPPER'},
+  {id:4,nom:'ABG DD74'},{id:5,nom:'ABI E.B.G 1200'},{id:6,nom:'ACAM M 2770 G'},
+  {id:7,nom:'ACERBI 03G'},{id:8,nom:'ACERBI 08R'},{id:9,nom:'ACERBI 0L8451-BT0'},
+  {id:10,nom:'ACERBI 0L 88308T0/ ALLOY TIPPER'},{id:11,nom:'ACERBI 11L537'},{id:12,nom:'ACERBI 125 MG'},
+  {id:13,nom:'ACERBI 125 PS'},{id:14,nom:'ACERBI 135MG'},{id:15,nom:'ACERBI 135MHS'},
+  {id:16,nom:'ACERBI 135 MSH'},{id:17,nom:'ACERBI 135PG'},{id:18,nom:'ACERBI 135 PS'},
+  {id:19,nom:'ACERBI 135PS00'},{id:20,nom:'ACERBI 135 PSA'},{id:21,nom:'ACERBI 135PSF'},
+  {id:22,nom:'ACERBI 135 PSR'},{id:23,nom:'ACTM'},{id:24,nom:'ACTM 55315'},
+  {id:25,nom:'ACTM A24320C'},{id:26,nom:'ACTM ORIGINAL'},{id:27,nom:'ACTM R3232'},
+  {id:28,nom:'ACTM R 35315'},{id:29,nom:'A.C.T.M R44315'},{id:30,nom:'ACTM S070415'},
+  {id:31,nom:'ACTM S 322'},{id:32,nom:'ACTM S32215C'},{id:33,nom:'ACTM S32215E'},
+  {id:34,nom:'ACTM S32215H'},{id:35,nom:'ACTM S3322/ ALLOY TIPPER'},{id:36,nom:'ACTM S34320'},
+  {id:37,nom:'ACTM S34320A'},{id:38,nom:'ACTM S 443'},{id:39,nom:'ACTM S 44315'},
+  {id:40,nom:'FOTON BJ1069'},{id:41,nom:'HOWO A7'},{id:42,nom:'ISUZU NQR 75P'},
+  {id:43,nom:'MAN TGX 18.440'},{id:44,nom:'MERCEDES ACTROS 1844'},{id:45,nom:'NISSAN PATROL'},
+  {id:46,nom:'RENAULT TRUCKS T 480'},{id:47,nom:'SCANIA R500'},{id:48,nom:'TOYOTA HILUX'},
+  {id:49,nom:'TOYOTA LAND CRUISER 79'},{id:50,nom:'VOLVO FH16 750'},
+];
+const ARCHIVE_DATA=[
+  {ref:'609001',im:'TG-7001-T',nom:'KOUMAH Faustin',resid:'Ghana',fr:'AFO',marque:'Toyota Camry',chassis:'JTDBE32K200123456',dt:'15/01/2026',dateArch:'2026-03-01',tri:'4001',sortie:true},
+  {ref:'609002',im:'TG-7002-T',nom:'SAWADOGO Ibrahim',resid:'Burkina Faso',fr:'CK',marque:'Nissan Patrol',chassis:'JN1AANS4X0W123456',dt:'16/01/2026',dateArch:'2026-03-01',tri:'4002',sortie:true},
+  {ref:'609003',im:'TG-7003-T',nom:'AGOSSOU Reine',resid:'Bénin',fr:'NO',marque:'Toyota Hilux',chassis:'MR0EX32G702123456',dt:'17/01/2026',dateArch:'2026-03-02',tri:'4003',sortie:false},
+  {ref:'609004',im:'TG-7004-T',nom:'DIALLO Amadou',resid:'Guinée',fr:'KA',marque:'Land Rover Defender',chassis:'SALLDVBF0SA123456',dt:'18/01/2026',dateArch:'2026-03-02',tri:'4004',sortie:true},
+  {ref:'609005',im:'TG-7005-T',nom:'OUEDRAOGO Céleste',resid:'Burkina Faso',fr:'CK',marque:'Mercedes Vito',chassis:'WDF63900312123456',dt:'20/01/2026',dateArch:'2026-03-05',tri:'4005',sortie:false},
+  {ref:'609006',im:'TG-7006-T',nom:'TRAORÉ Bintou',resid:'Mali',fr:'KA',marque:'Ford Transit',chassis:'WF0LXXTTGL1234567',dt:'22/01/2026',dateArch:'2026-03-10',tri:'4006',sortie:true},
+  {ref:'609007',im:'TG-7007-T',nom:'DIOP Moussa',resid:'Sénégal',fr:'KW',marque:'Renault Kangoo',chassis:'VF1FC0JEF43123456',dt:'25/01/2026',dateArch:'2026-03-12',tri:'4007',sortie:false},
+  {ref:'609008',im:'TG-7008-T',nom:'GNAMBA Pierre',resid:"Côte d'Ivoire",fr:'KE',marque:'Kia Picanto',chassis:'KNAB2511XG7123456',dt:'28/01/2026',dateArch:'2026-03-15',tri:'4008',sortie:true},
+];
+let _lastEdVehicle=null;
+const OPS_PARTICULIERES=[
+  {dt:'20/07/2020 08:14:32',user:'aminou', type:'RECYCLAGE Plaque N\'Immat.',vin:'JT164AEB103028887',immat:'J0448',tri:'014067',dop:'20200720'},
+  {dt:'20/07/2020 08:21:05',user:'mathieu',type:'RECYCLAGE Plaque N\'Immat.',vin:'JA4MT31H0XP016533',immat:'I9532', tri:'014051',dop:'20200720'},
+  {dt:'20/07/2020 08:35:18',user:'mathieu',type:'RECYCLAGE Plaque N\'Immat.',vin:'SB1KM28E20E010884', immat:'I9474', tri:'014070',dop:'20200720'},
+  {dt:'20/07/2020 09:02:44',user:'aminou', type:'RECYCLAGE Plaque N\'Immat.',vin:'5NPDH4AE3FH646690',immat:'C4243',tri:'014089',dop:'20200720'},
+  {dt:'20/07/2020 09:18:57',user:'aminou', type:'Impression DUPLICATA',     vin:'W0L0TGF75X2292462',immat:'D9020',tri:null,    dop:'20200720'},
+  {dt:'20/07/2020 09:34:12',user:'mathieu',type:'RECYCLAGE Plaque N\'Immat.',vin:'YS2RA4X2Z01108173',immat:'A6840',tri:'014188',dop:'20200720'},
+  {dt:'20/07/2020 10:07:29',user:'aminou', type:'Modification enregistrement',vin:'XLRAS47MS0E871771',immat:'J0769',tri:'014161',dop:'20200720'},
+];
+function logOp(type,vin,immat,tri){
+  const now=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  const dt=`${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  const dop=`${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}`;
+  OPS_PARTICULIERES.unshift({dt,user:(S?.user||'système').toLowerCase(),type,vin:vin||'',immat:immat||'',tri:tri||null,dop});
+}
+const ASSUR_CONFIG=[
+  {id:1,nom:'POOL TPV VT - MOTO',cat:'Voiture',tarifBrut:45000,taxe:4500,comStca:1200,gainStca:1200,aRestituer:38100},
+  {id:2,nom:'POOL TPV VT - CAMION',cat:'Camion',tarifBrut:78000,taxe:7800,comStca:2000,gainStca:2000,aRestituer:66200},
+  {id:3,nom:'POOL TPV VT - BUS',cat:'Bus',tarifBrut:55000,taxe:5500,comStca:1500,gainStca:1500,aRestituer:46500},
+  {id:4,nom:'POOL TPV VT - MOTO',cat:'Moto',tarifBrut:15000,taxe:1500,comStca:400,gainStca:400,aRestituer:12700},
+  {id:5,nom:'POOL TPV VT - PICK-UP',cat:'Pick-up',tarifBrut:62000,taxe:6200,comStca:1800,gainStca:1800,aRestituer:52200},
+  {id:6,nom:'POOL TPV VT - CAMION',cat:'Minibus',tarifBrut:52000,taxe:5200,comStca:1500,gainStca:1500,aRestituer:43800},
+];
+const TYPES_VEH_LIST=[{rang:1,nom:'Voiture'},{rang:2,nom:'Camion'},{rang:3,nom:'Autre'}];
+const ASSUREURS_LIST=[
+  {id:1,nom:'POOL TPV VT - MOTO',coord:'01 BP 2689 Lomé Togo tel : 221 70 90'},
+];
+const DEST_PARAMS=[
+  {code:'AFO',tarif:10000,nom:'Afolé',       lettre:'C',nImmat:7388},
+  {code:'CK', tarif:10000,nom:'Cinkassé',    lettre:'T',nImmat:7469},
+  {code:'KA', tarif:10000,nom:'Kambolé',     lettre:'E',nImmat:2182},
+  {code:'KE', tarif:10000,nom:'Kétao',       lettre:'C',nImmat:3177},
+  {code:'KP', tarif:10000,nom:'Kpadapé',     lettre:'C',nImmat:4419},
+  {code:'KW', tarif:10000,nom:'Kwodjoviaképe',lettre:'C',nImmat:6637},
+  {code:'NO', tarif:10000,nom:'Noépé',       lettre:'A',nImmat:3910},
+  {code:'TO', tarif:10000,nom:'Tohoum',      lettre:'C',nImmat:7490},
+  {code:'S/C',tarif:10000,nom:'Sanvi condji',lettre:'A',nImmat:8039},
+  {code:'POL',tarif:10000,nom:'Réexportation',lettre:'A',nImmat:3},
+];
 const WIN_CFG={
   'enregistrement':{title:'Enregistrement des véhicules',ico:'📄',x:160,y:30,w:980,h:600},
   'destination':{title:'Nombre Véhicules par Frontières',ico:'📍',x:180,y:50,w:900,h:500},
@@ -916,6 +989,8 @@ const WIN_CFG={
   'rechercheChassis':{title:'Recherche par N° Chassis (VIN)',ico:'🚗',x:180,y:70,w:860,h:540},
   'fichier.marques':{title:'Liste des Marques / Modèles de véhicules',ico:'📁',x:240,y:70,w:800,h:580},
   'enregistrements.listeChassis':{title:'Liste Véhicules par N°Chassis (VIN)',ico:'☰',x:200,y:60,w:940,h:600},
+  'enregistrements.listeParDest':{title:'Liste des véhicules enregistrés par destination',ico:'☰',x:180,y:50,w:980,h:600},
+  'enregistrements.opsParticulieres':{title:'Liste des Opérations Particulières',ico:'☰',x:220,y:70,w:860,h:540},
   'analyse.stca':{title:'Edition des rapports d\'analyse — TCIT',ico:'📊',x:200,y:60,w:820,h:540},
   'analyse.assurance':{title:'Gain généré par les assurances',ico:'💰',x:200,y:60,w:980,h:600},
   'assurances.montantRestituer':{title:'Montant à restituer',ico:'💰',x:200,y:60,w:980,h:600},
@@ -937,7 +1012,7 @@ const WIN_CFG={
 // ══════════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════════
-let S={user:'KOFFI',openMenuId:null,wins:{},nextZ:10,activeWin:null,fieldHistory:{}};
+let S={user:'KOFFI',openMenuId:null,wins:{},nextZ:400,activeWin:null,fieldHistory:{}};
 
 // ══════════════════════════════════════════════════
 // AUTH
@@ -980,6 +1055,7 @@ function startClock(){
 // ══════════════════════════════════════════════════
 function toggleMenu(id,e){
   if(e)e.stopPropagation();
+  if(e&&e.target.closest('.mo'))return;
   const el=document.getElementById('m-'+id);
   const was=el.classList.contains('op');
   closeAllMenus();
@@ -1027,6 +1103,15 @@ function openWin(id){
   win.addEventListener('mousedown',()=>bringToFront(id));
   if(id==='enregistrement')initEnreg();
   if(id==='listeVehicules'||id==='enregistrements.listeChassis')doSearchListe();
+  if(id==='enregistrements.listeParDest')lpdRender();
+  if(id==='enregistrements.opsParticulieres')opsRender();
+  if(id==='fichier.marques')mmRender();
+  if(id==='outils.archivage')archRender();
+  if(id==='assurances.montantRestituer')mrRender();
+  if(id==='outils.configAssurances')acfRender();
+  if(id==='outils.typesVehicule')tvRender();
+  if(id==='outils.pointage')ptgRender();
+  if(id==='outils.paramDestinations')pdRender();
 }
 function closeWin(id){
   const w=S.wins[id];if(!w)return;
@@ -1061,10 +1146,24 @@ function makeDraggable(win,handle){
 // ══════════════════════════════════════════════════
 function buildWinContent(id){
   if(id==='enregistrement')return buildEnreg();
-  if(id==='destination'||id==='outils.paramDestinations')return buildDest();
+  if(id==='destination')return buildDest();
+  if(id==='outils.paramDestinations')return buildParamDestinations();
   if(id==='listeVehicules'||id==='enregistrements.listeChassis')return buildListe(id);
   if(id==='rechercheImmat')return buildRechImmat();
   if(id==='rechercheChassis')return buildRechChassis();
+  if(id==='enregistrements.listeParDest')return buildListeParDest();
+  if(id==='enregistrements.opsParticulieres')return buildOpsParticulieres();
+  if(id==='fichier.marques')return buildMarques();
+  if(id==='assurances.montantRestituer')return buildMontantRestituer();
+  if(id==='outils.clefAdmin')return buildClefAdmin();
+  if(id==='outils.archivage')return buildArchivage();
+  if(id==='outils.fixerRef')return buildFixerRef();
+  if(id==='outils.posteImmat')return buildPosteImmat();
+  if(id==='outils.configAssurances')return buildConfigAssurances();
+  if(id==='outils.typesVehicule')return buildTypesVehicule();
+  if(id==='outils.configImprimantes')return buildConfigImprimantes();
+  if(id==='outils.exporter')return buildExporter();
+  if(id==='outils.pointage')return buildPointage();
   if(id==='aide.copyright')return buildCopyright();
   if(id==='aide.version')return buildVersion();
   if(id==='aide.idReseau')return buildIdReseau();
@@ -2043,6 +2142,7 @@ function lvSupprimer(){
 let _editionDocsType='duplicata';
 function openEditionDocs(type){
   if(!lvCheckSelection())return;
+  _lastEdVehicle=VEHICULES.find(v=>v.ref===_liSelected)||null;
   _editionDocsType=type;
   const title=document.getElementById('m-edition-docs-title');
   if(title)title.textContent='Edition Documents : '+(type==='duplicata'?'DUPLICATA':'Renouvel.');
@@ -2058,6 +2158,9 @@ function editionDocsImprimer(){
   const doc=document.querySelector('input[name="ed-doc"]:checked')?.value||'tous';
   const preview=document.getElementById('ed-preview')?.checked;
   const typeLabel=_editionDocsType==='duplicata'?'DUPLICATA':'Renouvellement';
+  if(!preview&&_editionDocsType==='duplicata'&&_lastEdVehicle){
+    logOp('Impression DUPLICATA',_lastEdVehicle.chassis,_lastEdVehicle.im,_lastEdVehicle.tri);
+  }
   showToast(`${typeLabel} — ${doc}${preview?' (prévisualisation)':''} — à implémenter`,2000);
   document.getElementById('m-edition-docs').classList.remove('op');
 }
@@ -2195,6 +2298,7 @@ function riSupprimer(){
 
 function riOpenEditionDocs(type){
   if(!riCheckSelection())return;
+  _lastEdVehicle=VEHICULES.find(v=>v.ref===_riSelected)||null;
   _editionDocsType=type;
   const title=document.getElementById('m-edition-docs-title');
   if(title)title.textContent='Edition Documents : '+(type==='duplicata'?'DUPLICATA':'Renouvel.');
@@ -2338,6 +2442,7 @@ function rcSupprimer(){
 
 function rcOpenEditionDocs(type){
   if(!rcCheckSelection())return;
+  _lastEdVehicle=VEHICULES.find(v=>v.ref===_rcSelected)||null;
   _editionDocsType=type;
   const title=document.getElementById('m-edition-docs-title');
   if(title)title.textContent='Edition Documents : '+(type==='duplicata'?'DUPLICATA':'Renouvel.');
@@ -2346,6 +2451,725 @@ function rcOpenEditionDocs(type){
   const cb=document.getElementById('ed-preview');
   if(cb)cb.checked=false;
   document.getElementById('m-edition-docs').classList.add('op');
+}
+
+// ══════════════════════════════════════════════════
+// FICHIER > MARQUES ET MODÈLES
+// ══════════════════════════════════════════════════
+// LISTE DES VÉHICULES PAR DESTINATION
+// ══════════════════════════════════════════════════
+function buildListeParDest(){
+  const b='width:100%;padding:5px 6px;font-size:11px;border-radius:4px;cursor:pointer;border:1px solid';
+  const today=new Date().toISOString().split('T')[0];
+  const d30=new Date(Date.now()-30*864e5).toISOString().split('T')[0];
+  return`<div style="display:flex;height:100%;overflow:hidden">
+    <div style="flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:6px;padding:7px 10px;background:#F8FAFF;border-bottom:1px solid #E2E8F0;flex-shrink:0;flex-wrap:wrap">
+        <label style="font-size:11.5px;color:#374151;white-space:nowrap">Du :</label>
+        <input type="date" id="lpd-from" class="fi" value="${d30}" style="padding:3px 5px;font-size:11px;width:126px">
+        <label style="font-size:11.5px;color:#374151;white-space:nowrap">au :</label>
+        <input type="date" id="lpd-to" class="fi" value="${today}" style="padding:3px 5px;font-size:11px;width:126px">
+        <button onclick="lpdRender()" class="be" style="padding:4px 12px;font-size:11.5px">🔍 Actualiser</button>
+      </div>
+      <div style="flex:1;overflow:auto" id="lpd-body">
+        <div style="text-align:center;padding:40px;color:#94A3B8;font-style:italic">Cliquez sur Actualiser pour afficher la liste</div>
+      </div>
+      <div style="padding:4px 10px;background:#FFFEF0;border-top:1px solid #E2E8F0;font-size:11px;color:#475569;flex-shrink:0"><span id="lpd-status"></span></div>
+    </div>
+    <div style="width:150px;flex-shrink:0;display:flex;flex-direction:column;gap:5px;padding:7px 6px;background:#F8FAFF;border-left:1px solid #E2E8F0">
+      <button onclick="lpdImprimer()" style="${b} #BFDBFE;background:#EFF6FF;color:#1D4ED8;font-weight:700">🖨 Imprimer</button>
+      <div style="flex:1"></div>
+      <button onclick="closeWin('enregistrements.listeParDest')" style="${b} #FECACA;background:#FFF5F5;color:#DC2626;font-weight:600">✕ Fermer</button>
+    </div>
+  </div>`;
+}
+function lpdRender(){
+  const from=document.getElementById('lpd-from')?.value||'';
+  const to=document.getElementById('lpd-to')?.value||'';
+  const list=VEHICULES.filter(v=>{const d=dmyToISO(v.dt);return(!from||d>=from)&&(!to||d<=to);});
+  // Grouper par destination
+  const groups={};
+  list.forEach(v=>{if(!groups[v.fr])groups[v.fr]=[];groups[v.fr].push(v);});
+  const codes=Object.keys(groups).sort();
+  const body=document.getElementById('lpd-body');if(!body)return;
+  if(!codes.length){body.innerHTML=`<div style="text-align:center;padding:40px;color:#94A3B8;font-style:italic">Aucun véhicule pour cette période</div>`;return;}
+  const fF=n=>(n||0).toLocaleString('fr-FR')+' F';
+  body.innerHTML=codes.map(code=>{
+    const vlist=groups[code];
+    const total=vlist.reduce((s,v)=>s+v.fcfa,0);
+    const bg=DEST_COLORS[code]||'#6B7280';
+    return`<div style="margin:8px 10px;border:1px solid #E2E8F0;border-radius:6px;overflow:hidden">
+      <div style="background:${bg};color:${destTxt(bg)};padding:6px 12px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-weight:700;font-size:12px">${code}</span>
+        <span style="font-size:11px">${vlist.length} véhicule(s) — Total : ${fF(total)}</span>
+      </div>
+      <table class="lt" style="width:100%;table-layout:auto">
+        <thead><tr><th>Réf</th><th>Nom et prénom</th><th>Immatriculation</th><th>Marque</th><th>Date</th><th style="text-align:right">Montant</th><th>Sortie</th></tr></thead>
+        <tbody>${vlist.map(v=>`<tr>
+          <td style="color:#64748B">${v.ref}</td>
+          <td style="font-weight:500">${v.nom}</td>
+          <td><span class="im" style="font-size:10px">${v.im}</span></td>
+          <td style="color:#475569">${v.marque}</td>
+          <td style="color:#475569">${v.dt}</td>
+          <td style="text-align:right">${fF(v.fcfa)}</td>
+          <td style="text-align:center">${v.sortie?'<span style="color:#16A34A;font-weight:700">✓</span>':'<span style="color:#CBD5E1">—</span>'}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>`;
+  }).join('');
+  const tot=list.reduce((s,v)=>s+v.fcfa,0);
+  const st=document.getElementById('lpd-status');if(st)st.textContent=`${codes.length} destination(s) — ${list.length} véhicule(s) — Total : ${tot.toLocaleString('fr-FR')} FCFA`;
+}
+function lpdImprimer(){showToast('🖨 Impression liste par destination...',2000);}
+
+// ══════════════════════════════════════════════════
+// LISTE DES OPÉRATIONS PARTICULIÈRES
+// ══════════════════════════════════════════════════
+function buildOpsParticulieres(){
+  const b='width:100%;padding:5px 6px;font-size:11px;border-radius:4px;cursor:pointer;border:1px solid';
+  return`<div style="display:flex;height:100%;overflow:hidden">
+    <div style="flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden">
+      <div style="flex:1;overflow:auto">
+        <table style="width:100%;border-collapse:collapse;table-layout:fixed">
+          <colgroup><col style="width:170px"><col style="width:130px"><col></colgroup>
+          <thead>
+            <tr style="background:#E8EEF4;border-bottom:2px solid #CBD5E1">
+              <th style="padding:5px 8px;text-align:left;font-size:11.5px;color:#1E293B;font-weight:600;border-right:1px solid #CBD5E1">Date</th>
+              <th style="padding:5px 8px;text-align:left;font-size:11.5px;color:#1E293B;font-weight:600;border-right:1px solid #CBD5E1">Utilisateur</th>
+              <th style="padding:5px 8px;text-align:left;font-size:11.5px;color:#1E293B;font-weight:600">Description</th>
+            </tr>
+          </thead>
+          <tbody id="ops-tbody"></tbody>
+        </table>
+      </div>
+      <div style="padding:4px 10px;background:#FFFEF0;border-top:1px solid #E2E8F0;font-size:11px;color:#475569;flex-shrink:0"><span id="ops-status">Nbr d'opérations : 0</span></div>
+    </div>
+    <div style="width:130px;flex-shrink:0;display:flex;flex-direction:column;gap:5px;padding:7px 6px;background:#F8FAFF;border-left:1px solid #E2E8F0">
+      <button onclick="showToast('🖨 Impression liste opérations...',2000)" style="${b} #BFDBFE;background:#EFF6FF;color:#1D4ED8;font-weight:700">🖨 Imprimer</button>
+      <div style="flex:1"></div>
+      <button onclick="closeWin('enregistrements.opsParticulieres')" style="${b} #FECACA;background:#FFF5F5;color:#DC2626;font-weight:600">✕ Fermer</button>
+    </div>
+  </div>`;
+}
+function opsRender(){
+  const tbody=document.getElementById('ops-tbody');if(!tbody)return;
+  tbody.innerHTML=OPS_PARTICULIERES.length?OPS_PARTICULIERES.map((op,i)=>{
+    const bg=i%2===0?'#fff':'#F8FAFF';
+    const descLines=[
+      `<span style="color:#2563EB;font-weight:600">${op.type} &gt;&gt;</span>`,
+      `VIN = ${op.vin}`,
+      `Date = ${op.dop}`,
+      `N'Immat. = ${op.immat}`,
+      ...(op.tri?[`N'Tri = ${op.tri}`]:[]),
+    ];
+    return`<tr style="background:${bg};border-bottom:1px solid #E2E8F0;vertical-align:top">
+      <td style="padding:5px 8px;font-size:11px;color:#374151;border-right:1px solid #E2E8F0;white-space:nowrap">${op.dt}</td>
+      <td style="padding:5px 8px;font-size:11px;color:#1E293B;border-right:1px solid #E2E8F0">${op.user}</td>
+      <td style="padding:5px 8px;font-size:11px;color:#2563EB;line-height:1.6">${descLines.join('<br>')}</td>
+    </tr>`;
+  }).join(''):`<tr><td colspan="3" style="text-align:center;padding:40px;color:#94A3B8;font-style:italic">Aucune opération particulière enregistrée</td></tr>`;
+  const st=document.getElementById('ops-status');if(st)st.textContent=`Nbr d'opérations : ${OPS_PARTICULIERES.length}`;
+}
+
+// ══════════════════════════════════════════════════
+// FICHIER > MARQUES ET MODÈLES
+// ══════════════════════════════════════════════════
+function buildMarques(){
+  const bs='width:100%;padding:5px 8px;font-size:11px;border-radius:3px;cursor:pointer;border:1px solid;text-align:left;display:flex;align-items:center;gap:5px';
+  return`<div style="display:flex;height:100%;overflow:hidden">
+    <div style="flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden">
+      <div style="flex:1;overflow:auto">
+        <table class="lt" style="width:100%;table-layout:fixed">
+          <thead><tr><th style="background:#1B3A6B;color:#fff;font-weight:600;padding:5px 10px;text-align:center;font-size:11.5px">Marques - Modèles</th></tr></thead>
+          <tbody id="mm-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div style="width:130px;flex-shrink:0;display:flex;flex-direction:column;gap:4px;padding:6px 5px;background:#F1F3F6;border-left:1px solid #CBD5E1">
+      <button onclick="mmAjouter()" style="${bs} #B0C4DE;background:linear-gradient(to bottom,#fff,#E8EEF4);color:#1E293B;font-weight:700">➕ Nouveau</button>
+      <button onclick="mmModifier()" style="${bs} #B0C4DE;background:linear-gradient(to bottom,#fff,#E8EEF4);color:#1E293B">🖊 Modifier</button>
+      <button onclick="mmSupprimer()" style="${bs} #B0C4DE;background:linear-gradient(to bottom,#fff,#E8EEF4);color:#DC2626;font-weight:600">➖ Supprimer</button>
+      <div style="border-top:1px solid #CBD5E1;margin:3px 0"></div>
+      <button onclick="mmImprimer()" style="${bs} #B0C4DE;background:linear-gradient(to bottom,#fff,#E8EEF4);color:#1E293B">🖨 Imprimer</button>
+      <div style="flex:1"></div>
+      <button onclick="closeWin('fichier.marques')" style="${bs} #DC2626;background:linear-gradient(to bottom,#fff8f8,#FECACA);color:#DC2626;font-weight:700">✕ Quitter</button>
+    </div>
+  </div>`;
+}
+let _mmSelected=null;
+function mmRender(){
+  const list=[...MARQUES_LIST].sort((a,b)=>a.nom.localeCompare(b.nom,'fr'));
+  const tbody=document.getElementById('mm-tbody');if(!tbody)return;
+  tbody.innerHTML=list.map(m=>`<tr onclick="mmSelect(this,${m.id})" style="cursor:pointer"><td style="padding:3px 10px;color:#1E293B;font-size:11.5px">${m.nom}</td></tr>`).join('');
+}
+function mmSelect(tr,id){document.querySelectorAll('#mm-tbody tr.lv-sel').forEach(r=>r.classList.remove('lv-sel'));tr.classList.add('lv-sel');_mmSelected=id;}
+function mmCheckSel(){if(_mmSelected)return true;showWinAlert('Veuillez sélectionner une marque dans la liste.','fichier.marques');return false;}
+
+// Dialog inline Création/Modification
+let _mmDlgCb=null;
+function mmShowDialog(defaultVal,footNote,cb){
+  const winEl=document.getElementById('win-fichier.marques');if(!winEl)return;
+  document.getElementById('mm-dialog')?.remove();
+  _mmDlgCb=cb;
+  const d=document.createElement('div');
+  d.id='mm-dialog';
+  d.style.cssText='position:absolute;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:200';
+  d.innerHTML=`<div style="background:#ECE9D8;border:2px outset #ACA899;min-width:300px;box-shadow:5px 5px 12px rgba(0,0,0,.4)">
+    <div style="background:#1B3A6B;color:#fff;font-size:11px;font-weight:600;padding:4px 8px;user-select:none">Création / Modification d'un type de véhicule</div>
+    <div style="padding:16px 14px 12px">
+      <div style="font-size:11.5px;color:#1E293B;font-weight:500;margin-bottom:6px">Nom de la marque et du modèle</div>
+      <input id="mm-d-inp" class="fi" value="${(defaultVal||'').replace(/"/g,'&quot;')}" style="width:100%;box-sizing:border-box;padding:4px 6px;font-size:12px;display:block" autocomplete="off"
+        onkeydown="if(event.key==='Enter')mmDlgValider();if(event.key==='Escape')document.getElementById('mm-dialog')?.remove()">
+      <div style="display:flex;justify-content:center;gap:10px;margin-top:14px">
+        <button onclick="mmDlgValider()" style="padding:4px 20px;background:#2563EB;color:#fff;border:1px solid #1D4ED8;border-radius:3px;font-size:12px;font-weight:700;cursor:pointer">✓ Valider</button>
+        <button onclick="document.getElementById('mm-dialog')?.remove()" style="padding:4px 20px;background:#DC2626;color:#fff;border:1px solid #B91C1C;border-radius:3px;font-size:12px;font-weight:700;cursor:pointer">✕ Quitter</button>
+      </div>
+      ${footNote?`<div style="text-align:center;margin-top:10px;font-size:10.5px;color:#1B3A6B;font-weight:600;border-top:1px solid #C8BFA8;padding-top:8px">${footNote}</div>`:''}
+    </div>
+  </div>`;
+  winEl.appendChild(d);
+  setTimeout(()=>{const i=document.getElementById('mm-d-inp');if(i){i.focus();i.select();}},30);
+}
+function mmDlgValider(){
+  const val=(document.getElementById('mm-d-inp')?.value||'').trim();
+  if(!val){document.getElementById('mm-d-inp')?.focus();return;}
+  document.getElementById('mm-dialog')?.remove();
+  if(_mmDlgCb){_mmDlgCb(val);_mmDlgCb=null;}
+}
+
+function mmAjouter(){
+  mmShowDialog('','',val=>{
+    MARQUES_LIST.push({id:Date.now(),nom:val});
+    mmRender();showToast('✅ Marque/modèle ajouté',2000);
+  });
+}
+function mmModifier(){
+  if(!mmCheckSel())return;
+  const item=MARQUES_LIST.find(m=>m.id===_mmSelected);if(!item)return;
+  mmShowDialog(item.nom,item.nom,val=>{
+    item.nom=val;mmRender();showToast('✅ Modifié',2000);
+  });
+}
+function mmSupprimer(){
+  if(!mmCheckSel())return;
+  const item=MARQUES_LIST.find(m=>m.id===_mmSelected);
+  showWinConfirm(`Supprimer "<strong>${item?.nom||''}</strong>" ?`,()=>{
+    const i=MARQUES_LIST.findIndex(m=>m.id===_mmSelected);
+    if(i!==-1)MARQUES_LIST.splice(i,1);
+    _mmSelected=null;mmRender();showToast('✅ Supprimé',2000);
+  },'fichier.marques');
+}
+function mmImprimer(){
+  const list=[...MARQUES_LIST].sort((a,b)=>a.nom.localeCompare(b.nom,'fr'));
+  const rows=list.map(m=>`<tr><td style="padding:4px 10px;border-bottom:1px solid #ddd;font-size:11.5px">${m.nom}</td></tr>`).join('');
+  const modal=document.createElement('div');
+  modal.id='mm-print-preview';
+  modal.style.cssText='position:fixed;inset:0;background:#555;z-index:9999;display:flex;flex-direction:column';
+  modal.innerHTML=`
+    <div style="background:#2D3748;color:#fff;display:flex;align-items:center;gap:10px;padding:6px 14px;flex-shrink:0">
+      <button onclick="window.print()" style="padding:5px 16px;background:#2563EB;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer">🖨 Lancer l'impression</button>
+      <span style="font-size:12px;color:#CBD5E1;margin-left:8px">Liste des marques et modèles gérés dans STCA</span>
+      <div style="flex:1"></div>
+      <button onclick="document.getElementById('mm-print-preview').remove()" style="padding:5px 14px;background:#DC2626;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer">✕ Fermer</button>
+    </div>
+    <div style="flex:1;overflow:auto;display:flex;justify-content:center;padding:20px;background:#888">
+      <div style="background:#fff;width:794px;min-height:1123px;padding:40px 50px;box-shadow:0 4px 20px rgba(0,0,0,.5)">
+        <h2 style="text-align:center;font-size:15px;font-weight:700;color:#1E293B;margin-bottom:20px;padding-bottom:10px;border-bottom:2px solid #1B3A6B">Liste des marques - modèles de véhicules</h2>
+        <table style="width:100%;border-collapse:collapse;border:1px solid #555">
+          <thead><tr><th style="background:#E8EEF4;color:#1E293B;font-size:12px;font-weight:700;padding:6px 10px;border:1px solid #888;text-align:center">Marques - Modèles</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div style="text-align:center;margin-top:30px;font-size:10px;color:#94A3B8">TCIT — Togolaise de Contrôle et d'Immatriculation Transit — ${new Date().toLocaleDateString('fr-FR')}</div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+// ══════════════════════════════════════════════════
+// ARCHIVAGE
+// ══════════════════════════════════════════════════
+function buildArchivage(){
+  return`<div style="display:flex;flex-direction:column;height:100%;overflow:hidden">
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#F8FAFF;border-bottom:1px solid #E2E8F0;flex-shrink:0;flex-wrap:wrap">
+      <input type="date" id="arch-from" class="fi" value="2026-01-01" style="padding:3px 5px;font-size:11px;width:126px">
+      <span style="color:#94A3B8">/</span>
+      <input type="date" id="arch-to" class="fi" value="2026-06-16" style="padding:3px 5px;font-size:11px;width:126px">
+      <button onclick="archRender()" style="padding:4px 14px;background:#2563EB;color:#fff;border:none;border-radius:4px;font-size:11.5px;font-weight:600;cursor:pointer">🔍 Lancer l'archivage</button>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 12px;flex-shrink:0;border-bottom:1px solid #E2E8F0">
+      <span style="font-size:12.5px;font-weight:700;color:#2563EB">Enregistrements archivés</span>
+      <div style="display:flex;gap:8px">
+        <button onclick="archDesarchiver()" style="padding:3px 12px;background:#FEF9C3;color:#854D0E;border:1px solid #FDE68A;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer">📤 Désarchiver</button>
+        <button onclick="closeWin('outils.archivage')" style="padding:3px 12px;background:#DC2626;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer">Quitter ✕</button>
+      </div>
+    </div>
+    <div style="flex:1;overflow:auto">
+      <table class="lt" style="width:100%;min-width:1000px;table-layout:auto">
+        <thead><tr>
+          <th>Réf</th><th>Nom et prénom</th><th>Adresse</th><th>Code</th>
+          <th>Marque et modèle</th><th>N° Chassis</th><th>Immatriculation</th>
+          <th>N° de Tri</th><th style="text-align:right">Montant</th><th>Enregistré le</th>
+        </tr></thead>
+        <tbody id="arch-tbody"></tbody>
+      </table>
+    </div>
+    <div style="padding:4px 10px;background:#FFFEF0;border-top:1px solid #E2E8F0;font-size:11px;color:#475569;flex-shrink:0"><span id="arch-status">Nbr de Véhicule(s) : 0</span></div>
+  </div>`;
+}
+let _archSelected=null;
+function archRender(){
+  const from=document.getElementById('arch-from')?.value||'';
+  const to=document.getElementById('arch-to')?.value||'';
+  const list=ARCHIVE_DATA.filter(v=>(!from||v.dateArch>=from)&&(!to||v.dateArch<=to));
+  const tbody=document.getElementById('arch-tbody');if(!tbody)return;
+  tbody.innerHTML=list.length?list.map((v,i)=>`<tr onclick="archSelect(this,'${v.ref}')" style="cursor:pointer;background:${i%2===0?'#F0FFF0':'#fff'}">
+    <td style="color:#374151;font-weight:500">${v.ref}</td>
+    <td style="color:#1E293B;font-weight:500">${v.nom}</td>
+    <td style="color:#64748B;font-size:10.5px">${v.resid||''}</td>
+    <td style="text-align:center;font-weight:700;padding:3px 6px;color:${destTxt(DEST_COLORS[v.fr])};background:${DEST_COLORS[v.fr]||'#6B7280'}">${v.fr}</td>
+    <td style="color:#1E293B">${v.marque}</td>
+    <td style="font-family:'Courier New',monospace;font-size:10px;color:#2563EB">${v.chassis}</td>
+    <td><span class="im" style="font-size:10px">${v.im}</span></td>
+    <td style="color:#475569">${v.tri||''}</td>
+    <td style="text-align:right;color:#1E293B">${(10000).toLocaleString('fr-FR')}</td>
+    <td style="color:#475569;white-space:nowrap">${v.dt}</td>
+  </tr>`).join(''):`<tr><td colspan="10" style="text-align:center;padding:30px;color:#94A3B8;font-style:italic">Aucun enregistrement archivé trouvé</td></tr>`;
+  const st=document.getElementById('arch-status');if(st)st.textContent=`Nbr de Véhicule(s) : ${list.length}`;
+}
+function archSelect(tr,ref){document.querySelectorAll('#arch-tbody tr.lv-sel').forEach(r=>r.classList.remove('lv-sel'));tr.classList.add('lv-sel');_archSelected=ref;}
+function archDesarchiver(){
+  if(!_archSelected){showWinAlert('Veuillez sélectionner un enregistrement.','outils.archivage');return;}
+  showWinConfirm('Restaurer cet enregistrement dans la liste active ?',()=>{
+    const i=ARCHIVE_DATA.findIndex(v=>v.ref===_archSelected);if(i!==-1)ARCHIVE_DATA.splice(i,1);
+    _archSelected=null;archRender();showToast('✅ Enregistrement restauré',2000);
+  },'outils.archivage');
+}
+
+// ══════════════════════════════════════════════════
+// MONTANT À RESTITUER
+// ══════════════════════════════════════════════════
+function buildMontantRestituer(){
+  const b='width:100%;padding:5px 6px;font-size:11px;border-radius:4px;cursor:pointer;border:1px solid';
+  const today=new Date().toISOString().split('T')[0];
+  return`<div style="display:flex;height:100%;overflow:hidden">
+    <div style="flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:6px;padding:7px 10px;background:#F8FAFF;border-bottom:1px solid #E2E8F0;flex-shrink:0;flex-wrap:wrap">
+        <label style="font-size:11.5px;color:#374151;white-space:nowrap">Date Début :</label>
+        <input type="date" id="mr-from" class="fi" value="${today}" style="padding:3px 5px;font-size:11px;width:126px">
+        <span style="color:#94A3B8;font-weight:700">&gt;&gt;</span>
+        <label style="font-size:11.5px;color:#374151;white-space:nowrap">Date Fin :</label>
+        <input type="date" id="mr-to" class="fi" value="${today}" style="padding:3px 5px;font-size:11px;width:126px">
+        <button onclick="mrRender()" class="be" style="padding:4px 12px;font-size:11.5px">🔍 Rechercher</button>
+      </div>
+      <div style="flex:1;overflow:auto">
+        <table class="lt" style="width:100%;min-width:700px;table-layout:auto">
+          <thead><tr><th>Réf</th><th>Nom et prénom</th><th>Code</th><th>Immatriculation</th><th style="text-align:right">Montant Enreg.</th><th style="text-align:right">Gain Assur.</th><th style="text-align:right">À Restituer</th><th>Date</th></tr></thead>
+          <tbody id="mr-tbody"></tbody>
+        </table>
+      </div>
+      <div style="padding:4px 10px;background:#FFFEF0;border-top:1px solid #E2E8F0;font-size:11px;color:#475569;flex-shrink:0"><span id="mr-status"></span></div>
+    </div>
+    <div style="width:155px;flex-shrink:0;display:flex;flex-direction:column;gap:5px;padding:7px 6px;background:#F8FAFF;border-left:1px solid #E2E8F0">
+      <button onclick="showToast('🖨 Impression liste restitution...',2000)" style="${b} #BFDBFE;background:#EFF6FF;color:#1D4ED8;font-weight:700;line-height:1.4;padding:7px 6px">🖨 Imprimer<br>la liste</button>
+      <div style="flex:1"></div>
+      <button onclick="closeWin('assurances.montantRestituer')" style="${b} #FECACA;background:#FFF5F5;color:#DC2626;font-weight:600">✕ Fermer</button>
+    </div>
+  </div>`;
+}
+function mrRender(){
+  const from=document.getElementById('mr-from')?.value||'';
+  const to=document.getElementById('mr-to')?.value||'';
+  const list=VEHICULES.filter(v=>{const d=dmyToISO(v.dt);return(!from||d>=from)&&(!to||d<=to);});
+  const tbody=document.getElementById('mr-tbody');if(!tbody)return;
+  const fF=n=>(n||0).toLocaleString('fr-FR')+' F';
+  tbody.innerHTML=list.length?list.map(v=>`<tr>
+    <td style="color:#64748B">${v.ref}</td>
+    <td style="color:#1E293B;font-weight:500">${v.nom}</td>
+    <td style="text-align:center"><span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;color:${destTxt(DEST_COLORS[v.fr])};background:${DEST_COLORS[v.fr]||'#6B7280'}">${v.fr}</span></td>
+    <td><span class="im" style="font-size:10.5px">${v.im}</span></td>
+    <td style="text-align:right;color:#1E293B">${fF(v.fcfa)}</td>
+    <td style="text-align:right;color:#7C3AED">${fF(v.gainAssur)}</td>
+    <td style="text-align:right;color:#DC2626;font-weight:700">${fF(Math.round(v.fcfa*0.78))}</td>
+    <td style="color:#475569">${v.dt}</td>
+  </tr>`).join(''):`<tr><td colspan="8" style="text-align:center;padding:30px;color:#94A3B8;font-style:italic">Aucun enregistrement pour cette période</td></tr>`;
+  const total=list.reduce((s,v)=>s+Math.round(v.fcfa*0.78),0);
+  const st=document.getElementById('mr-status');if(st)st.textContent=`Total à restituer : ${total.toLocaleString('fr-FR')} FCFA  |  Nbr : ${list.length}`;
+}
+
+// ══════════════════════════════════════════════════
+// CLEF ADMIN
+// ══════════════════════════════════════════════════
+function buildClefAdmin(){
+  return`<div style="background:#F0F2F5;height:100%;box-sizing:border-box;padding:18px;display:flex;flex-direction:column;gap:14px">
+    <div style="background:#EFF6FF;border:1px solid #93C5FD;border-radius:6px;padding:14px 18px;font-size:12px;color:#1D4ED8;line-height:1.8;font-weight:500">
+      Permet de configurer le mot de passe de forçage pour les fonctions d'Administrateur de STCA II.
+    </div>
+    <div style="background:#fff;border:1px solid #E2E8F0;border-radius:8px;padding:16px 20px;display:flex;align-items:center;gap:12px">
+      <label style="font-size:12px;font-weight:700;color:#1B3A6B;white-space:nowrap">» Mot de passe Admin. :</label>
+      <input type="password" id="ca-pwd" class="fi" style="width:180px;padding:5px 8px;font-size:13px">
+    </div>
+    <div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between;border-top:1px solid #E2E8F0;padding-top:12px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:28px">⚠️</span>
+        <button onclick="showToast('🔌 Écriture sur clé USB...',2000)" style="padding:5px 14px;background:#F1F5F9;color:#374151;border:1px solid #CBD5E1;border-radius:4px;font-size:11.5px;font-weight:600;cursor:pointer">🔌 Ecrire Clé USB</button>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="showToast('✅ Mot de passe admin enregistré',2000);closeWin('outils.clefAdmin')" style="padding:5px 22px;background:#16A34A;color:#fff;border:none;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer">✓</button>
+        <button onclick="closeWin('outils.clefAdmin')" style="padding:5px 22px;background:#DC2626;color:#fff;border:none;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer">✕</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════
+// FIXER N° RÉFÉRENCE
+// ══════════════════════════════════════════════════
+function buildFixerRef(){
+  const lastRef=VEHICULES.length?Math.max(...VEHICULES.map(v=>parseInt(v.ref)||0)):610269;
+  return`<div style="background:#F0F2F5;height:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center">
+    <div style="background:#fff;border:1px solid #E2E8F0;border-radius:8px;padding:24px 28px;width:380px;display:flex;flex-direction:column;gap:16px;box-shadow:0 4px 16px rgba(0,0,0,.1)">
+      <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:6px;padding:10px 14px;font-size:11.5px;color:#C2410C;font-weight:600;line-height:1.6;text-align:center">
+        Attention ! Contrôler la table DB 'enregistrement'<br>avant de modifier ce N° !
+      </div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px">
+        <label style="font-size:12px;color:#374151;font-weight:500;white-space:nowrap">N° de référence en cours ... :</label>
+        <input class="fi" id="fr-new" type="number" value="${lastRef}"
+          style="width:90px;padding:5px 8px;font-size:13px;font-weight:700;color:#1B3A6B;text-align:center;background:#EFF6FF;border-color:#93C5FD"
+          onclick="this.select()">
+      </div>
+      <div style="display:flex;justify-content:center;gap:14px">
+        <button onclick="doFixerRef()" style="padding:6px 28px;background:#16A34A;color:#fff;border:none;border-radius:20px;font-size:14px;font-weight:700;cursor:pointer">✓</button>
+        <button onclick="closeWin('outils.fixerRef')" style="padding:6px 28px;background:#DC2626;color:#fff;border:none;border-radius:20px;font-size:14px;font-weight:700;cursor:pointer">✕</button>
+      </div>
+    </div>
+  </div>`;
+}
+function doFixerRef(){
+  const val=parseInt(document.getElementById('fr-new')?.value||'0');
+  if(isNaN(val)||val<0){showWinAlert('Référence invalide.','outils.fixerRef');return;}
+  showWinConfirm(`Fixer le compteur de référence à <strong>${val}</strong> ?`,()=>{showToast(`✅ Compteur fixé à ${val}`,2500);closeWin('outils.fixerRef');},'outils.fixerRef');
+}
+
+// ══════════════════════════════════════════════════
+// CONFIG POSTE IMMAT
+// ══════════════════════════════════════════════════
+function buildPosteImmat(){
+  return`<div style="background:#F0F2F5;height:100%;box-sizing:border-box;padding:18px;display:flex;flex-direction:column;gap:14px">
+    <div style="background:#fff;border:1px solid #E2E8F0;border-radius:8px;padding:16px 20px;display:flex;flex-direction:column;gap:14px">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:#1E293B;font-weight:600">
+        <input type="checkbox" id="pi-assur" checked style="accent-color:#2563EB;width:15px;height:15px">
+        Activer le mode de fonctionnement avec Assurance
+      </label>
+      <fieldset style="border:1px solid #CBD5E1;border-radius:6px;padding:12px 16px;margin:0">
+        <legend style="font-size:11px;color:#374151;font-weight:600;padding:0 6px">· Coordonnées du PC Affichage IMMAT. ·</legend>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <label style="width:140px;font-size:12px;color:#374151;font-weight:600">* Adresse IP PC :</label>
+            <input class="fi" id="pi-ip" value="192.168.0.25" style="width:150px;padding:4px 8px;font-size:12px;background:#EFF6FF;border-color:#93C5FD;font-weight:600">
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <label style="width:140px;font-size:12px;color:#374151;font-weight:600">* N° Port PC :</label>
+            <input class="fi" id="pi-port" value="8000" style="width:80px;padding:4px 8px;font-size:12px;background:#EFF6FF;border-color:#93C5FD;font-weight:600">
+            <button onclick="showToast('📡 Test 192.168.0.25:8000 → Connecté ✓',2500)" style="padding:5px 14px;background:#F1F5F9;color:#374151;border:1px solid #CBD5E1;border-radius:4px;font-size:11.5px;cursor:pointer">🖥️ Tester</button>
+          </div>
+        </div>
+      </fieldset>
+    </div>
+    <div style="display:flex;justify-content:center;gap:12px;margin-top:auto">
+      <button onclick="showToast('✅ Configuration poste enregistrée',2000);closeWin('outils.posteImmat')" style="padding:5px 24px;background:#2563EB;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer">✓ Valider</button>
+      <button onclick="closeWin('outils.posteImmat')" style="padding:5px 18px;background:#DC2626;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer">✕ Fermer</button>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════
+// CONFIG ASSURANCES
+// ══════════════════════════════════════════════════
+function buildConfigAssurances(){
+  return`<div style="display:flex;flex-direction:column;height:100%;overflow:hidden">
+    <div style="background:#EFF6FF;border-bottom:2px solid #BFDBFE;padding:10px 16px;flex-shrink:0">
+      <div style="font-size:13px;font-weight:700;color:#1B3A6B;margin-bottom:8px">&gt;&gt;&nbsp; Mise en service des fonctions Assurances</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-size:11.5px;color:#374151;font-weight:500">Imprimer Facture + Cond. Part. + Assurances :</span>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-weight:700;color:#16A34A"><input type="radio" name="acf-imp" value="oui" checked style="accent-color:#16A34A"> OUI</label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-weight:700;color:#64748B"><input type="radio" name="acf-imp" value="non" style="accent-color:#DC2626"> NON</label>
+        <button onclick="showToast('✅ Paramètre enregistré',2000)" style="padding:3px 16px;background:#16A34A;color:#fff;border:none;border-radius:4px;font-size:11.5px;font-weight:700;cursor:pointer;margin-left:10px">✓ Enregistrer</button>
+      </div>
+    </div>
+    <div style="flex:1;overflow:auto">
+      <table class="lt" style="width:100%;table-layout:fixed">
+        <thead><tr><th style="width:45%">Nom Assurance / Groupement Assurance</th><th>Coordonnées</th></tr></thead>
+        <tbody id="acf-tbody"></tbody>
+      </table>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;padding:6px 10px;background:#F8FAFF;border-top:1px solid #E2E8F0;flex-shrink:0">
+      <button onclick="acfModifier()" style="width:110px;padding:4px 0;background:#F1F5F9;color:#1E293B;border:1px solid #CBD5E1;border-radius:4px;font-size:11.5px;cursor:pointer;text-align:center">Modifier</button>
+      <button onclick="showToast('🖨 Impression liste assureurs...',2000)" style="width:110px;padding:4px 0;background:#F1F5F9;color:#1E293B;border:1px solid #CBD5E1;border-radius:4px;font-size:11.5px;cursor:pointer;text-align:center">Imprimer</button>
+      <button onclick="closeWin('outils.configAssurances')" style="width:110px;padding:4px 0;background:#DC2626;color:#fff;border:none;border-radius:4px;font-size:11.5px;font-weight:700;cursor:pointer;text-align:center">✕ Fermer</button>
+    </div>
+  </div>`;
+}
+let _acfSelected=null;
+function acfRender(){
+  const tbody=document.getElementById('acf-tbody');if(!tbody)return;
+  tbody.innerHTML=ASSUREURS_LIST.length?ASSUREURS_LIST.map(a=>`<tr onclick="acfSelect(this,${a.id})" style="cursor:pointer">
+    <td style="color:#1E293B;font-weight:600;padding:5px 10px">${a.nom}</td>
+    <td style="color:#475569;padding:5px 10px">${a.coord}</td>
+  </tr>`).join(''):`<tr><td colspan="2" style="text-align:center;padding:30px;color:#94A3B8;font-style:italic">Aucun assureur configuré</td></tr>`;
+}
+function acfSelect(tr,id){document.querySelectorAll('#acf-tbody tr.lv-sel').forEach(r=>r.classList.remove('lv-sel'));tr.classList.add('lv-sel');_acfSelected=id;}
+function acfModifier(){if(!_acfSelected){showWinAlert('Veuillez sélectionner un type d\'assurance.','outils.configAssurances');return;}showToast('Modification tarif — à implémenter en production',2000);}
+
+// ══════════════════════════════════════════════════
+// TYPES VÉHICULE
+// ══════════════════════════════════════════════════
+function buildTypesVehicule(){
+  return`<div style="display:flex;flex-direction:column;height:100%;overflow:hidden">
+    <div style="flex:1;overflow:auto">
+      <table class="lt" style="width:100%;table-layout:fixed">
+        <thead><tr>
+          <th style="width:130px;text-align:center">Rang dans la combos</th>
+          <th>Nom ou type de véhicule</th>
+        </tr></thead>
+        <tbody id="tv-tbody"></tbody>
+      </table>
+    </div>
+    <div style="display:flex;justify-content:center;padding:8px;border-top:1px solid #E2E8F0;flex-shrink:0;background:#F8FAFF">
+      <button onclick="closeWin('outils.typesVehicule')" style="padding:5px 24px;background:#DC2626;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer">✕ Fermer</button>
+    </div>
+  </div>`;
+}
+let _tvSelected=null;
+function tvRender(){
+  const tbody=document.getElementById('tv-tbody');if(!tbody)return;
+  tbody.innerHTML=TYPES_VEH_LIST.map((t,i)=>`<tr onclick="tvSelect(this,${i})" style="cursor:pointer">
+    <td style="text-align:center;color:#2563EB;font-weight:700">${t.rang}</td>
+    <td style="color:#1E293B;font-weight:500">${t.nom}</td>
+  </tr>`).join('');
+}
+function tvSelect(tr,i){document.querySelectorAll('#tv-tbody tr.lv-sel').forEach(r=>r.classList.remove('lv-sel'));tr.classList.add('lv-sel');_tvSelected=i;}
+
+// ══════════════════════════════════════════════════
+// CONFIG IMPRIMANTES
+// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
+// PARAMÈTRES DESTINATIONS
+// ══════════════════════════════════════════════════
+function buildParamDestinations(){
+  const bs='width:100%;padding:5px 6px;font-size:11px;border-radius:4px;cursor:pointer;border:1px solid';
+  return`<div style="display:flex;height:100%;overflow:hidden">
+    <div style="flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden">
+      <div style="flex:1;overflow:auto">
+        <table class="lt" style="width:100%;table-layout:auto">
+          <thead><tr>
+            <th>Code Destination</th><th style="text-align:right">Tarif</th>
+            <th>Destination</th><th style="text-align:center">Lettre</th>
+            <th style="text-align:right">N° immatriculation</th>
+          </tr></thead>
+          <tbody id="pd-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div style="width:130px;flex-shrink:0;display:flex;flex-direction:column;gap:4px;padding:7px 6px;background:#F8FAFF;border-left:1px solid #E2E8F0">
+      <button onclick="pdAjouter()" style="${bs} #BBF7D0;background:#F0FDF4;color:#15803D;font-weight:700">➕ Nouveau</button>
+      <button onclick="pdModifier()" style="${bs} #CBD5E1;background:#fff;color:#1E293B">🖊 Modifier</button>
+      <button onclick="pdSupprimer()" style="${bs} #FECACA;background:#FFF5F5;color:#DC2626;font-weight:600">➖ Supprimer</button>
+      <div style="border-top:1px solid #E2E8F0;margin:3px 0"></div>
+      <button onclick="showToast('🖨 Impression liste destinations...',2000)" style="${bs} #BFDBFE;background:#EFF6FF;color:#1D4ED8">🖨 Imprimer</button>
+      <div style="flex:1"></div>
+      <button onclick="closeWin('outils.paramDestinations')" style="${bs} #FECACA;background:#FFF5F5;color:#DC2626;font-weight:700">✕ Fermer</button>
+    </div>
+  </div>`;
+}
+let _pdSelected=null;
+function pdRender(){
+  const tbody=document.getElementById('pd-tbody');if(!tbody)return;
+  tbody.innerHTML=DEST_PARAMS.map(d=>`<tr onclick="pdSelect(this,'${d.code}')" style="cursor:pointer">
+    <td style="font-weight:700;color:#1B3A6B">${d.code}</td>
+    <td style="text-align:right;color:#1E293B">${d.tarif.toLocaleString('fr-FR')}</td>
+    <td style="color:#1E293B">${d.nom}</td>
+    <td style="text-align:center;color:#475569">${d.lettre}</td>
+    <td style="text-align:right;color:#475569">${String(d.nImmat).padStart(4,'0')}</td>
+  </tr>`).join('');
+}
+function pdSelect(tr,code){document.querySelectorAll('#pd-tbody tr.lv-sel').forEach(r=>r.classList.remove('lv-sel'));tr.classList.add('lv-sel');_pdSelected=code;}
+function pdAjouter(){showToast('Ajouter destination — à implémenter',1500);}
+function pdModifier(){if(!_pdSelected){showWinAlert('Sélectionnez une destination.','outils.paramDestinations');return;}showToast('Modifier destination — à implémenter',1500);}
+function pdSupprimer(){if(!_pdSelected){showWinAlert('Sélectionnez une destination.','outils.paramDestinations');return;}showWinConfirm(`Supprimer la destination <strong>${_pdSelected}</strong> ?`,()=>{const i=DEST_PARAMS.findIndex(d=>d.code===_pdSelected);if(i!==-1)DEST_PARAMS.splice(i,1);_pdSelected=null;pdRender();},'outils.paramDestinations');}
+
+function buildConfigImprimantes(){
+  const row=(label,id,val)=>`
+    <div style="padding:8px 0;border-bottom:1px solid #F1F5F9">
+      <div style="font-size:11.5px;font-weight:600;color:#1E293B;margin-bottom:4px">${label}</div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <input class="fi" id="${id}" value="${val}" style="flex:1;padding:3px 7px;font-size:11px;color:#475569">
+        <button onclick="showToast('⚙ Config imprimante...',1500)" title="Configurer" style="padding:3px 8px;background:#F1F5F9;border:1px solid #CBD5E1;border-radius:3px;font-size:13px;cursor:pointer">⚙</button>
+        <button onclick="showToast('🖨 Test impression...',1500)" title="Tester" style="padding:3px 8px;background:#F1F5F9;border:1px solid #CBD5E1;border-radius:3px;font-size:13px;cursor:pointer">🖨</button>
+      </div>
+    </div>`;
+  return`<div style="background:#F8FAFF;height:100%;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden">
+    <div style="flex:1;overflow:auto;padding:14px 18px">
+      <div style="background:#fff;border:1px solid #E2E8F0;border-radius:8px;padding:12px 18px">
+        ${row("Imprimante pour l'édition des factures",'ci-fac','HP FACTURE STCA')}
+        ${row("Imprimante pour l'édition des Cartes Grise",'ci-cg','STCA HP CARTE GRISE')}
+        ${row("Imprimante pour l'édition du Feuillet d'assurance N°1 ( Bleu )",'ci-f1','STCA HP FEUILLET BLEU')}
+        ${row("Imprimante pour l'édition du Feuillet d'assurance N°2 ( Rose )",'ci-f2','STCA HP FEUILLET ROSE')}
+        <div style="padding:8px 0 4px;border-bottom:1px solid #F1F5F9">
+          <fieldset style="border:1px solid #CBD5E1;border-radius:4px;padding:6px 12px;margin:0">
+            <legend style="font-size:11px;color:#374151;padding:0 4px">· Type Imprimante pour Feuillets Assurance N° 1/2 ·</legend>
+            <label style="margin-right:14px;font-size:11.5px;cursor:pointer"><input type="radio" name="ci-type" value="rouleau" style="accent-color:#2563EB"> Rouleau</label>
+            <label style="font-size:11.5px;cursor:pointer"><input type="radio" name="ci-type" value="laser" checked style="accent-color:#2563EB"> Laser</label>
+          </fieldset>
+        </div>
+        ${row("Imprimante pour l'édition du Feuillet d'assurance N°3 (Cond. Part.)",'ci-f3','HP LaserJet P2035')}
+        ${row("Imprimante pour l'édition de la Fiche ID du véhicule",'ci-fid','NPIC08BAA (HP Laser Pro 402dne) STCA Fiche ID')}
+        <div style="padding:8px 0;border-bottom:1px solid #F1F5F9;display:flex;flex-direction:column;gap:6px">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11.5px;color:#374151"><input type="checkbox" checked style="accent-color:#2563EB"> Imprimer Fiche ID Véhicule</label>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:11.5px;color:#374151;white-space:nowrap">Nom Etat Cond. Part. :</span>
+            <input class="fi" value="ETAT_AssuranceCondPartLaserA4" style="flex:1;padding:3px 7px;font-size:11px">
+            <button onclick="showToast('ℹ Nom état impression',1500)" style="padding:3px 8px;background:#EFF6FF;border:1px solid #93C5FD;border-radius:3px;font-size:12px;cursor:pointer">?</button>
+          </div>
+        </div>
+        <div style="padding:8px 0">
+          <fieldset style="border:1px solid #CBD5E1;border-radius:4px;padding:6px 12px;margin:0">
+            <legend style="font-size:11px;color:#374151;padding:0 4px">Etat Facture Global</legend>
+            <label style="margin-right:14px;font-size:11.5px;cursor:pointer"><input type="radio" name="ci-facg" value="sans" style="accent-color:#2563EB"> Sans Code Barre</label>
+            <label style="font-size:11.5px;cursor:pointer"><input type="radio" name="ci-facg" value="avec" checked style="accent-color:#2563EB"> Avec Code Barre</label>
+          </fieldset>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:center;gap:12px;padding:10px;border-top:1px solid #E2E8F0;background:#F8FAFF;flex-shrink:0">
+      <button onclick="showToast('✅ Configuration imprimantes sauvegardée',2000);closeWin('outils.configImprimantes')" style="padding:5px 24px;background:#2563EB;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer">✓ Valider</button>
+      <button onclick="closeWin('outils.configImprimantes')" style="padding:5px 18px;background:#DC2626;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer">✕ Fermer</button>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════
+// EXPORTER
+// ══════════════════════════════════════════════════
+let _exportDir='C:\\STCA-Exports';
+function buildExporter(){
+  return`<div style="background:#F8FAFF;height:100%;box-sizing:border-box;display:flex;flex-direction:column">
+    <div style="flex:1;padding:18px 20px;display:flex;flex-direction:column;gap:14px">
+      <div style="background:#fff;border:1px solid #E2E8F0;border-radius:7px;padding:14px 18px">
+        <div style="font-size:11.5px;color:#374151;margin-bottom:10px">Veuillez sélectionner le répertoire de Destination :</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button onclick="showToast('📁 Sélection répertoire...',1500)" style="padding:5px 14px;background:#2563EB;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">📁 Parcourir...</button>
+          <div id="ex-dir" style="flex:1;padding:5px 10px;background:#F1F5F9;border:1px solid #CBD5E1;border-radius:4px;font-size:11.5px;color:#374151;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_exportDir}</div>
+        </div>
+      </div>
+      <div style="background:#FFFCE8;border:1px solid #FDE68A;border-radius:6px;padding:10px 14px;font-size:11.5px;color:#92400E">
+        ⚠ Le répertoire sélectionné doit être accessible en écriture. Les fichiers générés seront au format compressé (.zip).
+      </div>
+    </div>
+    <div style="background:#FEF08A;border-top:2px solid #EAB308;padding:10px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <button onclick="showToast('🖥 Sauvegarde Serveur en cours...',3000)" style="padding:6px 20px;background:#16A34A;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer">💾 Sauvegarde Serveur</button>
+      <button onclick="showToast('📤 Exportation Poste en cours...',3000)" style="padding:6px 20px;background:#16A34A;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer">📤 Exportation Poste</button>
+      <div style="flex:1"></div>
+      <button onclick="closeWin('outils.exporter')" style="padding:6px 16px;background:#DC2626;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer">✕ Quitter</button>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════
+// POINTAGE DES VÉHICULES
+// ══════════════════════════════════════════════════
+function buildPointage(){
+  return`<div style="background:#F8FAFF;height:100%;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden">
+    <div style="padding:8px 10px;background:#fff;border-bottom:1px solid #E2E8F0;flex-shrink:0">
+      <div style="font-size:11px;color:#64748B;margin-bottom:7px">Veuillez saisir un N° de tri (ex&nbsp;: 125) ou un N° d'immatriculation complet (ex&nbsp;: A0001CK), puis cliquez sur Rechercher ou Sortie.</div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <label style="font-size:11.5px;color:#1E293B;white-space:nowrap;font-weight:600">Véhicule à rechercher :</label>
+        <input class="fi" id="ptg-q" placeholder="N° Tri ou N° Immatriculation..." onkeydown="if(event.key==='Enter')ptgRender()" style="flex:1;min-width:180px;padding:4px 8px;font-size:11.5px">
+        <button onclick="ptgRender()" style="padding:4px 14px;background:#2563EB;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer">🔍 Rechercher</button>
+        <button onclick="ptgSortie()" style="padding:4px 14px;background:#1B3A6B;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer">↗ Sortie</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;margin-top:7px">
+        <label style="font-size:11.5px;cursor:pointer;color:#374151"><input type="radio" name="ptg-mode" value="aujourd" checked onchange="ptgRender()" style="accent-color:#2563EB"> Véhicules sortis aujourd'hui</label>
+        <label style="font-size:11.5px;cursor:pointer;color:#374151"><input type="radio" name="ptg-mode" value="periode" onchange="ptgRender()" style="accent-color:#2563EB"> Véhicules sortis sur une période</label>
+        <button onclick="window.print()" style="margin-left:auto;padding:3px 12px;background:#F1F5F9;color:#374151;border:1px solid #CBD5E1;border-radius:4px;font-size:11.5px;cursor:pointer">🖨 Imprimer</button>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:#F0FDF4;border-bottom:1px solid #BBF7D0;flex-shrink:0">
+      <button onclick="ptgMarquerSorti()" title="Marquer sélection comme Sortie" style="padding:3px 12px;background:#16A34A;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer">✓ Pointage</button>
+      <button onclick="ptgDemarquer()" title="Retirer le pointage de sortie" style="padding:3px 12px;background:#DC2626;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer">— Dépointage</button>
+      <span id="ptg-status" style="margin-left:auto;font-size:11px;color:#64748B">Nbr de Véhicule(s) : 0</span>
+    </div>
+    <div style="flex:1;overflow:auto">
+      <table class="lt" style="width:100%;min-width:860px">
+        <thead><tr>
+          <th style="width:52px">Sortie</th>
+          <th>Réf</th>
+          <th>N° de Tri</th>
+          <th>N° d'immatriculation</th>
+          <th>Destination</th>
+          <th>Nom et prénom</th>
+          <th>Adresse</th>
+          <th>Marque et modèle</th>
+          <th>N° Chassis</th>
+          <th>Enregistré le</th>
+        </tr></thead>
+        <tbody id="ptg-tbody"></tbody>
+      </table>
+    </div>
+    <div style="padding:6px 10px;border-top:1px solid #E2E8F0;background:#F8FAFF;display:flex;justify-content:flex-end;flex-shrink:0">
+      <button onclick="closeWin('outils.pointage')" style="padding:5px 20px;background:#DC2626;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer">✕ Quitter</button>
+    </div>
+  </div>`;
+}
+let _ptgSelected=null;
+function ptgRender(){
+  const q=(document.getElementById('ptg-q')?.value||'').trim().toLowerCase();
+  const mode=document.querySelector('input[name="ptg-mode"]:checked')?.value||'aujourd';
+  let list;
+  if(q){
+    list=VEHICULES.filter(v=>(v.tri&&String(v.tri).toLowerCase().startsWith(q))||v.im.toLowerCase().includes(q));
+  } else {
+    list=VEHICULES.filter(v=>mode==='aujourd'?v.sortie:v.sortie);
+  }
+  const tbody=document.getElementById('ptg-tbody');if(!tbody)return;
+  tbody.innerHTML=list.length?list.map(v=>`<tr onclick="ptgSelect(this,'${v.ref}')" style="cursor:pointer">
+    <td style="text-align:center">${v.sortie?'<span style="color:#16A34A;font-size:15px;font-weight:900">✓</span>':'<span style="color:#CBD5E1;font-size:15px">—</span>'}</td>
+    <td style="color:#64748B;font-size:11px">${v.ref}</td>
+    <td style="text-align:center;font-weight:600">${v.tri||'—'}</td>
+    <td style="text-align:center"><span class="im" style="font-size:10.5px">${v.im}</span></td>
+    <td style="text-align:center"><span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;color:${destTxt(DEST_COLORS[v.fr])};background:${DEST_COLORS[v.fr]||'#6B7280'}">${v.fr}</span></td>
+    <td style="font-weight:500">${v.nom}</td>
+    <td style="color:#64748B;font-size:11px">${v.adr||'—'}</td>
+    <td style="color:#475569">${v.marq||'—'}</td>
+    <td style="font-family:monospace;font-size:10.5px;color:#1B3A6B">${v.chassis||'—'}</td>
+    <td style="color:#475569">${v.dt}</td>
+  </tr>`).join(''):`<tr><td colspan="10" style="text-align:center;padding:30px;color:#94A3B8;font-style:italic">Aucun véhicule trouvé</td></tr>`;
+  const st=document.getElementById('ptg-status');if(st)st.textContent=`Nbr de Véhicule(s) : ${list.length}`;
+}
+function ptgSelect(tr,ref){document.querySelectorAll('#ptg-tbody tr.lv-sel').forEach(r=>r.classList.remove('lv-sel'));tr.classList.add('lv-sel');_ptgSelected=ref;}
+function ptgCheckSel(){if(_ptgSelected)return true;showWinAlert('Veuillez sélectionner un véhicule dans la liste.','outils.pointage');return false;}
+function ptgSortie(){
+  if(!ptgCheckSel())return;
+  const v=VEHICULES.find(x=>x.ref===_ptgSelected);if(!v)return;
+  if(v.sortie){showToast('Ce véhicule est déjà marqué comme sorti.',2000);return;}
+  showWinConfirm(`Confirmer la <strong>SORTIE</strong> du véhicule <strong>${v.im}</strong> — ${v.nom} ?`,()=>{
+    v.sortie=true;logOp('Sortie véhicule',v.chassis,v.im,v.tri);_ptgSelected=null;ptgRender();showToast('✅ Véhicule sorti',2000);
+  },'outils.pointage');
+}
+function ptgMarquerSorti(){
+  if(!ptgCheckSel())return;
+  const v=VEHICULES.find(x=>x.ref===_ptgSelected);if(!v)return;
+  if(v.sortie){showToast('Ce véhicule est déjà marqué comme sorti.',2000);return;}
+  showWinConfirm(`Marquer le véhicule <strong>${v.im}</strong> comme <strong>SORTI</strong> ?`,()=>{
+    v.sortie=true;logOp('Pointage sortie',v.chassis,v.im,v.tri);_ptgSelected=null;ptgRender();showToast('✅ Pointage enregistré',2000);
+  },'outils.pointage');
+}
+function ptgDemarquer(){
+  if(!ptgCheckSel())return;
+  const v=VEHICULES.find(x=>x.ref===_ptgSelected);if(!v)return;
+  if(!v.sortie){showToast('Ce véhicule n\'est pas pointé comme sorti.',2000);return;}
+  showWinConfirm(`Retirer le pointage de sortie de <strong>${v.im}</strong> ?`,()=>{
+    v.sortie=false;logOp('Dépointage sortie',v.chassis,v.im,v.tri);_ptgSelected=null;ptgRender();showToast('✅ Dépointage effectué',2000);
+  },'outils.pointage');
 }
 
 // AIDE
@@ -2565,6 +3389,7 @@ function doModifyEnreg(){
   v.tri=document.getElementById('er-tri')?.value||v.tri;
   v.type=document.getElementById('er-type')?.value||v.type;
   v.fr=document.getElementById('er-dest')?.value||v.fr;
+  logOp('Modification enregistrement',v.chassis,v.im,v.tri);
   showToast(`✅ Enregistrement ${ref} modifié avec succès`,2500);
   erSetNewMode();
   closeWin('enregistrement');
@@ -2629,8 +3454,13 @@ function doEnreg(){
   addHist('er-resid',document.getElementById('er-resid')?.value||'');
   addHist('er-paydest',document.getElementById('er-paydest')?.value||'');
   addHist('er-transit',document.getElementById('er-transit')?.value||'');
-  addHist('er-marque',document.getElementById('er-marque')?.value||'');
+  const marqueVal=(document.getElementById('er-marque')?.value||'').trim();
+  addHist('er-marque',marqueVal);
   addHist('er-vdesc',document.getElementById('er-vdesc')?.value||'');
+  // Alimentation automatique MARQUES_LIST (sans doublon)
+  if(marqueVal&&!MARQUES_LIST.some(m=>m.nom.toLowerCase()===marqueVal.toLowerCase())){
+    MARQUES_LIST.push({id:Date.now(),nom:marqueVal});
+  }
   // Generate IMMAT
   const nextRef=610269;
   const immat='TG-8823-T';
