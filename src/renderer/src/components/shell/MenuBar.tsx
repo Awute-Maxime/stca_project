@@ -1,6 +1,5 @@
 import { Menu } from 'antd'
 import type { MenuProps } from 'antd'
-import { appColors } from '@theme/windev-theme'
 import { electronApi } from '@api/electron'
 
 type DragCSS = React.CSSProperties & { WebkitAppRegion?: 'drag' | 'no-drag' }
@@ -16,31 +15,35 @@ const items: MenuProps['items'] = [
     label: 'Fichier',
     children: [
       { key: 'fichier.marques', label: 'Marques et modèles de véhicules' },
+      { type: 'divider' },
       { key: 'fichier.fermerSession', label: 'Fermer la session' },
-      { key: 'fichier.quitter', label: 'Quitter' }
-    ]
+      { key: 'fichier.quitter', label: 'Quitter' },
+    ],
   },
   {
     key: 'enregistrements',
     label: 'Enregistrements des véhicules',
     children: [
-      { key: 'enregistrements.listeChassis', label: 'Liste véhicules par N°Chassis (VIN)' }
-    ]
+      { key: 'enregistrements.outils', label: 'Affichage fenêtre outils lancement fonctions STCA', disabled: true },
+      { key: 'enregistrement', label: 'Enregistrer un véhicule' },
+      { key: 'listeVehicules', label: 'Consulter / Modifier / Supprimer un véhicule enregistré' },
+      { key: 'enregistrements.listeParDest', label: 'Liste des véhicules enregistrés par destination' },
+      { key: 'enregistrements.opsParticulieres', label: 'Liste des Opérations Particulières' },
+    ],
   },
   {
     key: 'analyse',
     label: 'Analyse',
     children: [
-      { key: 'analyse.stca', label: "Edition des rapports d'analyse — TCIT" },
-      { key: 'analyse.assurance', label: 'Gain généré par les assurances' }
-    ]
+      { key: 'analyse.stca', label: "Edition des rapports d'analyse" },
+    ],
   },
   {
     key: 'assurances',
     label: 'Assurances',
     children: [
-      { key: 'assurances.montantRestituer', label: 'Montant à restituer' }
-    ]
+      { key: 'assurances.montantRestituer', label: 'Montant à restituer' },
+    ],
   },
   {
     key: 'outils',
@@ -49,16 +52,19 @@ const items: MenuProps['items'] = [
       { key: 'outils.sauvegardeBd', label: 'Sauvegarde la Base de Données', disabled: true },
       { key: 'outils.clefAdmin', label: "Clef d'administration" },
       { key: 'outils.archivage', label: 'Archivage' },
+      { type: 'divider' },
       { key: 'outils.fixerRef', label: 'Fixer N° Référence' },
+      { type: 'divider' },
       { key: 'outils.impressionPlaque', label: "Impression de plaque d'immatriculation", disabled: true },
       { key: 'outils.posteImmat', label: 'Config. Poste N° IMMAT.' },
       { key: 'outils.configAssurances', label: 'Configuration Assurances' },
       { key: 'outils.typesVehicule', label: 'Types Véhicule' },
       { key: 'outils.paramDestinations', label: 'Paramètres Destinations' },
       { key: 'outils.configImprimantes', label: 'Config. Imprimantes' },
+      { type: 'divider' },
       { key: 'outils.exporter', label: 'Exporter les enregistrements de véhicules' },
-      { key: 'outils.pointage', label: 'Pointage des véhicules' }
-    ]
+      { key: 'outils.pointage', label: 'Pointage des véhicules' },
+    ],
   },
   {
     key: 'aide',
@@ -66,107 +72,110 @@ const items: MenuProps['items'] = [
     children: [
       { key: 'aide.copyright', label: 'Copyright' },
       { key: 'aide.version', label: 'Version' },
-      { key: 'aide.idReseau', label: 'ID réseau' }
-    ]
-  }
+      { key: 'aide.idReseau', label: 'ID réseau' },
+    ],
+  },
 ]
 
 export default function MenuBar({ utilisateurLogin, onMenuItemClick }: MenuBarProps): JSX.Element {
-  const btnBase: React.CSSProperties = {
-    width: 28, height: 28,
-    border: 'none', borderRadius: 4,
-    cursor: 'pointer', fontSize: 13,
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    transition: 'background 0.15s',
-    background: 'transparent',
-    color: appColors.windowChromeText,
-    flexShrink: 0,
-  }
-
   return (
     <div style={{ flexShrink: 0 }}>
-      {/* Barre de titre — draggable, chrome personnalisé */}
+
+      {/* ── Barre de titre — prototype: #tb ──────────────────────────── */}
       <div style={{
         height: 32,
-        background: appColors.windowChromeBg,
-        borderBottom: '1px solid #D4D4D4',
+        background: '#1B3A6B',
         display: 'flex',
         alignItems: 'center',
-        paddingLeft: 12,
-        paddingRight: 4,
-        fontSize: 12,
-        color: appColors.windowChromeText,
-        WebkitAppRegion: 'drag',
+        padding: '0 10px',
+        flexShrink: 0,
         userSelect: 'none',
+        WebkitAppRegion: 'drag',
       } as DragCSS}>
 
-        {/* Informations utilisateur */}
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 20 }}>
-          <span style={{ fontWeight: 700, fontSize: 12 }}>TCIT : Enregistrement des Véhicules</span>
-          <span style={{ color: '#888', fontSize: 11 }}>{`utilisateur : ${utilisateurLogin}`}</span>
+        {/* Titre centré — prototype: #tb-t */}
+        <div style={{
+          flex: 1, textAlign: 'center',
+          fontSize: 11.5, fontWeight: 700,
+          color: 'rgba(255,255,255,0.9)',
+          letterSpacing: 0.4,
+        }}>
+          TCIT : Enregistrement des Véhicules
         </div>
 
-        {/* Boutons de fenêtre — no-drag */}
-        <div style={{
-          display: 'flex', gap: 2, alignItems: 'center',
-          WebkitAppRegion: 'no-drag',
-        } as DragCSS}>
-          {/* Réduire */}
+        {/* Utilisateur — prototype: #tb-u */}
+        <span style={{
+          fontSize: 10,
+          color: 'rgba(255,255,255,0.5)',
+          marginRight: 10,
+        }}>
+          utilisateur : <b>{utilisateurLogin}</b>
+        </span>
+
+        {/* Boutons fenêtre — prototype: .wc */}
+        <div style={{ display: 'flex', alignItems: 'center', WebkitAppRegion: 'no-drag' } as DragCSS}>
           <button
-            style={btnBase}
             title="Réduire"
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#E0E0E0' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+            style={{
+              width: 28, height: 22, border: 'none', background: 'none',
+              color: 'rgba(255,255,255,0.65)', cursor: 'pointer', fontSize: 13,
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              borderRadius: 3, transition: 'background 0.15s',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.1)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
             onClick={electronApi.minimizeWindow}
-          >
-            <span style={{ fontSize: 16, lineHeight: 1, marginTop: -2 }}>−</span>
-          </button>
+          >−</button>
 
-          {/* Agrandir */}
           <button
-            style={btnBase}
             title="Agrandir"
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#E0E0E0' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+            style={{
+              width: 28, height: 22, border: 'none', background: 'none',
+              color: 'rgba(255,255,255,0.65)', cursor: 'pointer', fontSize: 13,
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              borderRadius: 3, transition: 'background 0.15s',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.1)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
             onClick={electronApi.maximizeWindow}
-          >
-            <span style={{ fontSize: 10, border: `1.5px solid ${appColors.windowChromeText}`, width: 10, height: 10, display: 'block' }} />
-          </button>
+          >□</button>
 
-          {/* Fermer */}
           <button
-            style={{ ...btnBase, borderRadius: 4 }}
-            title="Fermer"
+            title="Quitter"
+            style={{
+              width: 28, height: 22, border: 'none', background: 'none',
+              color: 'rgba(255,255,255,0.65)', cursor: 'pointer', fontSize: 13,
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              borderRadius: 3, transition: 'background 0.15s',
+            }}
             onMouseEnter={e => {
               const b = e.currentTarget as HTMLButtonElement
-              b.style.background = '#C42B1C'
-              b.style.color = '#fff'
+              b.style.background = '#E81123'; b.style.color = '#fff'
             }}
             onMouseLeave={e => {
               const b = e.currentTarget as HTMLButtonElement
-              b.style.background = 'transparent'
-              b.style.color = appColors.windowChromeText
+              b.style.background = 'none'; b.style.color = 'rgba(255,255,255,0.65)'
             }}
             onClick={electronApi.closeWindow}
-          >
-            ✕
-          </button>
+          >✕</button>
         </div>
       </div>
 
-      {/* Barre de menus */}
+      {/* ── Barre de menus — prototype: #mb ──────────────────────────── */}
       <Menu
         mode="horizontal"
         selectable={false}
         items={items}
         onClick={({ key }) => onMenuItemClick(key)}
         style={{
-          background: appColors.menuBarBg,
-          borderBottom: 'none',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
-          color: appColors.menuBarText,
-          fontSize: 13,
-          lineHeight: '32px',
+          height: 28,
+          lineHeight: '28px',
+          background: '#fff',
+          borderBottom: '1px solid #D1D5DB',
+          padding: '0 8px',
+          fontSize: 11.5,
+          color: '#1E293B',
+          boxShadow: 'none',
         }}
       />
     </div>

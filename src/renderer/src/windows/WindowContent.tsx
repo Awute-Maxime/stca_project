@@ -2,6 +2,8 @@ import EnregistrementPage from '@pages/EnregistrementPage'
 import DestinationPage from '@pages/DestinationPage'
 import AnalysePage from '@pages/AnalysePage'
 import ListePage from '@pages/ListePage'
+import ListeParDestPage from '@pages/ListeParDestPage'
+import OpsParticulieresPage from '@pages/OpsParticulieresPage'
 import RechercheWindow from '@pages/RechercheWindow'
 import { CopyrightWindow, VersionWindow, IdReseauWindow } from '@pages/InfoWindows'
 import FichierMarquesPage from '@pages/FichierMarquesPage'
@@ -37,6 +39,10 @@ export function renderWindowContent(id: string): JSX.Element {
     // ── Menu Enregistrements ───────────────────────────────────────
     case 'enregistrements.listeChassis':
       return <ListePage />
+    case 'enregistrements.listeParDest':
+      return <ListeParDestPage />
+    case 'enregistrements.opsParticulieres':
+      return <OpsParticulieresPage />
 
     // ── Menu Analyse ───────────────────────────────────────────────
     case 'analyse':

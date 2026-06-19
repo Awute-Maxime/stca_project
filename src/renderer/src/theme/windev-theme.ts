@@ -2,8 +2,8 @@ import type { ThemeConfig } from 'antd'
 
 export const appColors = {
   // Chrome fenêtre principale
-  windowChromeBg:   '#F5F5F5',
-  windowChromeText: '#1B3A6B',
+  windowChromeBg:   '#1B3A6B',
+  windowChromeText: '#FFFFFF',
 
   // Sidebar navigation
   sidebarBg:        '#1B3A6B',

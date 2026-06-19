@@ -6,6 +6,7 @@
   "author": "Awute Maxime",
   "scripts": {
     "dev": "electron-vite dev",
+    "dev:web": "vite -c vite.config.web.ts",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "test": "vitest run",
@@ -20,6 +21,7 @@
     "@ant-design/icons": "^5.4.0",
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^3.0.0",
+    "@emotion/is-prop-valid": "^1.4.0",
     "antd": "^5.19.0",
     "axios": "^1.7.0",
     "dayjs": "^1.11.11",

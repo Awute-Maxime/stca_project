@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TCIT · Proposition de design v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1B3A6B;--navy-d:#132B52;--blue:#2563EB;--blue-l:#EFF6FF;
+  --gold:#F59E0B;--green:#16A34A;--green-l:#F0FDF4;--red:#DC2626;
+  --amber:#D97706;--purple:#7C3AED;--teal:#0891B2;--emerald:#059669;
+  --bg:#F0F2F5;--surface:#fff;--border:#E2E8F0;
+  --tx:#0F172A;--mu:#64748B;--su:#94A3B8;
+  --sw:220px;--th:56px;
+  --dur:200ms;--ease:cubic-bezier(.4,0,.2,1);
+}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--tx);font-size:13px;line-height:1.5;display:flex;min-height:100vh}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes barGrow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes plateFlash{0%,100%{box-shadow:0 6px 24px rgba(27,58,107,.25)}50%{box-shadow:0 6px 32px rgba(245,158,11,.5),0 0 0 4px rgba(245,158,11,.15)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}
+
+.fade-up{animation:fadeUp .4s var(--ease) both}
+.fu-1{animation-delay:.05s}.fu-2{animation-delay:.1s}.fu-3{animation-delay:.15s}.fu-4{animation-delay:.2s}.fu-5{animation-delay:.25s}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+
+/* ── SIDEBAR ── */
+.sb{width:var(--sw);background:var(--navy);display:flex;flex-direction:column;position:fixed;inset:0 auto 0 0;z-index:100}
+.sb::before{content:'';display:block;height:4px;background:linear-gradient(to right,#006A4E 33%,#FFCE00 33% 66%,#D21034 66%);flex-shrink:0}
+.sb-logo{padding:16px 20px 14px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.sb-logo-name{font-size:19px;font-weight:800;color:#fff;letter-spacing:-.02em}
+.sb-logo-sub{font-size:9px;font-weight:500;color:rgba(255,255,255,.35);letter-spacing:.12em;text-transform:uppercase;margin-top:2px}
+.sb-nav{flex:1;overflow-y:auto;padding:10px 0}
+.nav-sec{font-size:9px;font-weight:700;color:rgba(255,255,255,.28);letter-spacing:.14em;text-transform:uppercase;padding:14px 20px 5px}
+.ni{display:flex;align-items:center;gap:10px;padding:8px 20px;color:rgba(255,255,255,.6);cursor:pointer;font-size:12.5px;font-weight:500;border-left:3px solid transparent;transition:background var(--dur) var(--ease),color var(--dur) var(--ease),border-color var(--dur) var(--ease);user-select:none}
+.ni:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.9)}
+.ni:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+.ni.on{background:rgba(37,99,235,.18);color:#fff;border-left-color:var(--gold)}
+.ni-ic{width:18px;height:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ni-ic svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sb-agent{padding:12px 16px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.av{width:32px;height:32px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--navy);flex-shrink:0}
+.av-name{font-size:12px;font-weight:600;color:#fff}
+.av-role{font-size:10px;color:rgba(255,255,255,.38)}
+.sb-pulse{width:7px;height:7px;border-radius:50%;background:#22C55E;flex-shrink:0;animation:pulse 2s ease-in-out infinite}
+
+/* ── MAIN ── */
+.main{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{height:var(--th);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;position:sticky;top:0;z-index:50;gap:12px}
+.tb-bc{font-size:13px;color:var(--mu)}
+.tb-bc strong{color:var(--tx);font-weight:600}
+.tb-sp{flex:1}
+.tb-dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+.tb-clk{font-size:12px;color:var(--mu);font-variant-numeric:tabular-nums;font-family:'Fira Code',monospace}
+.tb-badge{display:flex;align-items:center;gap:6px;padding:4px 12px;background:var(--blue-l);border-radius:20px;font-size:11.5px;font-weight:600;color:var(--blue)}
+.tb-badge svg{width:12px;height:12px;stroke:var(--blue);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+.content{flex:1;padding:24px}
+.view{display:none;animation:fadeUp .3s var(--ease) both}.view.on{display:block}
+.ph{margin-bottom:20px}
+.ph-title{font-size:20px;font-weight:700;letter-spacing:-.02em}
+.ph-sub{font-size:12px;color:var(--mu);margin-top:3px}
+
+/* ── STAT CARDS ── */
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.sc{background:var(--surface);border-radius:10px;padding:18px 20px;border:1px solid var(--border);position:relative;overflow:hidden;cursor:default;transition:transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
+.sc:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(15,23,42,.1)}
+.sc-lbl{font-size:10.5px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+.sc-val{font-size:28px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1;margin-bottom:7px;font-family:'Fira Code',monospace}
+.sc-val.bl{color:var(--blue)}.sc-val.gr{color:var(--green)}.sc-val.am{color:var(--amber)}.sc-val.pu{color:var(--purple)}
+.sc-trend{font-size:11px;font-weight:500;display:flex;align-items:center;gap:4px}
+.sc-trend.up{color:var(--green)}.sc-trend.dn{color:var(--red)}
+.sc-trend svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5}
+.sc-ico{position:absolute;top:14px;right:16px;opacity:.08}
+.sc-ico svg{width:28px;height:28px;stroke:currentColor;fill:none;stroke-width:1.5}
+
+/* ── PANELS ── */
+.pr{display:grid;grid-template-columns:1fr 330px;gap:16px;margin-bottom:20px}
+.panel{background:var(--surface);border-radius:10px;border:1px solid var(--border);overflow:hidden}
+.ph2{padding:13px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.ph2-t{font-size:13px;font-weight:700}
+.ph2-b{font-size:10px;font-weight:600;color:var(--mu);background:var(--bg);padding:2px 8px;border-radius:10px}
+.pb{padding:16px 20px}
+
+/* ── BAR CHART ── */
+.bc-wrap{display:flex;align-items:flex-end;gap:8px;height:140px;padding-bottom:24px;position:relative}
+.bc-wrap::before{content:'';position:absolute;bottom:24px;left:0;right:0;height:1px;background:var(--border)}
+.bc-col{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;cursor:pointer}
+.bc-bar{width:100%;border-radius:4px 4px 0 0;min-height:3px;transform-origin:bottom;animation:barGrow .6s var(--ease) both;transition:opacity var(--dur) var(--ease),filter var(--dur) var(--ease);position:relative}
+.bc-col:nth-child(1) .bc-bar{animation-delay:.1s}.bc-col:nth-child(2) .bc-bar{animation-delay:.15s}
+.bc-col:nth-child(3) .bc-bar{animation-delay:.2s}.bc-col:nth-child(4) .bc-bar{animation-delay:.25s}
+.bc-col:nth-child(5) .bc-bar{animation-delay:.3s}.bc-col:nth-child(6) .bc-bar{animation-delay:.35s}
+.bc-col:nth-child(7) .bc-bar{animation-delay:.4s}.bc-col:nth-child(8) .bc-bar{animation-delay:.45s}
+.bc-col:hover .bc-bar{filter:brightness(1.12)}
+.bc-col:not(:hover) .bc-bar{opacity:.85}
+.bc-col:hover .bc-bar::after{content:attr(data-v);position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);background:var(--tx);color:#fff;font-size:10px;font-weight:700;font-family:'Fira Code',monospace;padding:3px 7px;border-radius:4px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.bc-lbl{font-size:9.5px;font-weight:700;color:var(--mu);letter-spacing:.04em;margin-top:5px}
+
+/* ── FRONTIER LIST ── */
+.fl{display:flex;flex-direction:column;gap:9px}
+.fi{display:flex;align-items:center;gap:8px;cursor:default;transition:opacity var(--dur)}
+.fi:hover{opacity:.8}
+.fi-code{width:34px;height:19px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0;letter-spacing:.04em}
+.fi-name{font-size:11.5px;color:var(--mu);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fi-bg{width:60px;height:4px;background:var(--bg);border-radius:2px;overflow:hidden;flex-shrink:0}
+.fi-fill{height:100%;border-radius:2px;width:0;transition:width .9s var(--ease)}
+.fi-n{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;font-family:'Fira Code',monospace;width:28px;text-align:right;flex-shrink:0}
+
+/* ── DATA TABLE ── */
+.dt{width:100%;border-collapse:collapse}
+.dt th{font-size:10px;font-weight:700;color:var(--su);text-transform:uppercase;letter-spacing:.08em;padding:0 12px 10px;text-align:left;border-bottom:2px solid var(--border)}
+.dt th:first-child{padding-left:20px}.dt th:last-child{padding-right:20px}
+.dt td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:12.5px;vertical-align:middle;transition:background var(--dur) var(--ease)}
+.dt td:first-child{padding-left:20px}.dt td:last-child{padding-right:20px}
+.dt tr:last-child td{border-bottom:none}
+.dt tr{cursor:default;animation:slideIn .3s var(--ease) both}
+.dt tr:hover td{background:#F5F8FF}
+.dt tr:nth-child(1){animation-delay:.05s}.dt tr:nth-child(2){animation-delay:.08s}
+.dt tr:nth-child(3){animation-delay:.11s}.dt tr:nth-child(4){animation-delay:.14s}
+.dt tr:nth-child(5){animation-delay:.17s}.dt tr:nth-child(6){animation-delay:.2s}
+.dt tr:nth-child(7){animation-delay:.23s}
+
+/* ── PLATE BADGE ── */
+.plq{display:inline-flex;align-items:center;background:var(--navy);border:1.5px solid var(--gold);border-radius:4px;padding:3px 9px;font-family:'Fira Code',monospace;font-weight:700;font-size:12px;color:var(--gold);letter-spacing:.1em;white-space:nowrap;transition:transform var(--dur) var(--ease)}
+.plq:hover{transform:scale(1.04)}
+
+/* ── STATUS PILL ── */
+.sp{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.sp::before{content:'';width:6px;height:6px;border-radius:50%}
+.sp.tr{background:#EFF6FF;color:var(--blue)}.sp.tr::before{background:var(--blue);animation:pulse 2s ease-in-out infinite}
+.sp.so{background:var(--green-l);color:var(--green)}.sp.so::before{background:var(--green)}
+
+/* ── FORM VIEW ── */
+.fl2{display:grid;grid-template-columns:1fr 310px;gap:20px;align-items:start}
+.fc{background:var(--surface);border-radius:10px;border:1px solid var(--border)}
+.fc-hd{padding:13px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.fc-ic{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.fc-ic svg{width:15px;height:15px;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.fc-t{font-size:13px;font-weight:700}
+.fc-bd{padding:16px 20px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
+.fg.c1{grid-template-columns:1fr}
+.ff{display:flex;flex-direction:column;gap:4px}
+.ff.full{grid-column:1/-1}
+.fl3{font-size:10.5px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.06em}
+.fi2{padding:8px 11px;border:1.5px solid var(--border);border-radius:6px;font-size:12.5px;font-family:'Inter',sans-serif;color:var(--tx);background:var(--surface);transition:border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease);outline:none;width:100%;cursor:text}
+.fi2:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.fi2:hover:not(:focus){border-color:#CBD5E1}
+.fi2.mono{font-family:'Fira Code',monospace;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+.fi2.ro{background:#F8FAFC;color:var(--navy);font-weight:700;cursor:default}
+.fi2.valid{border-color:var(--green);box-shadow:0 0 0 3px rgba(22,163,74,.1)}
+.fi2.error{border-color:var(--red);box-shadow:0 0 0 3px rgba(220,38,38,.1)}
+.fsel{padding:8px 28px 8px 11px;border:1.5px solid var(--border);border-radius:6px;font-size:12.5px;font-family:'Inter',sans-serif;color:var(--tx);background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2364748B'/%3E%3C/svg%3E") no-repeat right 10px center;outline:none;width:100%;appearance:none;cursor:pointer;transition:border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
+.fsel:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.fsel:hover:not(:focus){border-color:#CBD5E1}
+.fhint{font-size:10.5px;color:var(--su)}
+.fhint.ok{color:var(--green)}.fhint.err{color:var(--red)}
+.fsecs{display:flex;flex-direction:column;gap:14px}
+
+/* ── PLATE PREVIEW ── */
+.prev-panel{background:var(--surface);border-radius:10px;border:1px solid var(--border);overflow:hidden;position:sticky;top:calc(var(--th) + 20px)}
+.prev-hd{background:var(--navy);padding:14px 20px;display:flex;align-items:center;gap:8px}
+.prev-hd svg{width:16px;height:16px;stroke:rgba(255,255,255,.7);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.prev-hd-t{font-size:12px;font-weight:700;color:rgba(255,255,255,.9)}
+.prev-bd{padding:20px}
+.plq-wrap{display:flex;flex-direction:column;align-items:center;padding:20px;background:var(--bg);border-radius:8px;margin-bottom:14px}
+.plq-big{background:var(--navy);border:3px solid var(--gold);border-radius:6px;padding:10px 22px;text-align:center;min-width:190px;box-shadow:0 6px 24px rgba(27,58,107,.25);transition:box-shadow .4s var(--ease)}
+.plq-big.flash{animation:plateFlash .5s var(--ease)}
+.plq-top{font-size:9px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.18em;margin-bottom:4px;display:flex;justify-content:space-between}
+.plq-num{font-family:'Fira Code',monospace;font-size:30px;font-weight:700;color:var(--gold);letter-spacing:.1em;line-height:1;transition:all .2s var(--ease)}
+.plq-bot{font-size:8px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:.2em;margin-top:5px}
+.plq-dest{font-size:10.5px;color:var(--su);margin-top:10px;font-weight:500;transition:color .2s var(--ease)}
+.pi-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:11.5px;transition:background .15s;border-radius:4px}
+.pi-row:last-child{border-bottom:none}
+.pi-row:hover{background:#FAFBFC}
+.pi-k{color:var(--mu);font-weight:500}
+.pi-v{font-weight:600;text-align:right;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color .2s}
+.prev-act{padding:14px 20px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+
+/* ── BUTTONS ── */
+.btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border-radius:6px;font-size:12.5px;font-weight:600;cursor:pointer;border:none;transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease);font-family:'Inter',sans-serif;width:100%}
+.btn:active:not(:disabled){transform:scale(.97)}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.btn-gold{background:var(--gold);color:var(--navy);font-weight:700}
+.btn-gold:hover:not(:disabled){opacity:.9;box-shadow:0 4px 12px rgba(245,158,11,.35)}
+.btn-pri{background:var(--blue);color:#fff}
+.btn-pri:hover:not(:disabled){opacity:.9;box-shadow:0 4px 12px rgba(37,99,235,.3)}
+.btn-out{background:transparent;color:var(--mu);border:1.5px solid var(--border)}
+.btn-out:hover:not(:disabled){background:var(--bg);border-color:#CBD5E1}
+.btn-spin{display:none;width:14px;height:14px;border:2px solid rgba(0,0,0,.15);border-top-color:var(--navy);border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
+.btn-gold .btn-spin{border-color:rgba(0,0,0,.15);border-top-color:var(--navy)}
+.btn-pri .btn-spin{border-color:rgba(255,255,255,.3);border-top-color:#fff}
+.loading .btn-spin{display:block}
+.loading .btn-lbl{display:none}
+
+/* ── VIEW SWITCHER ── */
+.vtabs{position:fixed;top:12px;right:16px;z-index:200;display:flex;background:rgba(15,23,42,.88);border-radius:8px;padding:4px;gap:2px;backdrop-filter:blur(10px)}
+.vtab{padding:5px 14px;border-radius:5px;font-size:11.5px;font-weight:600;cursor:pointer;color:rgba(255,255,255,.45);border:none;background:transparent;font-family:'Inter',sans-serif;transition:background var(--dur) var(--ease),color var(--dur) var(--ease)}
+.vtab.on{background:var(--blue);color:#fff}
+.vtab:hover:not(.on){background:rgba(255,255,255,.1);color:rgba(255,255,255,.7)}
+.vtab:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.wm{position:fixed;bottom:12px;right:16px;font-size:10px;color:var(--su);background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid var(--border);z-index:200}
+
+/* ── MISC ── */
+.vin-t{font-family:'Fira Code',monospace;font-size:11px;color:var(--navy);letter-spacing:.04em}
+.own-n{font-weight:600}.own-a{font-size:11px;color:var(--mu)}
+.ftag{display:inline-flex;align-items:center;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:700;color:#fff;letter-spacing:.05em}
+.ref{font-family:'Fira Code',monospace;font-size:11.5px;color:var(--mu)}
+.toast{position:fixed;bottom:24px;left:calc(var(--sw) + 24px);background:var(--tx);color:#fff;padding:10px 18px;border-radius:8px;font-size:12.5px;font-weight:500;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.2);animation:fadeUp .3s var(--ease);display:flex;align-items:center;gap:10px;max-width:360px}
+.toast svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.toast.ok{background:#15803D}.toast.er{background:var(--red)}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sb" aria-label="Navigation principale">
+  <div class="sb-logo">
+    <div class="sb-logo-name">TCIT</div>
+    <div class="sb-logo-sub">Contrôle · Immatriculation · Transit</div>
+  </div>
+  <div class="sb-nav">
+    <div class="nav-sec">Principal</div>
+    <div class="ni on" onclick="sw('dashboard',this)" tabindex="0" role="button" aria-current="page">
+      <span class="ni-ic"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+      Tableau de bord
+    </div>
+    <div class="ni" onclick="sw('enregistrement',this)" tabindex="0" role="button">
+      <span class="ni-ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg></span>
+      Enregistrement
+    </div>
+    <div class="ni" tabindex="0" role="button">
+      <span class="ni-ic"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>
+      Liste véhicules
+    </div>
+    <div class="ni" tabindex="0" role="button">
+      <span class="ni-ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+      Recherche IMMAT.
+    </div>
+    <div class="ni" tabindex="0" role="button">
+      <span class="ni-ic"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h5l2 3v4h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span>
+      Rech. N° Châssis
+    </div>
+    <div class="nav-sec">Gestion</div>
+    <div class="ni" tabindex="0" role="button">
+      <span class="ni-ic"><svg viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg></span>
+      Destination
+    </div>
+    <div class="ni" tabindex="0" role="button">
+      <span class="ni-ic"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+      Analyse
+    </div>
+    <div class="nav-sec">Système</div>
+    <div class="ni" tabindex="0" role="button">
+      <span class="ni-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+      Outils &amp; Config.
+    </div>
+  </div>
+  <div class="sb-agent">
+    <div class="av">KO</div>
+    <div style="flex:1"><div class="av-name">KOFFI</div><div class="av-role">Agent · Bureau AFO</div></div>
+    <div class="sb-pulse" title="Connecté"></div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <header class="topbar">
+    <div class="tb-bc" id="tbc"><strong>Tableau de bord</strong></div>
+    <div class="tb-sp"></div>
+    <div class="tb-dot"></div>
+    <div class="tb-clk" id="tclk"></div>
+    <div class="tb-badge">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      TCIT v2.0
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ══ DASHBOARD ══ -->
+    <div class="view on" id="v-dashboard">
+      <div class="ph fade-up">
+        <div class="ph-title">Tableau de bord</div>
+        <div class="ph-sub">Activité en temps réel — Juin 2026 · Tous bureaux de douane</div>
+      </div>
+
+      <div class="sg">
+        <div class="sc fade-up fu-1">
+          <div class="sc-lbl">Véhicules ce mois</div>
+          <div class="sc-val bl" id="c1">0</div>
+          <div class="sc-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>+12 % vs mai
+          </div>
+          <div class="sc-ico"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h5l2 3v4h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+        </div>
+        <div class="sc fade-up fu-2">
+          <div class="sc-lbl">FCFA collecté</div>
+          <div class="sc-val gr" id="c2">0</div>
+          <div class="sc-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>+8 % vs mai
+          </div>
+          <div class="sc-ico"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        </div>
+        <div class="sc fade-up fu-3">
+          <div class="sc-lbl">En transit (non sortis)</div>
+          <div class="sc-val am" id="c3">0</div>
+          <div class="sc-trend dn">
+            <svg viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>33 % du total
+          </div>
+          <div class="sc-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        </div>
+        <div class="sc fade-up fu-4">
+          <div class="sc-lbl">Sorties pointées</div>
+          <div class="sc-val pu" id="c4">0</div>
+          <div class="sc-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>67 % du total
+          </div>
+          <div class="sc-ico"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+      </div>
+
+      <div class="pr fade-up fu-5">
+        <div class="panel">
+          <div class="ph2"><div class="ph2-t">Enregistrements par bureau de douane</div><div class="ph2-b">Juin 2026</div></div>
+          <div class="pb">
+            <div class="bc-wrap" role="img" aria-label="Graphique des enregistrements par bureau">
+              <div class="bc-col"><div class="bc-bar" data-v="312" style="height:83%;background:#2563EB" title="AFO : 312"></div><div class="bc-lbl">AFO</div></div>
+              <div class="bc-col"><div class="bc-bar" data-v="287" style="height:76%;background:#7C3AED" title="CK : 287"></div><div class="bc-lbl">CK</div></div>
+              <div class="bc-col"><div class="bc-bar" data-v="189" style="height:50%;background:#D97706" title="KE : 189"></div><div class="bc-lbl">KE</div></div>
+              <div class="bc-col"><div class="bc-bar" data-v="145" style="height:39%;background:#DC2626" title="KP : 145"></div><div class="bc-lbl">KP</div></div>
+              <div class="bc-col"><div class="bc-bar" data-v="124" style="height:33%;background:#0891B2" title="KW : 124"></div><div class="bc-lbl">KW</div></div>
+              <div class="bc-col"><div class="bc-bar" data-v="98"  style="height:26%;background:#16A34A" title="KA : 98"></div><div class="bc-lbl">KA</div></div>
+              <div class="bc-col"><div class="bc-bar" data-v="67"  style="height:18%;background:#059669" title="NO : 67"></div><div class="bc-lbl">NO</div></div>
+              <div class="bc-col"><div class="bc-bar" data-v="25"  style="height:7%; background:#9333EA" title="TO : 25"></div><div class="bc-lbl">TO</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="ph2"><div class="ph2-t">Répartition frontières</div><div class="ph2-b">8 actives</div></div>
+          <div class="pb">
+            <div class="fl">
+              <div class="fi"><div class="fi-code" style="background:#2563EB">AFO</div><div class="fi-name">Afolé</div><div class="fi-bg"><div class="fi-fill" style="background:#2563EB" data-w="100"></div></div><div class="fi-n">312</div></div>
+              <div class="fi"><div class="fi-code" style="background:#7C3AED">CK</div><div class="fi-name">Cinkassé</div><div class="fi-bg"><div class="fi-fill" style="background:#7C3AED" data-w="92"></div></div><div class="fi-n">287</div></div>
+              <div class="fi"><div class="fi-code" style="background:#D97706">KE</div><div class="fi-name">Kétao</div><div class="fi-bg"><div class="fi-fill" style="background:#D97706" data-w="61"></div></div><div class="fi-n">189</div></div>
+              <div class="fi"><div class="fi-code" style="background:#DC2626">KP</div><div class="fi-name">Kpadapé</div><div class="fi-bg"><div class="fi-fill" style="background:#DC2626" data-w="47"></div></div><div class="fi-n">145</div></div>
+              <div class="fi"><div class="fi-code" style="background:#0891B2">KW</div><div class="fi-name">Kwodjoviaképe</div><div class="fi-bg"><div class="fi-fill" style="background:#0891B2" data-w="40"></div></div><div class="fi-n">124</div></div>
+              <div class="fi"><div class="fi-code" style="background:#16A34A">KA</div><div class="fi-name">Kambolé</div><div class="fi-bg"><div class="fi-fill" style="background:#16A34A" data-w="32"></div></div><div class="fi-n">98</div></div>
+              <div class="fi"><div class="fi-code" style="background:#059669">NO</div><div class="fi-name">Noépé</div><div class="fi-bg"><div class="fi-fill" style="background:#059669" data-w="22"></div></div><div class="fi-n">67</div></div>
+              <div class="fi"><div class="fi-code" style="background:#9333EA">TO</div><div class="fi-name">Tohoum</div><div class="fi-bg"><div class="fi-fill" style="background:#9333EA" data-w="8"></div></div><div class="fi-n">25</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel fade-up" style="animation-delay:.3s">
+        <div class="ph2"><div class="ph2-t">Derniers enregistrements</div><div class="ph2-b">7 récents</div></div>
+        <table class="dt" role="grid" aria-label="Derniers enregistrements de véhicules">
+          <thead><tr>
+            <th scope="col">Plaque</th><th scope="col">N° Réf.</th><th scope="col">Propriétaire</th><th scope="col">Marque et modèle</th><th scope="col">N° Chassis</th><th scope="col">Frontière</th><th scope="col">Date</th><th scope="col">Statut</th>
+          </tr></thead>
+          <tbody>
+            <tr><td><span class="plq">E2183 KA</span></td><td><span class="ref">610268</span></td><td><div class="own-n">OUÉDRAOGO Sylvain</div><div class="own-a">Lomé, Togo</div></td><td>VOLVO FH16 750</td><td><span class="vin-t">YV2A4B1A5LB123456</span></td><td><span class="ftag" style="background:#16A34A">KA</span></td><td>15/06/2026</td><td><span class="sp tr">En transit</span></td></tr>
+            <tr><td><span class="plq">T7470 CK</span></td><td><span class="ref">610267</span></td><td><div class="own-n">DIALLO Moussa</div><div class="own-a">Ouagadougou, BF</div></td><td>MERCEDES ACTROS 2545</td><td><span class="vin-t">WDB9340321L456789</span></td><td><span class="ftag" style="background:#7C3AED">CK</span></td><td>15/06/2026</td><td><span class="sp so">Sorti</span></td></tr>
+            <tr><td><span class="plq">C7389 AFO</span></td><td><span class="ref">610266</span></td><td><div class="own-n">KONÉ Ibrahim</div><div class="own-a">Accra, Ghana</div></td><td>MAN TGX 18.440</td><td><span class="vin-t">WMAH06ZZ9CM987654</span></td><td><span class="ftag" style="background:#2563EB">AFO</span></td><td>15/06/2026</td><td><span class="sp so">Sorti</span></td></tr>
+            <tr><td><span class="plq">C3178 KE</span></td><td><span class="ref">610265</span></td><td><div class="own-n">SAWADOGO Rasmané</div><div class="own-a">Kara, Togo</div></td><td>SCANIA R500 LA</td><td><span class="vin-t">YS2R6X20000345678</span></td><td><span class="ftag" style="background:#D97706">KE</span></td><td>14/06/2026</td><td><span class="sp tr">En transit</span></td></tr>
+            <tr><td><span class="plq">C4420 KP</span></td><td><span class="ref">610264</span></td><td><div class="own-n">TRAORE Adama</div><div class="own-a">Lomé, Togo</div></td><td>DAF XF 105.510</td><td><span class="vin-t">XLRTE47MS0E234567</span></td><td><span class="ftag" style="background:#DC2626">KP</span></td><td>14/06/2026</td><td><span class="sp tr">En transit</span></td></tr>
+            <tr><td><span class="plq">A3911 NO</span></td><td><span class="ref">610263</span></td><td><div class="own-n">MENSAH Kofi</div><div class="own-a">Accra, Ghana</div></td><td>TOYOTA LAND CRUISER</td><td><span class="vin-t">JTEBR3FJ4MK123456</span></td><td><span class="ftag" style="background:#059669">NO</span></td><td>14/06/2026</td><td><span class="sp so">Sorti</span></td></tr>
+            <tr><td><span class="plq">C6638 KW</span></td><td><span class="ref">610262</span></td><td><div class="own-n">BAMBA Seydou</div><div class="own-a">Abidjan, CI</div></td><td>RENAULT T 520</td><td><span class="vin-t">VF6RGF4P4KN567890</span></td><td><span class="ftag" style="background:#0891B2">KW</span></td><td>13/06/2026</td><td><span class="sp tr">En transit</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ ENREGISTREMENT ══ -->
+    <div class="view" id="v-enregistrement">
+      <div class="ph fade-up">
+        <div class="ph-title">Enregistrer un véhicule</div>
+        <div class="ph-sub">Saisie complète · Plaque attribuée automatiquement selon la destination</div>
+      </div>
+
+      <div class="fl2">
+        <div class="fsecs">
+          <div class="fc fade-up fu-1">
+            <div class="fc-hd">
+              <div class="fc-ic" style="background:#EFF6FF">
+                <svg viewBox="0 0 24 24" style="stroke:var(--blue)"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <div class="fc-t">Propriétaire du véhicule</div>
+            </div>
+            <div class="fc-bd">
+              <div class="fg c1">
+                <div class="ff"><label class="fl3" for="f-nom">Nom et prénom <span style="color:var(--red)">*</span></label><input class="fi2" id="f-nom" type="text" placeholder="Ex : OUÉDRAOGO Sylvain" oninput="upv()" autocomplete="off"></div>
+                <div class="ff"><label class="fl3" for="f-adr">Adresse</label><input class="fi2" id="f-adr" type="text" placeholder="Ville, Pays" oninput="upv()"></div>
+                <div class="ff"><label class="fl3" for="f-tra">Maison de transit / Transitaire</label><input class="fi2" id="f-tra" type="text" placeholder="Agence ou transitaire"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="fc fade-up fu-2">
+            <div class="fc-hd">
+              <div class="fc-ic" style="background:#F0FDF4">
+                <svg viewBox="0 0 24 24" style="stroke:var(--green)"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h5l2 3v4h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+              </div>
+              <div class="fc-t">Identification du véhicule</div>
+            </div>
+            <div class="fc-bd">
+              <div class="fg">
+                <div class="ff full"><label class="fl3" for="f-marq">Marque et modèle</label><input class="fi2" id="f-marq" type="text" placeholder="Ex : VOLVO FH16 750" oninput="upv()"></div>
+                <div class="ff full">
+                  <label class="fl3" for="f-vin">N° Chassis — VIN <span style="color:var(--red)">*</span></label>
+                  <input class="fi2 mono" id="f-vin" type="text" maxlength="17" placeholder="YV2A4B1A5LB123456" oninput="vinCheck(this)" autocomplete="off" aria-describedby="vin-hint">
+                  <div class="fhint" id="vin-hint">17 caractères alphanumériques — <span id="vin-count">0</span>/17</div>
+                </div>
+                <div class="ff"><label class="fl3" for="f-cat">Catégorie véhicule</label>
+                  <select class="fsel" id="f-cat"><option value="">— Choisir —</option><option>Voiture</option><option>Camion</option><option>Autre</option></select>
+                </div>
+                <div class="ff"><label class="fl3" for="f-oim">Ancienne immatriculation</label><input class="fi2 mono" id="f-oim" type="text" placeholder="Si applicable"></div>
+                <div class="ff"><label class="fl3" for="f-dcg">Date carte grise précédente</label><input class="fi2" id="f-dcg" type="date"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="fc fade-up fu-3">
+            <div class="fc-hd">
+              <div class="fc-ic" style="background:#FFFBEB">
+                <svg viewBox="0 0 24 24" style="stroke:var(--amber)"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              </div>
+              <div class="fc-t">Destination et assurance</div>
+            </div>
+            <div class="fc-bd">
+              <div class="fg">
+                <div class="ff"><label class="fl3" for="f-dst">Bureau de destination <span style="color:var(--red)">*</span></label>
+                  <select class="fsel" id="f-dst" onchange="upv()">
+                    <option value="">— Choisir la frontière —</option>
+                    <option value="AFO">AFO — Afolé</option>
+                    <option value="CK">CK — Cinkassé</option>
+                    <option value="KA">KA — Kambolé</option>
+                    <option value="KE">KE — Kétao</option>
+                    <option value="KP">KP — Kpadapé</option>
+                    <option value="KW">KW — Kwodjoviaképe</option>
+                    <option value="NO">NO — Noépé</option>
+                    <option value="TO">TO — Tohoum</option>
+                  </select>
+                </div>
+                <div class="ff"><label class="fl3" for="f-imm">N° d'immatriculation attribué</label>
+                  <input class="fi2 mono ro" id="f-imm" type="text" readonly placeholder="Auto-attribué" aria-label="Immatriculation attribuée automatiquement">
+                  <div class="fhint">Séquence automatique du bureau sélectionné</div>
+                </div>
+                <div class="ff"><label class="fl3" for="f-tri">N° de Tri interne</label><input class="fi2 mono" id="f-tri" type="text" placeholder="014068"></div>
+                <div class="ff"><label class="fl3" for="f-ass">Type d'assurance</label>
+                  <select class="fsel" id="f-ass"><option>POOL TPV VT - MOTO</option></select>
+                </div>
+                <div class="ff"><label class="fl3" for="f-mnt">Montant (FCFA)</label>
+                  <input class="fi2" id="f-mnt" type="text" value="10 000" style="font-variant-numeric:tabular-nums;font-family:'Fira Code',monospace">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PLATE PREVIEW -->
+        <div class="fade-up fu-4">
+          <div class="prev-panel">
+            <div class="prev-hd">
+              <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+              <div class="prev-hd-t">Aperçu plaque · Résumé</div>
+            </div>
+            <div class="prev-bd">
+              <div class="plq-wrap">
+                <div class="plq-big" id="plq-big">
+                  <div class="plq-top"><span>TRANSIT</span><span>🇹🇬 TG</span></div>
+                  <div class="plq-num" id="pn">· · · · ·</div>
+                  <div class="plq-bot">TOGO · IMMATRICULATION DE TRANSIT</div>
+                </div>
+                <div class="plq-dest" id="pd">Sélectionner une destination</div>
+              </div>
+              <div>
+                <div class="pi-row"><span class="pi-k">Propriétaire</span><span class="pi-v" id="p-nom">—</span></div>
+                <div class="pi-row"><span class="pi-k">Véhicule</span><span class="pi-v" id="p-marq">—</span></div>
+                <div class="pi-row"><span class="pi-k">N° Chassis</span><span class="pi-v" id="p-vin" style="font-family:'Fira Code',monospace;font-size:11px">—</span></div>
+                <div class="pi-row"><span class="pi-k">Agent</span><span class="pi-v">KOFFI</span></div>
+                <div class="pi-row"><span class="pi-k">Date</span><span class="pi-v" id="p-date">—</span></div>
+                <div class="pi-row"><span class="pi-k">Montant</span><span class="pi-v" style="color:var(--green)">10 000 FCFA</span></div>
+              </div>
+            </div>
+            <div class="prev-act">
+              <button class="btn btn-gold" id="btn-enr" onclick="doEnr()" aria-label="Enregistrer et imprimer">
+                <svg viewBox="0 0 24 24"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                <span class="btn-lbl">Enregistrer &amp; Imprimer</span>
+                <span class="btn-spin"></span>
+              </button>
+              <button class="btn btn-pri" id="btn-save" onclick="doSave()" aria-label="Enregistrer sans imprimer">
+                <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                <span class="btn-lbl">Enregistrer seulement</span>
+                <span class="btn-spin"></span>
+              </button>
+              <button class="btn btn-out" onclick="reset()" aria-label="Annuler la saisie">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <span class="btn-lbl">Annuler</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="vtabs" role="tablist" aria-label="Changer de vue">
+  <button class="vtab on" id="t-dashboard" onclick="sw('dashboard',null,true)" role="tab" aria-selected="true">Dashboard</button>
+  <button class="vtab" id="t-enregistrement" onclick="sw('enregistrement',null,true)" role="tab" aria-selected="false">Enregistrement</button>
+</div>
+<div class="wm">UI/UX Pro Max · TCIT v2 · 2026</div>
+
+<script>
+const DEST={
+  AFO:{l:'C',n:7388,c:'#2563EB',nom:'Afolé'},
+  CK: {l:'T',n:7469,c:'#7C3AED',nom:'Cinkassé'},
+  KA: {l:'E',n:2182,c:'#16A34A',nom:'Kambolé'},
+  KE: {l:'C',n:3177,c:'#D97706',nom:'Kétao'},
+  KP: {l:'C',n:4419,c:'#DC2626',nom:'Kpadapé'},
+  KW: {l:'C',n:6637,c:'#0891B2',nom:'Kwodjoviaképe'},
+  NO: {l:'A',n:3910,c:'#059669',nom:'Noépé'},
+  TO: {l:'C',n:7490,c:'#9333EA',nom:'Tohoum'},
+};
+
+/* VIEW SWITCH */
+function sw(id,el,fromTab){
+  document.querySelectorAll('.view').forEach(v=>{v.classList.remove('on')});
+  const view=document.getElementById('v-'+id);
+  view.classList.add('on');
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  if(el&&!fromTab) el.classList.add('on');
+  document.querySelectorAll('.vtab').forEach(t=>{t.classList.remove('on');t.setAttribute('aria-selected','false')});
+  const t=document.getElementById('t-'+id);
+  if(t){t.classList.add('on');t.setAttribute('aria-selected','true')}
+  const titles={dashboard:'Tableau de bord',enregistrement:'Enregistrement véhicule'};
+  document.getElementById('tbc').innerHTML='<strong>'+(titles[id]||id)+'</strong>';
+  if(id==='dashboard') setTimeout(runDashboardAnims,80);
+}
+
+/* VIN VALIDATION */
+function vinCheck(el){
+  const v=el.value=el.value.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/gi,'');
+  const cnt=document.getElementById('vin-count');
+  if(cnt) cnt.textContent=v.length;
+  const hint=document.getElementById('vin-hint');
+  el.classList.remove('valid','error');
+  hint.className='fhint';
+  if(v.length===17){
+    el.classList.add('valid');
+    hint.innerHTML='✓ VIN valide — 17 caractères';
+    hint.className='fhint ok';
+  } else if(v.length>0){
+    el.classList.add('error');
+    hint.innerHTML=`17 caractères requis — <span id="vin-count">${v.length}</span>/17`;
+    hint.className='fhint err';
+  } else {
+    hint.innerHTML='17 caractères alphanumériques — <span id="vin-count">0</span>/17';
+  }
+  upv();
+}
+
+/* PREVIEW UPDATE */
+let _pd='';
+function upv(){
+  const dst=document.getElementById('f-dst').value;
+  const nom=(document.getElementById('f-nom').value||'').trim();
+  const marq=(document.getElementById('f-marq').value||'').trim();
+  const vin=(document.getElementById('f-vin').value||'').trim();
+  const pnEl=document.getElementById('pn');
+  const pdEl=document.getElementById('pd');
+  const plqBig=document.getElementById('plq-big');
+  if(dst&&DEST[dst]){
+    const d=DEST[dst];
+    const num=String(d.n+1).padStart(4,'0');
+    const plate=`${d.l}${num} ${dst}`;
+    if(pnEl.textContent!==plate){
+      pnEl.textContent=plate;
+      if(_pd&&_pd!==dst){
+        plqBig.classList.remove('flash');
+        void plqBig.offsetWidth;
+        plqBig.classList.add('flash');
+      }
+    }
+    document.getElementById('f-imm').value=`${d.l}${num}`;
+    pdEl.textContent=`Bureau de douane de ${d.nom}`;
+    pdEl.style.color=d.c;
+    _pd=dst;
+  } else {
+    pnEl.textContent='· · · · ·';
+    document.getElementById('f-imm').value='';
+    pdEl.textContent='Sélectionner une destination';
+    pdEl.style.color='';
+  }
+  document.getElementById('p-nom').textContent=nom||'—';
+  document.getElementById('p-marq').textContent=marq||'—';
+  document.getElementById('p-vin').textContent=vin||'—';
+  const now=new Date(),p=x=>String(x).padStart(2,'0');
+  document.getElementById('p-date').textContent=`${p(now.getDate())}/${p(now.getMonth()+1)}/${now.getFullYear()}`;
+}
+
+/* SUBMIT */
+function doEnr(){
+  if(!validate()) return;
+  runLoading('btn-enr','Impression en cours…',()=>{
+    showToast('Enregistré · Plaque '+document.getElementById('pn').textContent+' · Impression lancée','ok');
+    setTimeout(reset,2400);
+  });
+}
+function doSave(){
+  if(!validate()) return;
+  runLoading('btn-save','Sauvegarde…',()=>{
+    showToast('Enregistrement sauvegardé avec succès','ok');
+    setTimeout(reset,2400);
+  });
+}
+function validate(){
+  const nom=(document.getElementById('f-nom').value||'').trim();
+  const dst=document.getElementById('f-dst').value;
+  if(!nom){showToast('Le nom du propriétaire est obligatoire.','er');document.getElementById('f-nom').focus();return false;}
+  if(!dst){showToast('Veuillez sélectionner un bureau de destination.','er');document.getElementById('f-dst').focus();return false;}
+  return true;
+}
+function runLoading(id, loadingMsg, cb){
+  const btn=document.getElementById(id);
+  btn.classList.add('loading');
+  btn.disabled=true;
+  setTimeout(()=>{
+    btn.classList.remove('loading');
+    btn.disabled=false;
+    cb();
+  },1500);
+}
+
+/* RESET */
+function reset(){
+  ['f-nom','f-adr','f-tra','f-marq','f-vin','f-oim','f-tri','f-imm'].forEach(id=>{
+    const el=document.getElementById(id);if(el){el.value='';el.classList.remove('valid','error')}
+  });
+  ['f-dst','f-cat'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  const hint=document.getElementById('vin-hint');
+  if(hint){hint.innerHTML='17 caractères alphanumériques — <span id="vin-count">0</span>/17';hint.className='fhint'}
+  _pd='';upv();
+}
+
+/* TOAST */
+let _tt;
+function showToast(msg,type){
+  const old=document.querySelector('.toast');if(old)old.remove();
+  clearTimeout(_tt);
+  const ic=type==='ok'
+    ?'<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>'
+    :'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+  const t=document.createElement('div');
+  t.className='toast '+(type||'');
+  t.innerHTML=ic+'<span>'+msg+'</span>';
+  document.body.appendChild(t);
+  _tt=setTimeout(()=>t.remove(),3500);
+}
+
+/* COUNTER ANIMATION */
+function animCount(el,target,fmt,ms){
+  const start=performance.now();
+  (function step(now){
+    const p=Math.min((now-start)/ms,1);
+    const ease=1-Math.pow(1-p,3);
+    const v=Math.round(ease*target);
+    el.textContent=fmt(v);
+    if(p<1) requestAnimationFrame(step);
+    else el.textContent=fmt(target);
+  })(performance.now());
+}
+
+/* FRONTIER BAR ANIMATION */
+function animBars(){
+  document.querySelectorAll('.fi-fill').forEach(el=>{
+    const w=el.getAttribute('data-w');
+    if(w) requestAnimationFrame(()=>{ el.style.width=w+'%' });
+  });
+}
+
+function runDashboardAnims(){
+  const c1=document.getElementById('c1');
+  if(!c1||c1.textContent==='1 247') return;
+  animCount(c1,1247,v=>v.toLocaleString('fr-FR'),900);
+  animCount(document.getElementById('c2'),12,v=>v+'M F',900);
+  animCount(document.getElementById('c3'),413,v=>v.toLocaleString('fr-FR'),900);
+  animCount(document.getElementById('c4'),834,v=>v.toLocaleString('fr-FR'),900);
+  setTimeout(animBars,200);
+}
+
+/* CLOCK */
+function tick(){
+  const n=new Date(),p=x=>String(x).padStart(2,'0');
+  document.getElementById('tclk').textContent=`${p(n.getDate())}/${p(n.getMonth()+1)}/${n.getFullYear()} · ${p(n.getHours())}:${p(n.getMinutes())}`;
+}
+tick(); setInterval(tick,30000);
+
+/* KEYBOARD NAV */
+document.querySelectorAll('.ni').forEach(ni=>{
+  ni.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ni.click()}});
+});
+
+/* INIT */
+upv();
+setTimeout(runDashboardAnims,300);
+</script>
+</body>
+</html>

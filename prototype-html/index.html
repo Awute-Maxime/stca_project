@@ -3,24 +3,42 @@
 <head>
 <meta charset="UTF-8">
 <title>TCIT — Prototype v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--p:#1B3A6B;--a:#2563EB;--g:#F59E0B;--gr:#16A34A;--pu:#7C3AED;--or:#D97706;--sfrom:#1E4080;--sto:#112654;--dbg:#EEF2F9;--tx:#1E293B;--mu:#64748B;--bd:#D1D5DB}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#111;height:100vh;overflow:hidden;font-size:12px;color:var(--tx)}
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:rgba(0,0,0,.05)}::-webkit-scrollbar-thumb{background:rgba(79,156,249,.3);border-radius:2px}
 /* LOGIN */
-#ls{position:fixed;inset:0;background:linear-gradient(135deg,#E2EAF5,#D4E0F0);display:flex;align-items:center;justify-content:center;z-index:9999}
-.lc{width:360px;background:#fff;border-radius:14px;box-shadow:0 24px 60px rgba(27,58,107,.18);overflow:hidden}
-.lch{background:var(--p);padding:28px 24px 22px;text-align:center;color:#fff}
-.lch-logo{font-size:32px;margin-bottom:8px}.lch-t{font-size:20px;font-weight:800;letter-spacing:3px}.lch-s{font-size:9.5px;opacity:.6;margin-top:4px;line-height:1.5}
-.lcb{padding:26px 24px}
-.lf{margin-bottom:14px}.ll{display:block;font-size:10px;font-weight:700;color:var(--mu);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
-.li{width:100%;height:36px;padding:0 12px;border:1.5px solid var(--bd);border-radius:7px;font-size:13px;color:var(--tx);outline:none;transition:border-color .2s,box-shadow .2s}
-.li:focus{border-color:var(--a);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
-.lbs{display:flex;gap:8px;margin-top:18px}
-.lb-ok{flex:1;height:36px;background:var(--a);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;transition:background .2s}
-.lb-ok:hover{background:#1D4ED8}
-.lb-c{height:36px;padding:0 16px;background:#F1F5F9;color:var(--mu);border:1.5px solid var(--bd);border-radius:7px;font-size:13px;cursor:pointer}
+@keyframes loginIn{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+#ls{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:9999;
+  background:radial-gradient(ellipse at 25% 45%,rgba(20,45,80,.7) 0%,transparent 55%),radial-gradient(ellipse at 75% 35%,rgba(12,30,55,.8) 0%,transparent 50%),radial-gradient(ellipse at 50% 80%,rgba(30,55,90,.5) 0%,transparent 40%),linear-gradient(160deg,#0A1628 0%,#152A45 40%,#0D1F35 100%)}
+.lc{width:380px;border-radius:16px;overflow:hidden;position:relative;background:#0D2040;box-shadow:0 8px 32px rgba(0,0,0,.35),0 2px 8px rgba(0,0,0,.2);animation:loginIn .45s cubic-bezier(.4,0,.2,1) both}
+.lch{background:linear-gradient(160deg,#1B3A6B 0%,#0D2040 100%);padding:14px 20px;display:flex;align-items:center;gap:12px}
+.lch-ico{width:36px;height:36px;flex-shrink:0;background:rgba(255,255,255,.1);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.lch-ico svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.lch-text{flex:1;min-width:0}.lch-t{font-size:14px;font-weight:700;color:#fff;letter-spacing:.01em;line-height:1.3;font-family:'Inter',sans-serif}
+.lch-s{font-size:10px;color:rgba(255,255,255,.45);letter-spacing:.03em;margin-top:1px;opacity:1}
+.lch-close{width:24px;height:24px;flex-shrink:0;border-radius:50%;border:none;cursor:pointer;background:rgba(255,255,255,.1);color:rgba(255,255,255,.5);font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;transition:background .2s,color .2s}
+.lch-close:hover{background:rgba(255,255,255,.18);color:#fff}
+.lcb{padding:18px 24px 20px;background:rgba(255,255,255,.75);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.lf{margin-bottom:12px}.ll{display:block;font-size:10px;font-weight:700;color:var(--mu);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;font-family:'Inter',sans-serif}
+.lf-wrap{position:relative;display:flex;align-items:center}
+.lf-wrap .lf-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:#94A3B8;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.li{width:100%;height:38px;padding:0 12px 0 36px;border:1.5px solid rgba(15,23,42,.1);border-radius:8px;font-size:13px;color:var(--tx);outline:none;background:rgba(240,243,248,.65);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);transition:border-color .2s,box-shadow .2s,background .2s;font-family:'Inter',sans-serif}
+.li:focus{border-color:var(--a);box-shadow:0 0 0 3px rgba(37,99,235,.12);background:rgba(255,255,255,.8)}
+.li:hover:not(:focus){border-color:rgba(15,23,42,.15);background:rgba(235,238,245,.7)}
+.lf-eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:20px;height:20px;cursor:pointer;border:none;background:transparent;padding:0;display:flex;align-items:center;justify-content:center}
+.lf-eye svg{width:16px;height:16px;stroke:#94A3B8;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.lf-eye:hover svg{stroke:var(--tx)}
+.lb-users{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:9px;border:none;border-radius:8px;cursor:pointer;background:rgba(245,158,11,.8);color:#fff;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);font-size:12.5px;font-weight:700;font-family:'Inter',sans-serif;box-shadow:0 2px 10px rgba(245,158,11,.15);margin-bottom:10px;transition:box-shadow .2s,transform .2s,background .2s}
+.lb-users:hover{background:rgba(245,158,11,.9);box-shadow:0 4px 16px rgba(245,158,11,.3);transform:translateY(-1px)}.lb-users:active{transform:scale(.97)}
+.lb-users svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.lbs{display:flex;gap:8px}
+.lb-c{padding:10px 20px;border:1.5px solid rgba(15,23,42,.12);border-radius:8px;background:rgba(255,255,255,.5);color:var(--mu);font-size:13px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);transition:background .2s,border-color .2s}
+.lb-c:hover{background:rgba(255,255,255,.7);border-color:rgba(15,23,42,.18)}
+.lb-ok{flex:1;height:auto;padding:10px;background:rgba(37,99,235,.85);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);box-shadow:0 3px 12px rgba(37,99,235,.2);transition:box-shadow .2s,transform .2s,background .2s}
+.lb-ok:hover{background:rgba(37,99,235,.95);box-shadow:0 6px 20px rgba(37,99,235,.35);transform:translateY(-1px)}.lb-ok:active{transform:scale(.97)}
+.ls-bar{display:flex;height:5px;overflow:hidden}.ls-bar span:nth-child(1){flex:3;background:var(--gr)}.ls-bar span:nth-child(2){flex:2;background:var(--g)}.ls-bar span:nth-child(3){flex:2;background:var(--a)}
 /* APP */
 #app{position:fixed;inset:0;display:flex;flex-direction:column;display:none}
 /* TBAR */
@@ -237,18 +255,41 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#111;height:100vh;ov
 <div id="ls">
   <div class="lc">
     <div class="lch">
-      <div class="lch-logo">🚗</div>
-      <div class="lch-t">TCIT</div>
-      <div class="lch-s">Togolaise de Contrôle et d'Immatriculation Transit</div>
+      <div class="lch-ico"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+      <div class="lch-text">
+        <div class="lch-t">Identification de l'utilisateur</div>
+        <div class="lch-s">TCIT — Contrôle et Immatriculation Transit</div>
+      </div>
+      <button class="lch-close" title="Fermer">×</button>
     </div>
     <div class="lcb">
-      <div class="lf"><label class="ll">Identifiant</label><input class="li" id="liu" type="text" value="KOFFI" autocomplete="off"></div>
-      <div class="lf"><label class="ll">Mot de passe</label><input class="li" id="lip" type="password" value="tcit2024"></div>
+      <div class="lf">
+        <label class="ll">Nom d'utilisateur</label>
+        <div class="lf-wrap">
+          <svg class="lf-ico" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <input class="li" id="liu" type="text" value="KOFFI" autocomplete="off">
+        </div>
+      </div>
+      <div class="lf">
+        <label class="ll">Mot de passe</label>
+        <div class="lf-wrap">
+          <svg class="lf-ico" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input class="li" id="lip" type="password" value="tcit2024" style="padding-right:38px">
+          <button class="lf-eye" type="button" onclick="togglePw()" title="Afficher le mot de passe">
+            <svg id="eye-ico" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <button class="lb-users" type="button">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Gestion des utilisateurs
+      </button>
       <div class="lbs">
-        <button class="lb-ok" onclick="doLogin()">✔ Valider</button>
         <button class="lb-c" onclick="document.getElementById('lip').value=''">Annuler</button>
+        <button class="lb-ok" onclick="doLogin()">✓ Valider</button>
       </div>
     </div>
+    <div class="ls-bar"><span></span><span></span><span></span></div>
   </div>
 </div>
 
@@ -1017,6 +1058,11 @@ let S={user:'KOFFI',openMenuId:null,wins:{},nextZ:400,activeWin:null,fieldHistor
 // ══════════════════════════════════════════════════
 // AUTH
 // ══════════════════════════════════════════════════
+function togglePw(){
+  const pw=document.getElementById('lip'),ico=document.getElementById('eye-ico');
+  if(pw.type==='password'){pw.type='text';ico.innerHTML='<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';}
+  else{pw.type='password';ico.innerHTML='<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';}
+}
 function doLogin(){
   const u=document.getElementById('liu').value.trim()||'KOFFI';
   S.user=u.toUpperCase();

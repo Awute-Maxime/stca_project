@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
-import { Select, DatePicker, Modal, Input, Checkbox, Radio, Dropdown, notification } from 'antd'
+import { DatePicker, Modal, Input, Checkbox, Radio, Dropdown, notification } from 'antd'
 import type { MenuProps } from 'antd'
 import {
   SearchOutlined, CarOutlined, UserOutlined,
@@ -9,8 +9,6 @@ import {
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { mockDestinations } from '@mock/destinations'
-
-const { Option } = Select
 
 const TYPES_VEHICULE = ['Voiture', 'Camion', 'Moto', 'Bus', 'Pick-up', 'Minibus']
 const MONTANT_FIXE   = 10000
@@ -81,14 +79,25 @@ function HistoryInput({
     ),
   }))
 
+  const wrapStyle: CSSProperties = { position: 'relative', display: 'flex' }
+  if (style?.flex) wrapStyle.flex = style.flex
+  if (style?.width) wrapStyle.width = style.width
+
+  const inputStyle: CSSProperties = {
+    ...style,
+    width: '100%',
+    paddingRight: history.length > 0 && !disabled ? 26 : undefined,
+  }
+  delete inputStyle.flex
+
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={wrapStyle}>
       <input
         className={className}
         value={value}
         onChange={e => onChange(uppercase ? e.target.value.toUpperCase() : e.target.value)}
         placeholder={placeholder}
-        style={{ ...style, paddingRight: history.length > 0 && !disabled ? 22 : undefined }}
+        style={inputStyle}
         list={listId}
         maxLength={maxLength}
         disabled={disabled}
@@ -99,26 +108,43 @@ function HistoryInput({
           {history.map(v => <option key={v} value={v} />)}
         </datalist>
       )}
-      {history.length > 0 && !disabled && (
-        <Dropdown menu={{ items: menuItems }} placement="bottomRight" trigger={['click']}>
+      {!disabled && (
+        history.length > 0 ? (
+          <Dropdown menu={{ items: menuItems }} placement="bottomRight" trigger={['click']}>
+            <button
+              type="button"
+              title="Voir l'historique des saisies"
+              style={{
+                position: 'absolute', right: 1, top: 1,
+                width: 24, height: 24,
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: '#9CA3AF', fontSize: 11,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                borderRadius: 3, transition: 'color 0.15s',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#2563EB' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#9CA3AF' }}
+              onMouseDown={e => e.preventDefault()}
+            >
+              🕐
+            </button>
+          </Dropdown>
+        ) : (
           <button
             type="button"
-            title="Voir l'historique des saisies"
+            title="Aucun historique"
             style={{
-              position: 'absolute', right: 4, top: '50%',
-              transform: 'translateY(-50%)',
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: '#CBD5E1', fontSize: 10, padding: '0 1px',
-              display: 'flex', alignItems: 'center', zIndex: 1,
-              transition: 'color 0.15s',
+              position: 'absolute', right: 1, top: 1,
+              width: 24, height: 24,
+              background: 'none', border: 'none', cursor: 'default',
+              color: '#CBD5E1', fontSize: 11,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              borderRadius: 3,
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#2563EB' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#CBD5E1' }}
-            onMouseDown={e => e.preventDefault()}
           >
-            <ClockCircleOutlined />
+            🕐
           </button>
-        </Dropdown>
+        )
       )}
     </div>
   )
@@ -127,12 +153,10 @@ function HistoryInput({
 // ── Progress Dot ──────────────────────────────────────────────────────────────
 function ProgressDot({ filled }: { filled: boolean }): JSX.Element {
   return (
-    <div style={{
-      width: 9, height: 9, borderRadius: '50%',
-      background: filled ? '#4ADE80' : 'rgba(255,255,255,0.25)',
-      boxShadow: filled ? '0 0 7px rgba(74,222,128,0.8)' : 'none',
-      transition: 'all 0.35s cubic-bezier(0.16,1,0.3,1)',
-      flexShrink: 0,
+    <span style={{
+      width: 8, height: 8, borderRadius: '50%',
+      background: filled ? '#2563EB' : '#CBD5E1',
+      display: 'inline-block',
     }} />
   )
 }
@@ -194,10 +218,17 @@ function FieldBox({ label, children, style }: {
   )
 }
 
-const SEL: CSSProperties       = { width: '100%', fontSize: 12 }
-const ICON_R: CSSProperties    = {
-  position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
-  color: '#9CA3AF', fontSize: 11, pointerEvents: 'none',
+const FS2: CSSProperties = {
+  height: 26, background: '#fff', border: '1px solid #D1D5DB', borderRadius: 4,
+  padding: '0 26px 0 8px', color: '#1E293B', fontSize: 11.5, outline: 'none',
+  cursor: 'pointer', WebkitAppearance: 'none', appearance: 'none',
+  backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239CA3AF' stroke-width='1.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E\")",
+  backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center',
+} as CSSProperties
+const QBTN: CSSProperties = {
+  fontSize: 11, width: 22, height: 22, borderRadius: '50%',
+  background: '#E2E8F0', border: 'none', cursor: 'pointer', color: '#475569',
+  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
 }
 
 // ── Page principale ───────────────────────────────────────────────────────────
@@ -222,6 +253,7 @@ export default function EnregistrementPage(): JSX.Element {
   const [immatGenere,     setImmatGenere]    = useState<string | null>(null)
   const [montant,         setMontant]        = useState<number | null>(null)
   const [loading,         setLoading]        = useState(false)
+  const [description,     setDescription]    = useState('')
   const [marqueModalOpen, setMarqueModalOpen]= useState(false)
   const [parcModalOpen,   setParcModalOpen]  = useState(false)
 
@@ -238,12 +270,13 @@ export default function EnregistrementPage(): JSX.Element {
   const triHist      = useFieldHistory('numTri')
   const chassisHist  = useFieldHistory('chassis')
   const marqueHist   = useFieldHistory('marqueModele')
+  const descHist     = useFieldHistory('description')
 
   // ── Progression (4 critères) ──────────────────────────────────────────────
   const progress = [
-    parc !== '',
     nomAcheteur !== '',
-    typeVehicule !== undefined && marqueModele !== '',
+    typeVehicule !== undefined,
+    marqueModele !== '',
     destination !== undefined,
   ]
   const progressCount = progress.filter(Boolean).length
@@ -260,8 +293,8 @@ export default function EnregistrementPage(): JSX.Element {
   }
 
   const handleReset = (): void => {
-    setDate(dayjs()); setParc(''); setNomAcheteur(''); setPaysResidence('')
-    setPaysDestination(''); setMaisonTransit(''); setTypeVehicule(undefined)
+    setDate(dayjs()); setNomAcheteur(''); setPaysResidence('')
+    setPaysDestination(''); setMaisonTransit(''); setDescription(''); setTypeVehicule(undefined)
     setDestination(undefined); setMarqueModele(''); setChassis('')
     setNumTri(''); setDateTri(dayjs()); setRecycler(false)
     setAncienneImmat(''); setSaisirAncienne(false)
@@ -325,450 +358,269 @@ export default function EnregistrementPage(): JSX.Element {
     ),
   }))
 
+  const DEST_COLORS: Record<string, string> = {
+    AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
+    KP: '#16A34A', KW: '#16A34A', NO: '#16A34A',
+    'S/C': '#FFD700', POL: '#94A3B8',
+  }
+
+  const R: CSSProperties = { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }
+  const LBL: CSSProperties = { fontSize: 11, color: '#475569', whiteSpace: 'nowrap', width: 130, flexShrink: 0 }
+  const LBL_SM: CSSProperties = { ...LBL, width: 110 }
+  const FS: CSSProperties = { border: '1px solid #CBD5E1', borderRadius: 5, padding: '6px 12px 10px', margin: 0 }
+  const LEG: CSSProperties = { fontSize: 10, fontWeight: 600, color: '#475569', padding: '0 6px', textTransform: 'uppercase', letterSpacing: 0.5 }
+
   // ── Rendu ─────────────────────────────────────────────────────────────────
   return (
     <div style={{
-      display: 'flex', flexDirection: 'column',
+      display: 'flex', flexDirection: 'column', height: '100%',
       userSelect: 'none',
       animation: 'formEnter 0.35s cubic-bezier(0.16,1,0.3,1)',
-      background: '#fff',
+      background: '#F8FAFF',
     }}>
 
-      {/* ── Header gradient ─────────────────────────────────────────────── */}
+      {/* ── Sub-header beige ────────────────────────────────────────────── */}
       <div style={{
-        background: `linear-gradient(135deg, ${C.blue} 0%, ${C.accent} 100%)`,
-        padding: '6px 12px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        flexShrink: 0,
-        borderRadius: '3px 3px 0 0',
-        marginBottom: 7,
+        background: '#F5F3EE', borderBottom: '2px solid #E2D9C8',
+        padding: '9px 14px', display: 'flex', alignItems: 'center', flexShrink: 0,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <FileAddOutlined style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13 }} />
-          <span style={{ color: '#fff', fontSize: 10, fontWeight: 700, letterSpacing: 1 }}>
-            ENREGISTREMENT DES VÉHICULES
-          </span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+        <span style={{ fontSize: 12, marginRight: 8 }}>📄</span>
+        <span style={{ color: '#1B3A6B', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase', flex: 1 }}>
+          Enregistrement des Véhicules
+        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           {progress.map((filled, i) => <ProgressDot key={i} filled={filled} />)}
-          <span style={{
-            color: formReady ? '#4ADE80' : 'rgba(255,255,255,0.6)',
-            fontSize: 9, fontWeight: 600, marginLeft: 5,
-            transition: 'color 0.3s',
-          }}>
+          <span style={{ fontSize: 9, color: '#64748B', marginLeft: 5 }}>
             {formReady ? '✓ Prêt' : `${progressCount}/4 requis`}
           </span>
         </div>
       </div>
 
-      {/* ── Corps du formulaire ─────────────────────────────────────────── */}
-      <div style={{ padding: '0 8px 6px' }}>
-
-        {/* ── Ligne 1 : Référence + Date + IMMAT (proéminent) ─────────── */}
+      {/* ── Saved bar (post-enregistrement) ─────────────────────────────── */}
+      {saved && (
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: '88px 148px 1fr auto',
-          gap: 8, marginBottom: 6, alignItems: 'end',
+          margin: '8px 14px 0', padding: '8px 12px',
+          background: 'rgba(22,163,74,0.1)', border: '1px solid rgba(22,163,74,0.25)',
+          borderRadius: 6, display: 'flex', alignItems: 'center', gap: 10,
+          marginBottom: 8, animation: 'sbIn 0.3s ease',
         }}>
+          <span style={{ flex: 1, fontSize: 11.5, color: '#10B981', fontWeight: 700 }}>
+            ✅ Enregistrement sauvegardé — Réf. <span style={{ color: C.blue }}>{savedRef}</span>
+          </span>
+          <button onClick={() => setShowEdition(true)} style={{
+            height: 32, padding: '0 16px', background: '#F8FAFF', color: '#64748B',
+            border: '1px solid #D1D5DB', borderRadius: 5, fontSize: 12, cursor: 'pointer',
+            transition: 'all 0.2s',
+          }}>
+            🖨 Réimprimer
+          </button>
+          <button onClick={handleReset} style={{
+            height: 32, padding: '0 16px', background: '#F8FAFF', color: '#64748B',
+            border: '1px solid #D1D5DB', borderRadius: 5, fontSize: 12, cursor: 'pointer',
+            transition: 'all 0.2s',
+          }}>
+            ➕ Nouveau
+          </button>
+        </div>
+      )}
 
-          <FieldBox label="Référence">
-            <input className="light-input light-input--ref"
-              value={savedRef ?? '0'} readOnly
-              style={{ height: 26 }} />
-          </FieldBox>
-
-          <FieldBox label="En date du">
-            <DatePicker value={date} onChange={v => v && setDate(v)}
-              format="DD/MM/YYYY" size="small"
-              style={{ width: '100%', height: 26 }} allowClear={false}
-              disabled={saved} />
-          </FieldBox>
-
-          <FieldBox label="Parc / Zone d'importation">
-            <div style={{ position: 'relative' }}>
-              <input
-                className={`light-input light-input--clickable${parc ? ' light-input--filled' : ''}`}
-                value={parc} readOnly placeholder="Cliquer pour sélectionner..."
-                onClick={() => !saved && setParcModalOpen(true)}
-                style={{ paddingRight: 28, height: 26, cursor: saved ? 'default' : 'pointer' }} />
-              <SearchOutlined style={ICON_R} />
-            </div>
-          </FieldBox>
-
-          {/* ── Badge IMMAT — proéminent ──────────────────────────────── */}
+      {/* ── Barre Référence + date + IMMAT badge ───────────────────────── */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 16,
+        padding: '7px 16px', borderBottom: '1px solid #E2E8F0', background: '#F8FAFF', flexShrink: 0,
+      }}>
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent('mdi:open-window', { detail: 'listeVehicules' }))}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px',
+            background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 5,
+            color: '#1D4ED8', fontSize: 11, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
+          }}
+        >☰ Liste</button>
+        <span style={{ fontSize: 11, fontWeight: 600, color: '#475569' }}>Référence</span>
+        <input className="light-input" value={savedRef ?? '0'} readOnly
+          style={{ width: 58, textAlign: 'center', fontWeight: 700, color: '#2563EB', letterSpacing: 1.5, background: '#EFF6FF', height: 26 }} />
+        <span style={{ fontSize: 11, fontWeight: 600, color: '#475569' }}>En date du</span>
+        <DatePicker value={date} onChange={v => v && setDate(v)} format="DD/MM/YYYY" size="small"
+          style={{ width: 136, height: 26 }} allowClear={false} disabled={saved} />
+        <div style={{ flex: 1 }} />
+        <div style={{
+          width: 220, minHeight: 72, padding: '10px 8px', whiteSpace: 'nowrap',
+          border: '2px dashed rgba(245,158,11,0.45)', borderRadius: 8,
+          background: immatGenere ? `${DEST_COLORS[destination ?? ''] ?? C.gold}28` : 'rgba(245,158,11,0.04)',
+          textAlign: 'center',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          borderColor: immatGenere ? `${DEST_COLORS[destination ?? ''] ?? C.gold}77` : 'rgba(245,158,11,0.45)',
+        }}>
+          <div style={{ fontSize: 9, color: 'rgba(180,115,0,0.8)', textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 4 }}>N° Immat</div>
           {immatGenere ? (
-            <div style={{
-              background: `linear-gradient(150deg, ${C.blue} 0%, #0A1E47 100%)`,
-              borderRadius: 9,
-              padding: '8px 22px',
-              display: 'flex', flexDirection: 'column',
-              alignItems: 'center', justifyContent: 'center',
-              minWidth: 158,
-              border: '1.5px solid rgba(245,158,11,0.5)',
-              boxShadow: '0 6px 24px rgba(27,58,107,0.55), 0 0 0 1px rgba(245,158,11,0.08)',
-              animation: 'immatReveal 0.4s cubic-bezier(0.16,1,0.3,1), immatPulse 2.5s ease-in-out 0.4s infinite',
-              position: 'relative', overflow: 'hidden',
-              cursor: 'default',
-            }}>
-              {/* Shimmer sweep */}
-              <div style={{
-                position: 'absolute', inset: 0,
-                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.07) 50%, transparent 100%)',
-                backgroundSize: '200% 100%',
-                animation: 'shimmer 2.5s linear infinite',
-                pointerEvents: 'none',
-              }} />
-              <div style={{ color: 'rgba(245,158,11,0.65)', fontSize: 7.5, letterSpacing: 3, textTransform: 'uppercase', fontWeight: 800, position: 'relative' }}>
-                N° IMMAT
-              </div>
-              <div style={{
-                color: C.gold, fontSize: 30, fontWeight: 900,
-                letterSpacing: 5, lineHeight: 1.1,
-                fontFamily: 'Courier New, monospace',
-                position: 'relative',
-                textShadow: '0 0 18px rgba(245,158,11,0.45)',
-              }}>
-                {immatGenere}
-              </div>
-              {destNom && (
-                <div style={{
-                  color: 'rgba(255,255,255,0.42)', fontSize: 7.5, marginTop: 2,
-                  letterSpacing: 0.5, position: 'relative',
-                  maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>
-                  {destNom}
-                </div>
-              )}
+            <div style={{ fontSize: 20, fontWeight: 900, color: C.blue, fontFamily: "'Courier New', monospace", letterSpacing: 3, margin: '2px 0' }}>
+              {immatGenere}
             </div>
           ) : (
-            <div style={{
-              minWidth: 158,
-              borderRadius: 9,
-              border: '2px dashed rgba(245,158,11,0.38)',
-              display: 'flex', flexDirection: 'column',
-              alignItems: 'center', justifyContent: 'center',
-              padding: '8px 16px',
-              background: 'linear-gradient(150deg, #FEFCE8 0%, #FFFDF7 100%)',
-              animation: 'immatEmptyPulse 3s ease-in-out infinite',
-              gap: 2,
-            }}>
-              <div style={{ color: 'rgba(245,158,11,0.45)', fontSize: 7.5, letterSpacing: 2.5, textTransform: 'uppercase', fontWeight: 800 }}>
-                N° IMMAT
-              </div>
-              <div style={{ color: 'rgba(245,158,11,0.22)', fontSize: 26, fontWeight: 900, letterSpacing: 4, lineHeight: 1.15, fontFamily: 'Courier New, monospace' }}>
-                ——
-              </div>
-              <div style={{ color: 'rgba(245,158,11,0.38)', fontSize: 7.5, fontWeight: 700, letterSpacing: 1 }}>
-                EN ATTENTE
-              </div>
-            </div>
+            <>
+              <div style={{ fontSize: 11, color: 'rgba(180,115,0,0.45)', letterSpacing: 2, margin: '2px 0' }}>— / —</div>
+              <div style={{ fontSize: 10.5, color: 'rgba(180,115,0,0.6)', letterSpacing: 1 }}>EN ATTENTE</div>
+            </>
           )}
         </div>
+      </div>
 
-        {/* ── Section Acheteur ────────────────────────────────────────── */}
-        <SectionCard title="Coordonnées Acheteur" icon={<UserOutlined />} delay={0} filled={progress[1]}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {/* ── Corps du formulaire ─────────────────────────────────────────── */}
+      <div style={{ flex: 1, padding: '8px 16px', display: 'flex', flexDirection: 'column', gap: 14, overflow: 'auto', minHeight: 0 }}>
 
-            <FieldBox label="Nom et prénom *">
-              <HistoryInput
-                fieldKey="nomAcheteur"
-                history={nomHist.history}
-                value={nomAcheteur}
-                onChange={setNomAcheteur}
-                className={`light-input light-input--req${nomAcheteur ? ' light-input--filled' : ''}`}
-                placeholder="Nom et prénom de l'acheteur"
-                style={{ height: 26 }}
-                disabled={saved}
-              />
-            </FieldBox>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <FieldBox label="Pays de résidence">
-                <HistoryInput
-                  fieldKey="paysResidence"
-                  history={residHist.history}
-                  value={paysResidence}
-                  onChange={setPaysResidence}
-                  className={`light-input light-input--warm${paysResidence ? ' light-input--filled' : ''}`}
-                  placeholder="Pays résidence"
-                  style={{ height: 26 }}
-                  disabled={saved}
-                />
-              </FieldBox>
-              <FieldBox label="Pays de destination">
-                <HistoryInput
-                  fieldKey="paysDestination"
-                  history={destPaysHist.history}
-                  value={paysDestination}
-                  onChange={setPaysDestination}
-                  className={`light-input light-input--warm${paysDestination ? ' light-input--filled' : ''}`}
-                  placeholder="Pays destination"
-                  style={{ height: 26 }}
-                  disabled={saved}
-                />
-              </FieldBox>
-            </div>
-
-            <FieldBox label="Maison de transit">
-              <HistoryInput
-                fieldKey="maisonTransit"
-                history={transitHist.history}
-                value={maisonTransit}
-                onChange={setMaisonTransit}
-                className={`light-input${maisonTransit ? ' light-input--filled' : ''}`}
-                placeholder="Maison de transit"
-                style={{ height: 26 }}
-                disabled={saved}
-              />
-            </FieldBox>
-
+        {/* ── Section Coordonnées Acheteur ──────────────────────────────── */}
+        <fieldset style={FS}>
+          <legend style={LEG}>Coordonnées Acheteur</legend>
+          <div style={R}>
+            <span style={LBL_SM}>Nom et prénom :</span>
+            <HistoryInput fieldKey="nomAcheteur" history={nomHist.history} value={nomAcheteur}
+              onChange={setNomAcheteur} className="light-input" placeholder="Nom et prénom de l'acheteur"
+              style={{ flex: 1, height: 26 }} disabled={saved} />
           </div>
-        </SectionCard>
-
-        {/* ── Section Véhicule ─────────────────────────────────────────── */}
-        <SectionCard title="Description du véhicule" icon={<CarOutlined />} delay={80} filled={progress[2]}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-
-            <FieldBox label="Véhicule à assurer *">
-              <Select size="small" placeholder="Sélectionner..." style={SEL}
-                value={typeVehicule} disabled={saved}
-                onChange={v => {
-                  setTypeVehicule(v)
-                  setDestination(undefined)
-                  setImmatGenere(null)
-                  setMontant(null)
-                }}>
-                {TYPES_VEHICULE.map(t => <Option key={t} value={t}>{t}</Option>)}
-              </Select>
-            </FieldBox>
-
-            <FieldBox label="Marque - Modèle *">
-              <div style={{ position: 'relative' }}>
-                <input
-                  className={`light-input light-input--clickable${marqueModele ? ' light-input--filled' : ''}`}
-                  value={marqueModele} readOnly
-                  placeholder="Cliquer pour sélectionner..."
-                  onClick={() => !saved && setMarqueModalOpen(true)}
-                  style={{ paddingRight: marqueHist.history.length > 0 ? 46 : 28, height: 26, cursor: saved ? 'default' : 'pointer' }}
-                  disabled={saved}
-                />
-                {/* Bouton rappel historique marques */}
-                {marqueHist.history.length > 0 && !saved && (
-                  <Dropdown menu={{ items: marqueMenuItems }} placement="bottomRight" trigger={['click']}>
-                    <button
-                      type="button"
-                      title="Marques récentes"
-                      style={{
-                        position: 'absolute', right: 24, top: '50%',
-                        transform: 'translateY(-50%)',
-                        background: 'none', border: 'none', cursor: 'pointer',
-                        color: '#CBD5E1', fontSize: 10, padding: '0 2px',
-                        display: 'flex', alignItems: 'center', zIndex: 1,
-                        transition: 'color 0.15s',
-                      }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#2563EB' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#CBD5E1' }}
-                      onMouseDown={e => e.preventDefault()}
-                    >
-                      <ClockCircleOutlined />
-                    </button>
-                  </Dropdown>
-                )}
-                <SearchOutlined style={ICON_R} />
-              </div>
-            </FieldBox>
-
-            <FieldBox label="À destination de *">
-              <Select size="small"
-                placeholder={typeVehicule ? 'Sélectionner...' : "⚠ Choisir d'abord le type"}
-                style={SEL} value={destination}
-                disabled={!typeVehicule || saved}
-                onChange={handleDestinationChange}>
-                {mockDestinations.map(d => (
-                  <Option key={d.code} value={d.code}>
-                    <span style={{ fontWeight: 600, color: C.blue, marginRight: 6 }}>{d.code}</span>
-                    {d.nom}
-                  </Option>
-                ))}
-              </Select>
-            </FieldBox>
-
-            <FieldBox label="Montant (FCFA)">
-              <input
-                className={`light-input light-input--amount${montant != null ? ' light-input--filled' : ''}`}
-                value={montant != null ? `${montant.toLocaleString('fr-FR')} FCFA` : ''}
-                readOnly placeholder="—"
-                style={{ height: 26 }} />
-            </FieldBox>
-
-            <FieldBox label="N° de Châssis (VIN)" style={{ gridColumn: 'span 2' }}>
-              <div style={{ position: 'relative' }}>
-                <HistoryInput
-                  fieldKey="chassis"
-                  history={chassisHist.history}
-                  value={chassis}
-                  onChange={v => setChassis(v.toUpperCase())}
-                  className={`light-input light-input--chassis${chassis ? ' light-input--filled' : ''}`}
-                  placeholder="Ex : ZFA29000000302873"
-                  maxLength={17}
-                  style={{ height: 26, paddingRight: 44 }}
-                  disabled={saved}
-                  uppercase
-                />
-                <span style={{
-                  position: 'absolute', right: 24, top: '50%', transform: 'translateY(-50%)',
-                  fontSize: 9, fontWeight: 700,
-                  color: chassis.length === 17 ? C.green : '#9CA3AF',
-                  transition: 'color 0.25s',
-                  pointerEvents: 'none',
-                }}>
-                  {chassis.length}/17
-                </span>
-              </div>
-            </FieldBox>
-
-            <div style={{ gridColumn: 'span 2', display: 'grid', gridTemplateColumns: '1fr 148px', gap: 6 }}>
-              <FieldBox label="N° de Tri">
-                <HistoryInput
-                  fieldKey="numTri"
-                  history={triHist.history}
-                  value={numTri}
-                  onChange={setNumTri}
-                  className={`light-input${numTri ? ' light-input--filled' : ''}`}
-                  placeholder="N° de tri (douanier)"
-                  style={{ height: 26 }}
-                  disabled={saved}
-                />
-              </FieldBox>
-              <FieldBox label="Date N° de Tri">
-                <DatePicker value={dateTri} onChange={v => v && setDateTri(v)}
-                  format="DD/MM/YYYY" size="small"
-                  style={{ width: '100%', height: 26 }} allowClear={false}
-                  disabled={saved} />
-              </FieldBox>
-            </div>
-
+          <div style={R}>
+            <span style={LBL_SM}>Pays Résidence :</span>
+            <HistoryInput fieldKey="paysResidence" history={residHist.history} value={paysResidence}
+              onChange={setPaysResidence} className="light-input" style={{ flex: 1, height: 26 }} disabled={saved} />
+            <span style={{ fontSize: 11, color: '#475569', whiteSpace: 'nowrap', marginLeft: 12 }}>Pays Destination :</span>
+            <HistoryInput fieldKey="paysDestination" history={destPaysHist.history} value={paysDestination}
+              onChange={setPaysDestination} className="light-input" style={{ flex: 1, height: 26 }} disabled={saved} />
           </div>
-        </SectionCard>
+        </fieldset>
 
-        {/* ── Ancienne immat + Recycler ────────────────────────────────── */}
-        <div style={{
-          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8,
-          padding: '5px 10px',
-          background: '#FAFBFD',
-          border: '1px solid #E5E7EB',
-          borderLeft: '3px solid #D1D5DB',
-          borderRadius: 7,
-          marginBottom: 6,
-          animation: 'sectionSlide 0.35s cubic-bezier(0.16,1,0.3,1) 160ms both',
-        }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
-              <Checkbox checked={saisirAncienne} onChange={e => setSaisirAncienne(e.target.checked)} disabled={saved}>
-                <span style={{ fontSize: 10, color: '#B45309', fontWeight: 600 }}>
-                  Saisir ancienne immatriculation
-                </span>
-              </Checkbox>
-            </div>
-            <input className="light-input"
-              value={ancienneImmat} disabled={!saisirAncienne || saved}
-              onChange={e => setAncienneImmat(e.target.value)}
-              placeholder="Ancienne immatriculation"
-              style={{ height: 26 }} />
+        {/* ── Section Description du véhicule ──────────────────────────── */}
+        <fieldset style={FS}>
+          <legend style={LEG}>Description du véhicule</legend>
+          <div style={{ textAlign: 'center', fontSize: 11, fontWeight: 600, color: '#2563EB', marginBottom: 6 }}>
+            Véhicule sortant du Parc
           </div>
-          <div>
-            <Label>Recycler 'Plaque Perdue'</Label>
-            <Radio.Group value={recycler ? 'oui' : 'non'}
-              onChange={e => setRecycler(e.target.value === 'oui')}
-              style={{ marginTop: 5 }} disabled={saved}>
-              <Radio value="oui" style={{ fontSize: 11 }}>Oui</Radio>
-              <Radio value="non" style={{ fontSize: 11 }}>Non</Radio>
-            </Radio.Group>
+          {/* Véhicule à assurer + Description */}
+          <div style={R}>
+            <span style={LBL}>Véhicule à assurer :</span>
+            <select style={{ ...FS2, width: 130 }} value={typeVehicule ?? ''} disabled={saved}
+              onChange={e => { const v = e.target.value || undefined; setTypeVehicule(v); setDestination(undefined); setImmatGenere(null); setMontant(null) }}>
+              <option value="">—</option>
+              {TYPES_VEHICULE.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+            <HistoryInput fieldKey="description" history={descHist.history} value={description}
+              onChange={setDescription} className="light-input" placeholder="Description / informations complémentaires"
+              style={{ flex: 1, height: 26 }} disabled={saved} />
+            <button type="button" style={QBTN} title="Aide">?</button>
+          </div>
+          {/* À Destination de + Montant */}
+          <div style={R}>
+            <span style={LBL}>À Destination de :</span>
+            <select style={{ ...FS2, width: 130 }} value={destination ?? ''} disabled={!typeVehicule || saved}
+              onChange={e => { if (e.target.value) handleDestinationChange(e.target.value) }}>
+              <option value="">{typeVehicule ? '—' : "⚠ Choisir d'abord le type"}</option>
+              {mockDestinations.map(d => <option key={d.code} value={d.code}>{d.code}</option>)}
+            </select>
+            {destination && destNom && (
+              <div style={{
+                flex: 1, padding: '4px 14px', borderRadius: 4, fontSize: 11.5, fontWeight: 700,
+                color: '#fff', whiteSpace: 'nowrap', letterSpacing: 0.3, textAlign: 'center',
+                background: DEST_COLORS[destination] ?? '#6B7280',
+              }}>{destNom}</div>
+            )}
+            <div style={{ minWidth: 12 }} />
+            <span style={{ fontSize: 11, color: '#475569', whiteSpace: 'nowrap' }}>Montant :</span>
+            <input className="light-input" value={montant != null ? `${montant.toLocaleString('fr-FR')} FCFA` : '0'} readOnly
+              style={{ width: 90, textAlign: 'right', fontWeight: 700, color: '#1B3A6B', background: '#F0F4FF', height: 26 }} />
+          </div>
+          {/* Marque - Modèle + N° de Tri */}
+          <div style={R}>
+            <span style={LBL}>Marque - Modèle :</span>
+            <HistoryInput fieldKey="marqueModele" history={marqueHist.history} value={marqueModele}
+              onChange={setMarqueModele} className="light-input" style={{ flex: 1, height: 26 }} disabled={saved} />
+            <button type="button" style={QBTN} title="Aide">?</button>
+            <span style={{ fontSize: 11, color: '#475569', whiteSpace: 'nowrap', marginLeft: 12 }}>N° de Tri :</span>
+            <HistoryInput fieldKey="numTri" history={triHist.history} value={numTri} onChange={setNumTri}
+              className="light-input" style={{ width: 140, height: 26 }} disabled={saved} />
+          </div>
+          {/* Transit (maison) + Date N° Tri */}
+          <div style={R}>
+            <span style={LBL}>Transit (maison) :</span>
+            <HistoryInput fieldKey="maisonTransit" history={transitHist.history} value={maisonTransit}
+              onChange={setMaisonTransit} className="light-input" style={{ flex: 1, height: 26 }} disabled={saved} />
+            <button type="button" style={QBTN} title="Aide">?</button>
+            <span style={{ fontSize: 11, color: '#475569', whiteSpace: 'nowrap', marginLeft: 12 }}>Date N° Tri :</span>
+            <input className="light-input" type="date" value={dateTri.format('YYYY-MM-DD')}
+              onChange={e => setDateTri(dayjs(e.target.value))}
+              style={{ width: 140, height: 26 }} disabled={saved} />
+          </div>
+          {/* N° de Châssis */}
+          <div style={{ ...R, marginBottom: 0 }}>
+            <span style={LBL}>N° de Châssis :</span>
+            <div style={{ position: 'relative', flex: 1 }}>
+              <input className="light-input" value={chassis}
+                onChange={e => setChassis(e.target.value.toUpperCase())}
+                placeholder="Ex : ZFA29000000302873" maxLength={17}
+                style={{ height: 26, paddingRight: 36 }} disabled={saved} />
+              <span style={{
+                position: 'absolute', right: 7, top: '50%', transform: 'translateY(-50%)',
+                fontSize: 9, color: '#9CA3AF', pointerEvents: 'none',
+              }}>{chassis.length}/17</span>
+            </div>
+            <input className="light-input" style={{ width: 130, background: '#F1F5F9', color: '#94A3B8', height: 26 }}
+              placeholder="(N° série)" readOnly />
+          </div>
+        </fieldset>
+
+        {/* ── Bas : ancienne immat + recycler ──────────────────────────── */}
+        <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
+          <div style={{ flex: 1, border: '1px solid #CBD5E1', borderRadius: 5, padding: '7px 12px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 11, color: '#475569', marginBottom: 5 }}>
+              <Checkbox checked={saisirAncienne} onChange={e => setSaisirAncienne(e.target.checked)} disabled={saved} />
+              Saisir l&apos;ancienne immatriculation
+            </label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 11, color: '#475569', whiteSpace: 'nowrap' }}>Ancienne immatriculation :</span>
+              <input className="light-input" value={ancienneImmat} disabled={!saisirAncienne || saved}
+                onChange={e => setAncienneImmat(e.target.value)} style={{ flex: 1, height: 26, background: saisirAncienne ? '#fff' : '#F9FAFB' }} />
+            </div>
+          </div>
+          <div style={{ width: 200, border: '1px solid #CBD5E1', borderRadius: 5, padding: '7px 12px' }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: '#475569', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
+              Recycler &apos;Plaque Perdue&apos;
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: '#1E293B', cursor: 'pointer' }}>
+              <Checkbox checked={!recycler} onChange={e => setRecycler(!e.target.checked)} disabled={saved} />
+              NON
+            </label>
           </div>
         </div>
 
-        {/* ── Barre d'actions ──────────────────────────────────────────── */}
-        {saved ? (
-          /* État post-enregistrement */
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            animation: 'savedEnter 0.4s cubic-bezier(0.16,1,0.3,1)',
-          }}>
-            <CheckCircleOutlined style={{ color: C.green, fontSize: 16 }} />
-            <span style={{ fontSize: 12, fontWeight: 700, color: C.green, flex: 1 }}>
-              Enregistré — Réf.&nbsp;
-              <span style={{ color: C.blue, letterSpacing: 0.5 }}>{savedRef}</span>
-            </span>
-            <button onClick={() => setShowEdition(true)} style={{
-              height: 29, padding: '0 13px', fontSize: 11, fontWeight: 600, cursor: 'pointer',
-              border: `1px solid ${C.border}`, borderRadius: 5,
-              background: '#fff', color: C.muted,
-              display: 'flex', alignItems: 'center', gap: 5,
-            }}>
-              <PrinterOutlined /> Réimprimer
-            </button>
-            <button onClick={handleReset} style={{
-              height: 31, padding: '0 18px', fontSize: 12, fontWeight: 700,
-              border: 'none', borderRadius: 5, cursor: 'pointer',
-              background: `linear-gradient(135deg, ${C.accent} 0%, ${C.blue} 100%)`,
-              color: '#fff',
-              boxShadow: '0 3px 10px rgba(37,99,235,0.35)',
-              display: 'flex', alignItems: 'center', gap: 5,
-            }}>
-              <PlusOutlined /> Nouveau
-            </button>
-          </div>
-        ) : (
-          /* État saisie normale */
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div style={{ flex: 1, height: 3, background: '#E5E7EB', borderRadius: 2, overflow: 'hidden' }}>
-                <div style={{
-                  height: '100%', borderRadius: 2,
-                  width: `${(progressCount / 4) * 100}%`,
-                  background: formReady ? '#16A34A' : C.accent,
-                  transition: 'width 0.45s cubic-bezier(0.16,1,0.3,1), background 0.3s',
-                }} />
-              </div>
-            </div>
-
-            <button onClick={handleReset} style={{
-              height: 29, padding: '0 13px', fontSize: 11, fontWeight: 600, cursor: 'pointer',
-              border: `1px solid ${C.border}`, borderRadius: 5,
-              background: '#fff', color: C.muted, transition: 'all 0.15s',
-            }}>
-              Réinitialiser
-            </button>
-
-            <button onClick={handleReset} style={{
-              height: 29, padding: '0 13px', fontSize: 11, fontWeight: 600, cursor: 'pointer',
-              border: `1px solid ${C.danger}`, borderRadius: 5,
-              background: '#fff', color: C.danger, transition: 'all 0.15s',
-            }}>
-              Annuler
-            </button>
-
-            {formReady && (
-              <button onClick={handleEnregistrer} disabled={loading} style={{
-                height: 31, padding: '0 22px', fontSize: 12, fontWeight: 700,
-                border: 'none', borderRadius: 5,
-                cursor: loading ? 'not-allowed' : 'pointer',
-                color: '#fff',
-                background: loading
-                  ? '#9EB3D0'
-                  : `linear-gradient(135deg, ${C.accent} 0%, ${C.blue} 100%)`,
-                boxShadow: loading ? 'none' : '0 3px 12px rgba(37,99,235,0.38)',
-                transition: 'all 0.2s',
-                animation: !loading ? 'btnPulse 2.2s ease-in-out infinite' : 'none',
-                letterSpacing: 0.3,
-              }}>
-                {loading ? '⟳ Enregistrement...' : '✓ Enregistrer'}
-              </button>
-            )}
-          </div>
-        )}
-
       </div>
+
+      {/* ── Barre d'actions ────────────────────────────────────────────── */}
+      {!saved && (
+        <div style={{
+          display: 'flex', justifyContent: 'flex-end', gap: 8,
+          padding: '9px 14px', borderTop: '1px solid #E2E8F0', background: '#F8FAFF', flexShrink: 0,
+        }}>
+          {/* .bs */}
+          <button onClick={handleReset} style={{
+            height: 32, padding: '0 16px', background: '#F8FAFF', color: '#64748B',
+            border: '1px solid #D1D5DB', borderRadius: 5, fontSize: 12, cursor: 'pointer',
+            transition: 'all 0.2s',
+          }}>Réinitialiser</button>
+          {/* .bs border-color:#DC2626 */}
+          <button onClick={handleReset} style={{
+            height: 32, padding: '0 16px', background: '#F8FAFF', color: '#DC2626',
+            border: '1px solid #DC2626', borderRadius: 5, fontSize: 12, cursor: 'pointer',
+            transition: 'all 0.2s',
+          }}>Annuler</button>
+          {/* .be */}
+          <button onClick={handleEnregistrer} disabled={loading || !formReady} style={{
+            height: 32, padding: '0 22px', background: loading || !formReady ? '#9CA3AF' : '#2563EB',
+            color: '#fff', border: 'none', borderRadius: 5, fontSize: 12, fontWeight: 700,
+            cursor: loading || !formReady ? 'default' : 'pointer',
+            transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 6,
+          }}>
+            {loading ? '⟳ Enregistrement...' : '💾 Enregistrer'}
+          </button>
+        </div>
+      )}
 
       {/* ── Dialog Edition Documents ─────────────────────────────────── */}
       <EditionDocumentsModal

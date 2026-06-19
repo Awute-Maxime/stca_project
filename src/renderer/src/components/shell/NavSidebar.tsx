@@ -1,27 +1,16 @@
-import {
-  FileAddOutlined,
-  EnvironmentOutlined,
-  BarChartOutlined,
-  UnorderedListOutlined,
-  SearchOutlined,
-  CarOutlined,
-} from '@ant-design/icons'
-import type { ReactNode } from 'react'
-import { appColors } from '@theme/windev-theme'
-
 export interface SidebarItem {
   id: 'enregistrement' | 'destination' | 'analyse' | 'listeVehicules' | 'rechercheImmat' | 'rechercheChassis'
   label: string
-  icon: ReactNode
+  icon: string
 }
 
 export const SIDEBAR_ITEMS: SidebarItem[] = [
-  { id: 'enregistrement',   label: 'Enregistrement',      icon: <FileAddOutlined /> },
-  { id: 'destination',      label: 'Destination',         icon: <EnvironmentOutlined /> },
-  { id: 'analyse',          label: 'Analyse',             icon: <BarChartOutlined /> },
-  { id: 'listeVehicules',   label: 'Liste Véhicules',     icon: <UnorderedListOutlined /> },
-  { id: 'rechercheImmat',   label: 'Recherche IMMAT.',    icon: <SearchOutlined /> },
-  { id: 'rechercheChassis', label: 'Recherche N°Chassis', icon: <CarOutlined /> },
+  { id: 'enregistrement',   label: 'Enregistrement',      icon: '📄' },
+  { id: 'destination',      label: 'Destination',         icon: '📍' },
+  { id: 'analyse',          label: 'Analyse',             icon: '📊' },
+  { id: 'listeVehicules',   label: 'Liste Véhicules',     icon: '☰' },
+  { id: 'rechercheImmat',   label: 'Recherche IMMAT.',    icon: '🔍' },
+  { id: 'rechercheChassis', label: 'Recherche N°Chassis', icon: '🚗' },
 ]
 
 interface NavSidebarProps {
@@ -37,89 +26,84 @@ export default function NavSidebar({ onSelect, activeId }: NavSidebarProps): JSX
       background: 'linear-gradient(180deg, #1E4080 0%, #112654 100%)',
       display: 'flex',
       flexDirection: 'column',
-      overflowY: 'auto',
-      boxShadow: '2px 0 12px rgba(0,0,0,0.18)',
+      alignItems: 'center',
+      padding: '10px 0',
+      overflow: 'hidden',
     }}>
-      {/* Brand header */}
+      {/* Logo */}
       <div style={{
-        padding: '14px 8px 12px',
-        textAlign: 'center',
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
-        marginBottom: 6,
-      }}>
-        <div style={{
-          width: 40, height: 40, borderRadius: 10,
-          background: 'rgba(255,255,255,0.12)',
-          border: '1px solid rgba(255,255,255,0.18)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          margin: '0 auto 6px',
-          fontSize: 18,
-          color: '#fff',
-        }}>
-          🚗
-        </div>
-        <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 800, letterSpacing: 1.5 }}>TCIT</div>
-      </div>
+        width: 46, height: 46,
+        background: 'rgba(255,255,255,0.1)',
+        borderRadius: 12,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 24,
+        marginBottom: 8,
+        flexShrink: 0,
+      }}>🚗</div>
+
+      {/* Separator */}
+      <div style={{
+        width: '60%', height: 1,
+        background: 'rgba(255,255,255,0.1)',
+        margin: '6px 0',
+        flexShrink: 0,
+      }} />
 
       {/* Nav items */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '0 6px 8px' }}>
-        {SIDEBAR_ITEMS.map(item => {
-          const isActive = item.id === activeId
-          return (
-            <button
-              key={item.id}
-              aria-label={item.label}
-              onClick={() => onSelect(item.id)}
-              style={{
-                position: 'relative',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 5,
-                padding: '12px 6px',
-                border: 'none',
-                borderRadius: 8,
-                background: isActive ? 'rgba(255,255,255,0.15)' : 'transparent',
-                color: isActive ? '#fff' : 'rgba(255,255,255,0.70)',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                fontSize: 9.5,
-                fontWeight: isActive ? 700 : 500,
-                lineHeight: 1.3,
-                textAlign: 'center',
-                overflow: 'hidden',
-              }}
-              onMouseEnter={e => {
-                if (!isActive) {
-                  const b = e.currentTarget as HTMLButtonElement
-                  b.style.background = 'rgba(255,255,255,0.08)'
-                  b.style.color = '#fff'
-                }
-              }}
-              onMouseLeave={e => {
-                if (!isActive) {
-                  const b = e.currentTarget as HTMLButtonElement
-                  b.style.background = 'transparent'
-                  b.style.color = 'rgba(255,255,255,0.70)'
-                }
-              }}
-            >
-              {/* Active indicator bar */}
-              {isActive && (
-                <div style={{
-                  position: 'absolute',
-                  left: 0, top: '20%', bottom: '20%',
-                  width: 3, borderRadius: '0 3px 3px 0',
-                  background: '#60A5FA',
-                }} />
-              )}
-              <span style={{ fontSize: 20 }}>{item.icon}</span>
-              <span>{item.label}</span>
-            </button>
-          )
-        })}
-      </div>
+      {SIDEBAR_ITEMS.map(item => {
+        const isActive = item.id === activeId
+        return (
+          <button
+            key={item.id}
+            aria-label={item.label}
+            onClick={() => onSelect(item.id)}
+            style={{
+              position: 'relative',
+              width: 88,
+              padding: '10px 4px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 4,
+              cursor: 'pointer',
+              border: 'none',
+              background: isActive ? 'rgba(255,255,255,0.12)' : 'none',
+              color: isActive ? '#fff' : 'rgba(255,255,255,0.6)',
+              borderRadius: 8,
+              transition: 'all 0.2s',
+              margin: '1px 0',
+              flexShrink: 0,
+            }}
+            onMouseEnter={e => {
+              if (!isActive) {
+                const b = e.currentTarget as HTMLButtonElement
+                b.style.background = 'rgba(255,255,255,0.08)'
+                b.style.color = 'rgba(255,255,255,0.9)'
+              }
+            }}
+            onMouseLeave={e => {
+              if (!isActive) {
+                const b = e.currentTarget as HTMLButtonElement
+                b.style.background = 'none'
+                b.style.color = 'rgba(255,255,255,0.6)'
+              }
+            }}
+          >
+            {isActive && (
+              <div style={{
+                position: 'absolute',
+                left: 0, top: '20%', bottom: '20%',
+                width: 3, borderRadius: '0 3px 3px 0',
+                background: '#60A5FA',
+              }} />
+            )}
+            <span style={{ fontSize: 18 }}>{item.icon}</span>
+            <span style={{ fontSize: 9.5, fontWeight: 500, textAlign: 'center', lineHeight: 1.2 }}>
+              {item.label}
+            </span>
+          </button>
+        )
+      })}
     </div>
   )
 }

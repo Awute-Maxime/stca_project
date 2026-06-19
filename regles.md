@@ -219,6 +219,36 @@ Puis vérifier le port réel dans la sortie de `npm run dev`.
 
 ---
 
+## Règle 15 — Corrections cumulatives, jamais substitutives
+
+Quand une nouvelle correction est demandée, appliquer **uniquement** ce qui est demandé. Ne pas modifier ce qui a été validé précédemment.
+
+- Si résoudre le nouveau problème semble nécessiter de toucher à quelque chose de déjà validé → **signaler d'abord, attendre validation avant d'agir**
+- Chaque correction ne cible que l'élément demandé. Le reste est intouchable
+- La disposition des champs (ordre, sections, labels) est **verrouillée** dès qu'elle a été validée
+- `F:\AI PROJECTS\STCA-Electron\prototype-html\index.html` = **NE JAMAIS TOUCHER** sans demande explicite
+
+---
+
+## Règle 16 — Copie fidèle prototype → Electron (pixel par pixel)
+
+Quand on dit « mise à jour », « copier », « reproduire » ou « porter » du prototype `index.html` vers l'Electron : reproduire **pixel par pixel**. Pas d'approximation, pas d'interprétation libre.
+
+**Méthode obligatoire :**
+1. Lire le CSS exact du prototype (couleurs hex, paddings en px, font-sizes, border-radius, gaps)
+2. Lire le HTML exact du prototype (même structure, même ordre)
+3. Convertir fidèlement en inline styles React avec les MÊMES valeurs numériques
+4. Ne jamais inventer — si le prototype a `padding: 9px 14px`, mettre `'9px 14px'`
+5. Ne jamais substituer — si le prototype utilise un emoji 📄, ne pas le remplacer par une icône Ant Design
+
+**Violations interdites :**
+- Prototype `background: #F5F3EE` → Electron `'#F8FAFF'` ❌
+- Prototype `font-size: 10.5px` → Electron `fontSize: 10` ❌
+- Prototype `<fieldset>` → Electron `SectionCard` ❌
+- Prototype emoji 🕐 → Electron `<ClockCircleOutlined />` ❌
+
+---
+
 ## Plan d'exécution (rappel rapide)
 
 | Phase | Description | Statut |

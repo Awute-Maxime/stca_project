@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TCIT · Premium Visual</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1B3A6B;--navy-d:#0D2040;
+  --blue:#2563EB;--green:#16A34A;--red:#DC2626;--amber:#D97706;--purple:#7C3AED;--teal:#0891B2;
+  --gold:#F59E0B;--gold-d:#B45309;
+  --bg:#F0F2F5;--surface:#fff;--border:#E2E8F0;
+  --tx:#0F172A;--mu:#64748B;--su:#94A3B8;
+  --dur:200ms;--dur2:320ms;--ease:cubic-bezier(.4,0,.2,1);
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--tx);font-size:13px;line-height:1.45}
+
+/* ══════════════════════════════
+   ANIMATIONS
+══════════════════════════════ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes barGrow{from{width:0}to{width:var(--w)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes immatGlow{0%,100%{box-shadow:0 0 0 1px rgba(245,158,11,.4),0 2px 12px rgba(245,158,11,.1)}
+  50%{box-shadow:0 0 0 2px rgba(245,158,11,.7),0 4px 20px rgba(245,158,11,.25)}}
+@keyframes loginIn{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+
+/* ══════════════════════════════
+   LOGIN
+══════════════════════════════ */
+#v-login{
+  position:fixed;inset:0;z-index:500;
+  display:flex;align-items:center;justify-content:center;
+  background:
+    radial-gradient(ellipse at 25% 45%,rgba(20,45,80,.7) 0%,transparent 55%),
+    radial-gradient(ellipse at 75% 35%,rgba(12,30,55,.8) 0%,transparent 50%),
+    radial-gradient(ellipse at 50% 80%,rgba(30,55,90,.5) 0%,transparent 40%),
+    linear-gradient(160deg,#0A1628 0%,#152A45 40%,#0D1F35 100%);
+}
+.login-card{
+  width:380px;border-radius:16px;overflow:hidden;position:relative;
+  background:var(--navy-d);
+  box-shadow:0 8px 32px rgba(0,0,0,.35),0 2px 8px rgba(0,0,0,.2);
+  animation:loginIn .45s var(--ease) both;
+}
+.login-hd{
+  background:linear-gradient(160deg,#1B3A6B 0%,#0D2040 100%);
+  padding:14px 20px;
+  display:flex;align-items:center;gap:12px;
+}
+.login-hd-icon{
+  width:36px;height:36px;flex-shrink:0;
+  background:rgba(255,255,255,.1);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+}
+.login-hd-icon svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.login-hd-text{flex:1;min-width:0}
+.login-hd-title{font-size:14px;font-weight:700;color:#fff;letter-spacing:.01em;line-height:1.3}
+.login-hd-sub{font-size:10px;color:rgba(255,255,255,.45);letter-spacing:.03em;margin-top:1px}
+.login-close{
+  width:24px;height:24px;flex-shrink:0;
+  border-radius:50%;border:none;cursor:pointer;
+  background:rgba(255,255,255,.1);color:rgba(255,255,255,.5);font-size:15px;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  transition:background var(--dur),color var(--dur);
+}
+.login-close:hover{background:rgba(255,255,255,.18);color:#fff}
+.login-bd{
+  padding:18px 24px 20px;
+  background:rgba(255,255,255,.75);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+}
+.lff{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.lfl{font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.1em}
+.lf-input-wrap{
+  position:relative;display:flex;align-items:center;
+}
+.lf-input-wrap .lf-ico{
+  position:absolute;left:11px;top:50%;transform:translateY(-50%);
+  width:16px;height:16px;stroke:var(--su);fill:none;stroke-width:1.7;
+  stroke-linecap:round;stroke-linejoin:round;pointer-events:none;
+}
+.lfi{
+  width:100%;padding:10px 12px 10px 36px;
+  border:1.5px solid rgba(15,23,42,.1);border-radius:8px;
+  font-size:13px;font-family:'Inter',sans-serif;color:var(--tx);outline:none;
+  background:rgba(240,243,248,.65);
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  transition:border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease),background var(--dur);
+}
+.lfi:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.12);background:rgba(255,255,255,.8)}
+.lfi:hover:not(:focus){border-color:rgba(15,23,42,.15);background:rgba(235,238,245,.7)}
+.lf-eye{
+  position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  width:20px;height:20px;cursor:pointer;border:none;background:transparent;padding:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.lf-eye svg{width:16px;height:16px;stroke:var(--su);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.lf-eye:hover svg{stroke:var(--tx)}
+.login-btn-users{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  width:100%;padding:9px;border:none;border-radius:8px;cursor:pointer;
+  background:rgba(245,158,11,.8);color:#fff;
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  font-size:12.5px;font-weight:700;font-family:'Inter',sans-serif;
+  box-shadow:0 2px 10px rgba(245,158,11,.15);
+  margin-bottom:10px;
+  transition:box-shadow var(--dur),transform var(--dur),background var(--dur);
+}
+.login-btn-users:hover{background:rgba(245,158,11,.9);box-shadow:0 4px 16px rgba(245,158,11,.3);transform:translateY(-1px)}
+.login-btn-users:active{transform:scale(.97)}
+.login-btn-users svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.login-btns{display:flex;gap:8px}
+.login-btn-cancel{
+  padding:10px 20px;border:1.5px solid rgba(15,23,42,.12);border-radius:8px;
+  background:rgba(255,255,255,.5);color:var(--mu);font-size:13px;font-weight:600;
+  font-family:'Inter',sans-serif;cursor:pointer;
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  transition:background var(--dur),border-color var(--dur);
+}
+.login-btn-cancel:hover{background:rgba(255,255,255,.7);border-color:rgba(15,23,42,.18)}
+.login-btn-ok{
+  flex:1;padding:10px;border:none;border-radius:8px;cursor:pointer;
+  font-size:13px;font-weight:700;font-family:'Inter',sans-serif;
+  background:rgba(37,99,235,.85);color:#fff;
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  box-shadow:0 3px 12px rgba(37,99,235,.2);
+  transition:box-shadow var(--dur) var(--ease),transform var(--dur) var(--ease),background var(--dur);
+}
+.login-btn-ok:hover{background:rgba(37,99,235,.95);box-shadow:0 6px 20px rgba(37,99,235,.35);transform:translateY(-1px)}
+.login-btn-ok:active{transform:scale(.97)}
+.login-status-bar{
+  display:flex;height:5px;overflow:hidden;
+}
+.login-status-bar span:nth-child(1){flex:3;background:var(--green)}
+.login-status-bar span:nth-child(2){flex:2;background:var(--gold)}
+.login-status-bar span:nth-child(3){flex:2;background:var(--blue)}
+
+/* ══════════════════════════════
+   APP SHELL
+══════════════════════════════ */
+#app{display:none;flex-direction:column;height:100%}
+
+/* Menu Bar */
+.menubar{
+  height:32px;
+  background:linear-gradient(180deg,#1E3F72 0%,#1B3A6B 100%);
+  display:flex;align-items:center;flex-shrink:0;
+  padding:0 8px;
+  box-shadow:0 2px 8px rgba(13,32,64,.25);
+  position:relative;z-index:100;
+}
+.mb-items{display:flex;align-items:center;gap:2px;flex:1}
+.mb-item{
+  padding:4px 12px;border-radius:4px;
+  font-size:12px;font-weight:500;color:rgba(255,255,255,.75);
+  cursor:pointer;white-space:nowrap;
+  transition:background var(--dur),color var(--dur);
+}
+.mb-item:hover{background:rgba(255,255,255,.12);color:#fff}
+.mb-item.active{background:rgba(255,255,255,.14);color:#fff}
+.mb-item.sep{color:rgba(255,255,255,.3);cursor:default;padding:0 4px}
+.mb-user{font-size:11px;color:rgba(255,255,255,.55);padding-right:8px;white-space:nowrap}
+
+/* App body */
+.app-body{display:flex;flex:1;overflow:hidden}
+
+/* Sidebar — icon + label stacked */
+.sb{
+  width:75px;flex-shrink:0;
+  background:linear-gradient(180deg,#1B3A6B 0%,#0D2040 100%);
+  display:flex;flex-direction:column;align-items:center;
+  padding:8px 0;gap:2px;overflow:hidden;
+  box-shadow:2px 0 16px rgba(13,32,64,.2);
+}
+.sb-item{
+  width:66px;display:flex;flex-direction:column;align-items:center;gap:4px;
+  padding:9px 4px 7px;border-radius:8px;cursor:pointer;
+  color:rgba(255,255,255,.5);
+  transition:background var(--dur) var(--ease),color var(--dur) var(--ease);
+  position:relative;
+}
+.sb-item::before{
+  content:'';position:absolute;left:0;top:20%;bottom:20%;width:2px;border-radius:0 2px 2px 0;
+  background:var(--gold);opacity:0;transition:opacity var(--dur);
+}
+.sb-item:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.85)}
+.sb-item.on{background:rgba(37,99,235,.18);color:#fff}
+.sb-item.on::before{opacity:1}
+.sb-item svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.sb-item span{font-size:9px;font-weight:600;text-align:center;line-height:1.2;letter-spacing:.01em}
+
+/* Content area */
+.content{flex:1;overflow-y:auto;padding:20px;background:var(--bg);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+
+/* Status bar */
+.statusbar{
+  height:28px;flex-shrink:0;
+  background:linear-gradient(180deg,#F8FAFC 0%,#F0F2F5 100%);
+  border-top:1px solid var(--border);
+  display:flex;align-items:center;padding:0 16px;gap:20px;
+  font-size:11px;color:var(--mu);
+  box-shadow:0 -1px 0 rgba(15,23,42,.04);
+}
+.sb-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px}
+.sb-dot.green{background:var(--green);box-shadow:0 0 5px var(--green)}
+.sb-dot.amber{background:var(--amber);box-shadow:0 0 5px var(--amber)}
+
+/* ══════════════════════════════
+   DASHBOARD
+══════════════════════════════ */
+.dash-title{font-size:11px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px}
+
+/* Stat cards */
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+.sc{
+  background:var(--surface);border-radius:10px;
+  padding:16px 18px 14px;
+  border-left:4px solid transparent;
+  box-shadow:0 1px 3px rgba(15,23,42,.06),0 4px 14px rgba(15,23,42,.05);
+  display:flex;align-items:flex-start;justify-content:space-between;gap:10px;
+  cursor:default;
+  transition:transform var(--dur2) var(--ease),box-shadow var(--dur2) var(--ease);
+}
+.sc:hover{transform:translateY(-2px)}
+.sc.bl{border-left-color:var(--blue)}.sc.bl:hover{box-shadow:0 6px 24px rgba(37,99,235,.15)}
+.sc.gr{border-left-color:var(--green)}.sc.gr:hover{box-shadow:0 6px 24px rgba(22,163,74,.15)}
+.sc.am{border-left-color:var(--amber)}.sc.am:hover{box-shadow:0 6px 24px rgba(217,119,6,.15)}
+.sc.pu{border-left-color:var(--purple)}.sc.pu:hover{box-shadow:0 6px 24px rgba(124,58,237,.15)}
+.sc-left{flex:1}
+.sc-num{font-size:26px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;font-family:'Fira Code',monospace;margin-bottom:6px}
+.sc.bl .sc-num{color:var(--blue)}.sc.gr .sc-num{color:var(--green)}.sc.am .sc-num{color:var(--amber)}.sc.pu .sc-num{color:var(--purple)}
+.sc-lbl{font-size:12px;font-weight:600;color:var(--tx);margin-bottom:2px}
+.sc-sub{font-size:10.5px;color:var(--mu)}
+.sc-ico{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sc-ico svg{width:20px;height:20px;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.sc.bl .sc-ico{background:#EFF6FF;stroke:var(--blue)}.sc.bl .sc-ico svg{stroke:var(--blue)}
+.sc.gr .sc-ico{background:#F0FDF4}.sc.gr .sc-ico svg{stroke:var(--green)}
+.sc.am .sc-ico{background:#FFFBEB}.sc.am .sc-ico svg{stroke:var(--amber)}
+.sc.pu .sc-ico{background:#F5F3FF}.sc.pu .sc-ico svg{stroke:var(--purple)}
+
+/* Charts grid */
+.charts-grid{display:grid;grid-template-columns:1fr 340px;gap:14px;margin-bottom:16px}
+.panel{background:var(--surface);border-radius:10px;border:none;overflow:hidden;box-shadow:0 1px 3px rgba(15,23,42,.06),0 4px 14px rgba(15,23,42,.05)}
+.panel-hd{padding:12px 18px;border-bottom:1px solid rgba(15,23,42,.05);display:flex;align-items:center;justify-content:space-between}
+.panel-title{font-size:11px;font-weight:700;color:var(--tx);text-transform:uppercase;letter-spacing:.08em}
+.panel-bd{padding:14px 18px}
+
+/* Horizontal bars */
+.hbar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.hbar-row:last-child{margin-bottom:0}
+.hbar-code{font-size:11px;font-weight:700;color:var(--tx);width:36px;flex-shrink:0}
+.hbar-track{flex:1;height:10px;background:#F1F5F9;border-radius:5px;overflow:hidden}
+.hbar-fill{height:100%;border-radius:5px;width:0;transition:width 1s var(--ease)}
+.hbar-val{font-size:11.5px;font-weight:700;font-family:'Fira Code',monospace;color:var(--tx);width:24px;text-align:right;flex-shrink:0}
+
+/* Type distribution */
+.type-row{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.type-row:last-child{margin-bottom:0}
+.type-lbl{font-size:11px;color:var(--tx);width:56px;flex-shrink:0}
+.type-track{flex:1;height:8px;background:#F1F5F9;border-radius:4px;overflow:hidden}
+.type-fill{height:100%;border-radius:4px;width:0;transition:width 1s var(--ease)}
+.type-pct{font-size:11px;font-weight:600;color:var(--mu);width:30px;text-align:right;flex-shrink:0}
+
+/* Data table */
+.dt{width:100%;border-collapse:collapse}
+.dt th{font-size:10px;font-weight:700;color:var(--su);text-transform:uppercase;letter-spacing:.08em;padding:0 12px 10px;text-align:left;border-bottom:1.5px solid rgba(15,23,42,.06)}
+.dt th:first-child{padding-left:18px}.dt th:last-child{padding-right:18px}
+.dt td{padding:9px 12px;border-bottom:1px solid rgba(15,23,42,.04);font-size:12.5px;vertical-align:middle}
+.dt td:first-child{padding-left:18px;border-left:2px solid transparent;transition:border-color var(--dur),padding var(--dur)}
+.dt td:last-child{padding-right:18px}
+.dt tr:last-child td{border-bottom:none}
+.dt tr:hover td{background:rgba(37,99,235,.025)}
+.dt tr:hover td:first-child{border-left-color:var(--gold);padding-left:16px}
+
+/* Plate badge */
+.plq{
+  display:inline-flex;align-items:center;
+  background:var(--navy);border:1px solid rgba(245,158,11,.4);
+  border-radius:4px;padding:3px 8px;
+  font-family:'Fira Code',monospace;font-weight:700;font-size:11.5px;color:var(--gold);
+  letter-spacing:.08em;white-space:nowrap;
+  box-shadow:0 0 0 1px rgba(245,158,11,.15);
+  transition:box-shadow var(--dur);
+}
+.plq:hover{box-shadow:0 0 10px rgba(245,158,11,.35)}
+
+/* Frontier badge */
+.fbadge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:10.5px;font-weight:700;color:#fff;letter-spacing:.04em}
+
+/* Amount */
+.amount{font-family:'Fira Code',monospace;font-weight:700;font-size:12px;color:var(--green)}
+
+/* ══════════════════════════════
+   MODAL ENREGISTREMENT
+══════════════════════════════ */
+#modal-enr{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center}
+.modal-backdrop{position:absolute;inset:0;background:rgba(15,23,42,.4);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.modal-box{
+  position:relative;width:720px;max-width:calc(100vw - 40px);
+  background:var(--surface);border-radius:10px;overflow:hidden;
+  box-shadow:0 8px 40px rgba(15,23,42,.25),0 2px 8px rgba(15,23,42,.15);
+  animation:fadeUp .3s var(--ease) both;
+}
+.modal-header{
+  background:linear-gradient(135deg,#1B3A6B 0%,#0D2040 100%);
+  padding:10px 16px;display:flex;align-items:center;justify-content:space-between;
+}
+.modal-header-title{font-size:13px;font-weight:600;color:#fff}
+.modal-header-close{
+  width:22px;height:22px;border-radius:4px;border:none;cursor:pointer;
+  background:rgba(255,255,255,.12);color:#fff;font-size:16px;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  transition:background var(--dur);
+}
+.modal-header-close:hover{background:rgba(255,255,255,.22)}
+
+.modal-subhd{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 16px;
+  background:rgba(37,99,235,.04);
+  border-bottom:1px solid rgba(15,23,42,.06);
+}
+.modal-subhd-left{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.06em}
+.modal-subhd-left svg{width:14px;height:14px;stroke:var(--blue);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.modal-prog{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mu)}
+.prog-dot{width:8px;height:8px;border-radius:50%;background:#CBD5E1}
+.prog-dot.on{background:var(--blue)}
+
+.modal-body{padding:14px 16px;max-height:calc(100vh - 200px);overflow-y:auto;scrollbar-width:thin}
+
+/* Toolbar row */
+.enr-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;position:relative}
+.enr-toolbar-left{display:flex;align-items:center;gap:8px;flex:1;flex-wrap:wrap}
+.btn-liste{
+  display:flex;align-items:center;gap:5px;padding:5px 10px;
+  border:1.5px solid var(--border);border-radius:5px;
+  background:var(--surface);color:var(--tx);font-size:12px;font-weight:600;cursor:pointer;
+  transition:border-color var(--dur),background var(--dur);
+}
+.btn-liste:hover{border-color:#CBD5E1;background:var(--bg)}
+.btn-liste svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
+.toolbar-field{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mu)}
+.toolbar-input{
+  padding:4px 8px;border:1.5px solid var(--border);border-radius:5px;
+  font-size:12px;font-family:'Inter',sans-serif;color:var(--tx);outline:none;
+  transition:border-color var(--dur);width:80px;
+}
+.toolbar-input.date{width:130px}
+.toolbar-input:focus{border-color:var(--blue)}
+
+/* N° IMMAT box */
+.immat-box{
+  margin-left:auto;
+  border:2px dashed var(--gold);border-radius:6px;
+  padding:6px 14px;text-align:center;min-width:120px;
+  background:rgba(245,158,11,.03);
+  animation:immatGlow 2.5s ease-in-out infinite;
+}
+.immat-box-label{font-size:9px;font-weight:700;color:var(--gold-d);text-transform:uppercase;letter-spacing:.12em}
+.immat-box-val{font-family:'Fira Code',monospace;font-size:16px;font-weight:700;color:var(--navy);letter-spacing:.06em;line-height:1.2}
+.immat-box-status{font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.1em;margin-top:1px}
+
+/* Form sections */
+.enr-section{margin-bottom:12px;border:1px solid var(--border);border-radius:7px;overflow:hidden}
+.enr-section-title{
+  font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.1em;
+  padding:6px 12px;
+  background:linear-gradient(180deg,#F8FAFC 0%,#F4F6F9 100%);
+  border-bottom:1px solid var(--border);
+}
+.enr-section-bd{padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+
+/* Form fields */
+.ef{display:flex;align-items:center;gap:6px}
+.ef-label{font-size:12px;color:var(--tx);white-space:nowrap;min-width:120px;flex-shrink:0}
+.ef-label.sm{min-width:80px}
+.efi{
+  flex:1;padding:6px 10px;
+  border:1.5px solid var(--border);border-radius:5px;
+  font-size:12.5px;font-family:'Inter',sans-serif;color:var(--tx);outline:none;
+  transition:border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease),background var(--dur);
+  background:var(--surface);
+}
+.efi:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(245,158,11,.1)}
+.efi:hover:not(:focus){border-color:#CBD5E1;background:#FAFBFC}
+.efi:disabled{background:#F8FAFC;color:var(--su);cursor:default}
+.efsel{
+  flex:1;padding:6px 26px 6px 10px;
+  border:1.5px solid var(--border);border-radius:5px;
+  font-size:12.5px;font-family:'Inter',sans-serif;color:var(--tx);outline:none;
+  background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2364748B'/%3E%3C/svg%3E") no-repeat right 8px center;
+  appearance:none;cursor:pointer;
+  transition:border-color var(--dur);
+}
+.efsel:focus{border-color:var(--gold);outline:none}
+.efsel:hover:not(:focus){border-color:#CBD5E1}
+.ef-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ef-icon{color:var(--su);font-size:13px;cursor:help;flex-shrink:0}
+.ef-qmark{
+  width:20px;height:20px;border-radius:50%;
+  background:var(--blue);color:#fff;
+  font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;border:none;
+}
+.chassis-row{display:flex;align-items:center;gap:6px}
+.chassis-count{font-size:11px;color:var(--su);white-space:nowrap;flex-shrink:0}
+.chassis-serie{font-size:11.5px;color:var(--mu);white-space:nowrap;flex-shrink:0}
+.ef-link{font-size:12px;font-weight:600;color:var(--blue);text-align:center;cursor:pointer;padding:2px 0}
+.ef-link:hover{text-decoration:underline}
+
+/* Bottom section */
+.enr-bottom{
+  display:flex;gap:16px;align-items:flex-start;
+  padding:10px 12px;
+  border:1px solid var(--border);border-radius:7px;
+  margin-bottom:12px;
+  background:#FAFBFC;
+}
+.enr-bottom-left{flex:1;display:flex;flex-direction:column;gap:6px}
+.enr-bottom-right{flex-shrink:0}
+.chk-row{display:flex;align-items:center;gap:7px;font-size:12.5px;cursor:pointer}
+.chk-row input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--blue)}
+.recycle-box{
+  border:1px solid var(--border);border-radius:6px;padding:8px 14px;background:var(--surface);text-align:center;
+}
+.recycle-title{font-size:9.5px;font-weight:700;color:var(--tx);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
+.recycle-chk{display:flex;align-items:center;justify-content:center;gap:6px;font-size:12.5px}
+.recycle-chk input[type=checkbox]{width:14px;height:14px;accent-color:var(--blue)}
+
+/* Modal footer */
+.modal-footer{
+  display:flex;align-items:center;justify-content:flex-end;gap:8px;
+  padding:12px 16px;border-top:1px solid rgba(15,23,42,.06);
+  background:rgba(248,250,252,.8);
+}
+.btn-f{
+  padding:8px 18px;border-radius:6px;font-size:12.5px;font-weight:600;
+  font-family:'Inter',sans-serif;cursor:pointer;border:none;
+  transition:transform var(--dur),box-shadow var(--dur),background var(--dur);
+}
+.btn-f:active{transform:scale(.97)}
+.btn-reset{background:transparent;border:1.5px solid var(--border);color:var(--mu)}
+.btn-reset:hover{background:var(--bg);border-color:#CBD5E1}
+.btn-annuler{background:var(--red);color:#fff;box-shadow:0 2px 8px rgba(220,38,38,.15)}
+.btn-annuler:hover{box-shadow:0 4px 14px rgba(220,38,38,.3);transform:translateY(-1px)}
+.btn-enregistrer{
+  background:linear-gradient(135deg,#1D4ED8,var(--blue));color:#fff;
+  display:flex;align-items:center;gap:6px;
+  box-shadow:0 2px 10px rgba(37,99,235,.25);
+}
+.btn-enregistrer:hover{box-shadow:0 5px 18px rgba(37,99,235,.4);transform:translateY(-1px)}
+.btn-enregistrer svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:44px;left:50%;transform:translateX(-50%);
+  color:#fff;padding:9px 18px;border-radius:8px;
+  font-size:12.5px;font-weight:500;z-index:500;white-space:nowrap;
+  box-shadow:0 8px 24px rgba(0,0,0,.2);animation:fadeUp .3s var(--ease);
+  display:flex;align-items:center;gap:8px;
+}
+.toast.ok{background:rgba(21,128,61,.96)}.toast.er{background:rgba(185,28,28,.96)}
+
+/* View nav states */
+.view{display:none}.view.on{display:block;animation:fadeUp .3s var(--ease) both}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="v-login">
+  <div class="login-card">
+    <div class="login-hd">
+      <div class="login-hd-icon">
+        <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div class="login-hd-text">
+        <div class="login-hd-title">Identification de l'utilisateur</div>
+        <div class="login-hd-sub">TCIT — Contrôle et Immatriculation Transit</div>
+      </div>
+      <button class="login-close" title="Fermer">×</button>
+    </div>
+    <div class="login-bd">
+      <div class="lff">
+        <label class="lfl" for="l-id">Nom d'utilisateur</label>
+        <div class="lf-input-wrap">
+          <svg class="lf-ico" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <input class="lfi" id="l-id" type="text" placeholder="Nom d'utilisateur" autocomplete="username">
+        </div>
+      </div>
+      <div class="lff">
+        <label class="lfl" for="l-pw">Mot de passe</label>
+        <div class="lf-input-wrap">
+          <svg class="lf-ico" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input class="lfi" id="l-pw" type="password" placeholder="••••••••" autocomplete="current-password" style="padding-right:38px">
+          <button class="lf-eye" type="button" onclick="togglePw()" title="Afficher le mot de passe">
+            <svg id="eye-ico" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <button class="login-btn-users" type="button">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Gestion des utilisateurs
+      </button>
+      <div class="login-btns">
+        <button class="login-btn-cancel" type="button">Annuler</button>
+        <button class="login-btn-ok" type="button" onclick="doLogin()">✓ Valider</button>
+      </div>
+    </div>
+    <div class="login-status-bar"><span></span><span></span><span></span></div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app" style="display:none;flex-direction:column;height:100%">
+
+  <!-- Menu bar -->
+  <div class="menubar">
+    <div class="mb-items">
+      <span class="mb-item">Fichier</span>
+      <span class="mb-item" onclick="openModal()">Enregistrements des véhicules</span>
+      <span class="mb-item">Analyse</span>
+      <span class="mb-item">Assurances</span>
+      <span class="mb-item">Outils+Config.</span>
+      <span class="mb-item">?</span>
+    </div>
+    <div class="mb-user" id="mb-user">utilisateur - KOFFI</div>
+  </div>
+
+  <!-- Body -->
+  <div class="app-body">
+
+    <!-- Sidebar -->
+    <nav class="sb">
+      <div class="sb-item on" onclick="openModal()" title="Enregistrement">
+        <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h5l2 3v4h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        <span>Enregistrement</span>
+      </div>
+      <div class="sb-item" title="Destination">
+        <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span>Destination</span>
+      </div>
+      <div class="sb-item" title="Analyse">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>Analyse</span>
+      </div>
+      <div class="sb-item" title="Liste Véhicules">
+        <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <span>Liste Véhicules</span>
+      </div>
+      <div class="sb-item" title="Recherche IMMAT.">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span>Recherche IMMAT.</span>
+      </div>
+      <div class="sb-item" title="Recherche N°Châssis">
+        <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="12.5" cy="18.5" r="2.5"/><circle cx="11" cy="11" r="5"/><line x1="14.65" y1="14.65" x2="17" y2="17"/></svg>
+        <span>Recherche N°Châssis</span>
+      </div>
+    </nav>
+
+    <!-- Dashboard content -->
+    <div class="content">
+      <div id="v-dashboard" class="view on">
+
+        <!-- 4 stat cards -->
+        <div class="sg" style="animation:fadeUp .4s ease both">
+          <div class="sc bl">
+            <div class="sc-left">
+              <div class="sc-num" id="c1">0</div>
+              <div class="sc-lbl">Véhicules enregistrés</div>
+              <div class="sc-sub">Total cumulé</div>
+            </div>
+            <div class="sc-ico"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h5l2 3v4h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+          </div>
+          <div class="sc gr">
+            <div class="sc-left">
+              <div class="sc-num" id="c2">0</div>
+              <div class="sc-lbl">FCFA collecté</div>
+              <div class="sc-sub">Toutes frontières</div>
+            </div>
+            <div class="sc-ico"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+          </div>
+          <div class="sc am">
+            <div class="sc-left">
+              <div class="sc-num" id="c3">0</div>
+              <div class="sc-lbl">Frontières actives</div>
+              <div class="sc-sub">Sur 10 postes</div>
+            </div>
+            <div class="sc-ico"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+          </div>
+          <div class="sc pu">
+            <div class="sc-left">
+              <div class="sc-num" id="c4">0</div>
+              <div class="sc-lbl">Enregistrements du jour</div>
+              <div class="sc-sub" id="today-date"></div>
+            </div>
+            <div class="sc-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid" style="animation:fadeUp .4s .1s ease both">
+          <div class="panel">
+            <div class="panel-hd"><span class="panel-title">Activité par frontière</span></div>
+            <div class="panel-bd">
+              <div class="hbar-row"><span class="hbar-code">AFO</span><div class="hbar-track"><div class="hbar-fill" style="background:linear-gradient(90deg,#DC2626,#EF4444)" data-w="100%"></div></div><span class="hbar-val">45</span></div>
+              <div class="hbar-row"><span class="hbar-code">CK</span><div class="hbar-track"><div class="hbar-fill" style="background:linear-gradient(90deg,#7C3AED,#8B5CF6)" data-w="51%"></div></div><span class="hbar-val">23</span></div>
+              <div class="hbar-row"><span class="hbar-code">KA</span><div class="hbar-track"><div class="hbar-fill" style="background:linear-gradient(90deg,#15803D,#22C55E)" data-w="40%"></div></div><span class="hbar-val">18</span></div>
+              <div class="hbar-row"><span class="hbar-code">NO</span><div class="hbar-track"><div class="hbar-fill" style="background:linear-gradient(90deg,#059669,#10B981)" data-w="27%"></div></div><span class="hbar-val">12</span></div>
+              <div class="hbar-row"><span class="hbar-code">KE</span><div class="hbar-track"><div class="hbar-fill" style="background:linear-gradient(90deg,#B45309,#F59E0B)" data-w="18%"></div></div><span class="hbar-val">8</span></div>
+              <div class="hbar-row"><span class="hbar-code">KP</span><div class="hbar-track"><div class="hbar-fill" style="background:linear-gradient(90deg,#0E7490,#22D3EE)" data-w="11%"></div></div><span class="hbar-val">5</span></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-hd"><span class="panel-title">Répartition par type</span></div>
+            <div class="panel-bd">
+              <div class="type-row"><span class="type-lbl">Voiture</span><div class="type-track"><div class="type-fill" style="background:linear-gradient(90deg,#1D4ED8,#3B82F6)" data-w="45%"></div></div><span class="type-pct">45%</span></div>
+              <div class="type-row"><span class="type-lbl">Camion</span><div class="type-track"><div class="type-fill" style="background:linear-gradient(90deg,#B45309,#F59E0B)" data-w="28%"></div></div><span class="type-pct">28%</span></div>
+              <div class="type-row"><span class="type-lbl">Moto</span><div class="type-track"><div class="type-fill" style="background:linear-gradient(90deg,#991B1B,#EF4444)" data-w="12%"></div></div><span class="type-pct">12%</span></div>
+              <div class="type-row"><span class="type-lbl">Bus</span><div class="type-track"><div class="type-fill" style="background:linear-gradient(90deg,#15803D,#22C55E)" data-w="8%"></div></div><span class="type-pct">8%</span></div>
+              <div class="type-row"><span class="type-lbl">Pick-up</span><div class="type-track"><div class="type-fill" style="background:linear-gradient(90deg,#6D28D9,#8B5CF6)" data-w="5%"></div></div><span class="type-pct">5%</span></div>
+              <div class="type-row"><span class="type-lbl">Minibus</span><div class="type-track"><div class="type-fill" style="background:linear-gradient(90deg,#059669,#10B981)" data-w="2%"></div></div><span class="type-pct">2%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="panel" style="animation:fadeUp .4s .2s ease both">
+          <div class="panel-hd"><span class="panel-title">Derniers enregistrements</span></div>
+          <table class="dt">
+            <thead><tr>
+              <th>N° IMMAT</th><th>TYPE</th><th>MARQUE/MODÈLE</th><th>FRONTIÈRE</th><th>AGENT</th><th>MONTANT</th><th>DATE</th>
+            </tr></thead>
+            <tbody>
+              <tr><td><span class="plq">TG-8822-T</span></td><td>Voiture</td><td>Toyota Corolla</td><td><span class="fbadge" style="background:#DC2626">AFO</span></td><td>KOFFI</td><td><span class="amount">45 000 F</span></td><td>14/06/2026</td></tr>
+              <tr><td><span class="plq">TG-8821-T</span></td><td>Camion</td><td>Mercedes Actros</td><td><span class="fbadge" style="background:#7C3AED">CK</span></td><td>AGBO</td><td><span class="amount">78 000 F</span></td><td>14/06/2026</td></tr>
+              <tr><td><span class="plq">TG-8820-T</span></td><td>Voiture</td><td>Honda Civic</td><td><span class="fbadge" style="background:#16A34A">KA</span></td><td>KOFFI</td><td><span class="amount">45 000 F</span></td><td>13/06/2026</td></tr>
+              <tr><td><span class="plq">TG-8819-T</span></td><td>Moto</td><td>Yamaha FZ150</td><td><span class="fbadge" style="background:#059669">NO</span></td><td>MENSAH</td><td><span class="amount">15 000 F</span></td><td>13/06/2026</td></tr>
+              <tr><td><span class="plq">TG-8818-T</span></td><td>Camion</td><td>Volvo FH16</td><td><span class="fbadge" style="background:#D97706">KE</span></td><td>AGBO</td><td><span class="amount">78 000 F</span></td><td>12/06/2026</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="statusbar">
+    <span><span class="sb-dot green"></span>Mode Client/Serveur</span>
+    <span><span class="sb-dot green"></span>12 véhicule(s) enregistré(s) aujourd'hui</span>
+    <span><span class="sb-dot amber"></span><span id="sb-time"></span></span>
+  </div>
+
+</div>
+
+<!-- ══ MODAL ENREGISTREMENT ══ -->
+<div id="modal-enr">
+  <div class="modal-backdrop" onclick="closeModal()"></div>
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-header-title">Enregistrement des véhicules</span>
+      <button class="modal-header-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-subhd">
+      <div class="modal-subhd-left">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Enregistrement des véhicules
+      </div>
+      <div class="modal-prog">
+        <span class="prog-dot on"></span><span class="prog-dot on"></span><span class="prog-dot on"></span><span class="prog-dot"></span>
+        <span>0/4 requis</span>
+      </div>
+    </div>
+    <div class="modal-body">
+
+      <!-- Toolbar + N° IMMAT -->
+      <div class="enr-toolbar">
+        <div class="enr-toolbar-left">
+          <button class="btn-liste">
+            <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            Liste
+          </button>
+          <span class="toolbar-field">Référence <input class="toolbar-input" id="f-ref" type="text" value="0"></span>
+          <span class="toolbar-field">En date du <input class="toolbar-input date" id="f-date" type="date"></span>
+        </div>
+        <div class="immat-box">
+          <div class="immat-box-label">N° IMMAT</div>
+          <div class="immat-box-val" id="immat-val">— / —</div>
+          <div class="immat-box-status">EN ATTENTE</div>
+        </div>
+      </div>
+
+      <!-- Section 1: Coordonnées acheteur -->
+      <div class="enr-section">
+        <div class="enr-section-title">Coordonnées acheteur</div>
+        <div class="enr-section-bd">
+          <div class="ef">
+            <span class="ef-label">Nom et prénom :</span>
+            <input class="efi" id="f-nom" type="text" placeholder="Nom et prénom de l'acheteur">
+            <span class="ef-icon" title="Information">ⓘ</span>
+          </div>
+          <div class="ef-row">
+            <div class="ef">
+              <span class="ef-label sm">Pays Résidence :</span>
+              <input class="efi" id="f-pays-res" type="text">
+              <span class="ef-icon" title="Information">ⓘ</span>
+            </div>
+            <div class="ef">
+              <span class="ef-label sm">Pays Destination :</span>
+              <input class="efi" id="f-pays-dst" type="text">
+              <span class="ef-icon" title="Information">ⓘ</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Description du véhicule -->
+      <div class="enr-section">
+        <div class="enr-section-title">Description du véhicule</div>
+        <div class="enr-section-bd">
+          <div class="ef-link">Véhicule sortant du Parc</div>
+          <div class="ef-row">
+            <div class="ef">
+              <span class="ef-label">Véhicule à assurer :</span>
+              <select class="efsel" id="f-veh-ass"><option value="">—</option><option>Voiture</option><option>Camion</option><option>Moto</option><option>Bus</option><option>Pick-up</option><option>Minibus</option></select>
+            </div>
+            <div class="ef">
+              <input class="efi" id="f-desc" type="text" placeholder="Description / informations complémentaires" style="flex:1">
+              <button class="ef-qmark">?</button>
+            </div>
+          </div>
+          <div class="ef-row">
+            <div class="ef">
+              <span class="ef-label">À Destination de :</span>
+              <select class="efsel" id="f-dest"><option value="">—</option><option>AFO — Afolé</option><option>CK — Cinkassé</option><option>KA — Kambolé</option><option>KE — Kétao</option><option>KP — Kpadapé</option><option>KW — Kwodjoviaképe</option><option>NO — Noépé</option><option>TO — Tohoum</option></select>
+            </div>
+            <div class="ef">
+              <span class="ef-label sm">Montant :</span>
+              <input class="efi" id="f-montant" type="text" value="0" style="max-width:120px">
+            </div>
+          </div>
+          <div class="ef-row">
+            <div class="ef">
+              <span class="ef-label">Marque - Modèle :</span>
+              <input class="efi" id="f-marque" type="text">
+              <span class="ef-icon" title="Historique">⏰</span>
+            </div>
+            <div class="ef">
+              <span class="ef-label sm">N° de Tri :</span>
+              <input class="efi" id="f-tri" type="text">
+              <span class="ef-icon" title="Information">ⓘ</span>
+            </div>
+          </div>
+          <div class="ef-row">
+            <div class="ef">
+              <span class="ef-label">Transit (maison) :</span>
+              <input class="efi" id="f-transit" type="text">
+              <span class="ef-icon" title="Historique">⏰</span>
+            </div>
+            <div class="ef">
+              <span class="ef-label sm">Date N° Tri :</span>
+              <input class="efi" id="f-date-tri" type="date">
+            </div>
+          </div>
+          <div class="ef chassis-row">
+            <span class="ef-label">N° de Châssis :</span>
+            <input class="efi" id="f-chassis" type="text" maxlength="17" placeholder="Ex : ZFA29000000302873" oninput="cCount(this)" style="font-family:'Fira Code',monospace;letter-spacing:.05em;text-transform:uppercase">
+            <span class="chassis-count" id="chassis-cnt">0/17</span>
+            <span class="chassis-serie">(N° série)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom: ancienne immat + recycler -->
+      <div class="enr-bottom">
+        <div class="enr-bottom-left">
+          <label class="chk-row">
+            <input type="checkbox" id="chk-anc" onchange="toggleAnc(this)">
+            Saisir l'ancienne immatriculation
+          </label>
+          <div class="ef" style="margin-top:4px">
+            <span class="ef-label">Ancienne immatriculation :</span>
+            <input class="efi" id="f-anc-immat" type="text" disabled>
+          </div>
+        </div>
+        <div class="enr-bottom-right">
+          <div class="recycle-box">
+            <div class="recycle-title">Recycler 'Plaque Perdue'</div>
+            <label class="recycle-chk"><input type="checkbox" id="chk-recycle" checked> NON</label>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer buttons -->
+    <div class="modal-footer">
+      <button class="btn-f btn-reset" onclick="resetForm()">Réinitialiser</button>
+      <button class="btn-f btn-annuler" onclick="closeModal()">Annuler</button>
+      <button class="btn-f btn-enregistrer" onclick="doEnr()">
+        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Enregistrer
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── PASSWORD TOGGLE ── */
+function togglePw(){
+  const pw=document.getElementById('l-pw');
+  const ico=document.getElementById('eye-ico');
+  if(pw.type==='password'){
+    pw.type='text';
+    ico.innerHTML='<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+  }else{
+    pw.type='password';
+    ico.innerHTML='<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  }
+}
+
+/* ── LOGIN ── */
+function doLogin(){
+  const u=(document.getElementById('l-id').value||'').trim();
+  if(!u){document.getElementById('l-id').focus();return;}
+  const login=document.getElementById('v-login');
+  login.style.transition='opacity .25s ease';login.style.opacity='0';
+  setTimeout(()=>{
+    login.style.display='none';
+    const app=document.getElementById('app');
+    app.style.display='flex';
+    document.getElementById('mb-user').textContent='utilisateur - '+u.toUpperCase();
+    setTimeout(runAnims,150);
+  },240);
+}
+document.getElementById('l-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+
+/* ── MODAL ── */
+function openModal(){
+  const m=document.getElementById('modal-enr');
+  m.style.display='flex';m.style.alignItems='center';m.style.justifyContent='center';
+}
+function closeModal(){document.getElementById('modal-enr').style.display='none'}
+
+/* ── CHASSIS COUNT ── */
+function cCount(el){
+  el.value=el.value.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/gi,'');
+  document.getElementById('chassis-cnt').textContent=el.value.length+'/17';
+}
+
+/* ── ANCIENNE IMMAT ── */
+function toggleAnc(chk){document.getElementById('f-anc-immat').disabled=!chk.checked}
+
+/* ── RESET ── */
+function resetForm(){
+  ['f-nom','f-pays-res','f-pays-dst','f-desc','f-montant','f-marque','f-tri','f-transit','f-anc-immat','f-chassis']
+    .forEach(id=>{const e=document.getElementById(id);if(e)e.value=id==='f-montant'?'0':''});
+  ['f-veh-ass','f-dest'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});
+  const d=document.getElementById('f-date');if(d)d.value=today();
+  document.getElementById('chassis-cnt').textContent='0/17';
+  document.getElementById('f-anc-immat').disabled=true;
+  document.getElementById('chk-anc').checked=false;
+  document.getElementById('immat-val').textContent='— / —';
+}
+
+/* ── ENREGISTRER ── */
+function doEnr(){
+  const nom=(document.getElementById('f-nom').value||'').trim();
+  if(!nom){showToast('Le nom et prénom est obligatoire.','er');return;}
+  showToast('Enregistrement sauvegardé avec succès','ok');
+  setTimeout(()=>{closeModal();resetForm();},2000);
+}
+
+/* ── TOAST ── */
+let _tt;
+function showToast(msg,type){
+  const old=document.querySelector('.toast');if(old)old.remove();clearTimeout(_tt);
+  const ic=type==='ok'?'✓ ':'⚠ ';
+  const t=document.createElement('div');t.className='toast '+(type||'');t.textContent=ic+msg;
+  document.body.appendChild(t);_tt=setTimeout(()=>t.remove(),3500);
+}
+
+/* ── COUNTER ANIM ── */
+function animCount(el,target,fmt,ms){
+  const s=performance.now();
+  (function step(now){
+    const p=Math.min((now-s)/ms,1),e=1-Math.pow(1-p,3);
+    el.textContent=fmt(Math.round(e*target));
+    if(p<1)requestAnimationFrame(step);else el.textContent=fmt(target);
+  })(performance.now());
+}
+function animBars(){
+  document.querySelectorAll('.hbar-fill,.type-fill').forEach(el=>{
+    const w=el.getAttribute('data-w');if(w){el.style.transition='width 1s cubic-bezier(.4,0,.2,1)';requestAnimationFrame(()=>{el.style.width=w})}
+  });
+}
+function runAnims(){
+  animCount(document.getElementById('c1'),360,v=>v.toLocaleString('fr-FR'),850);
+  animCount(document.getElementById('c2'),6837000,v=>(v/1000).toFixed(0)+' 000 F',850);
+  animCount(document.getElementById('c3'),8,v=>v+' / 10',850);
+  animCount(document.getElementById('c4'),12,v=>v,850);
+  setTimeout(animBars,200);
+}
+
+/* ── DATE UTILS ── */
+function today(){const n=new Date(),p=x=>String(x).padStart(2,'0');return`${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}`}
+function todayFr(){const n=new Date(),p=x=>String(x).padStart(2,'0');return`${p(n.getDate())}/${p(n.getMonth()+1)}/${n.getFullYear()}`}
+function tick(){
+  const n=new Date(),p=x=>String(x).padStart(2,'0');
+  const el=document.getElementById('sb-time');
+  if(el)el.textContent=`${p(n.getDate())}/${p(n.getMonth()+1)}/${n.getFullYear()} - ${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;
+}
+
+/* ── INIT ── */
+document.getElementById('f-date').value=today();
+document.getElementById('f-date-tri').value=today();
+document.getElementById('today-date').textContent=todayFr();
+tick();setInterval(tick,1000);
+</script>
+</body>
+</html>

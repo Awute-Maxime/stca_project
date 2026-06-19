@@ -17,7 +17,9 @@ export const WINDOW_REGISTRY: Record<string, WindowConfig> = {
   'fichier.marques':                { title: 'Liste des Marques / Modèles de véhicules',        defaultX: 240, defaultY: 134, width: 800, height: 620 },
 
   // ── Menu Enregistrements ───────────────────────────────────────
-  'enregistrements.listeChassis':   { title: 'Liste Véhicules Enregistrés par N°Chassis (VIN)', defaultX: 200, defaultY: 124, width: 940, height: 660 },
+  'enregistrements.listeChassis':       { title: 'Liste Véhicules Enregistrés par N°Chassis (VIN)', defaultX: 200, defaultY: 124, width: 940, height: 660 },
+  'enregistrements.listeParDest':       { title: 'Liste des véhicules enregistrés par destination',  defaultX: 180, defaultY: 114, width: 940, height: 660 },
+  'enregistrements.opsParticulieres':   { title: 'Liste des Opérations Particulières',               defaultX: 200, defaultY: 134, width: 940, height: 660 },
 
   // ── Menu Analyse ───────────────────────────────────────────────
   'analyse.stca':                   { title: 'Edition des rapports d\'analyse — TCIT',           defaultX: 200, defaultY: 124, width: 820, height: 580 },
