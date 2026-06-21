@@ -1,6 +1,5 @@
 import EnregistrementPage from '@pages/EnregistrementPage'
 import DestinationPage from '@pages/DestinationPage'
-import AnalysePage from '@pages/AnalysePage'
 import ListePage from '@pages/ListePage'
 import ListeParDestPage from '@pages/ListeParDestPage'
 import OpsParticulieresPage from '@pages/OpsParticulieresPage'
@@ -44,16 +43,13 @@ export function renderWindowContent(id: string): JSX.Element {
     case 'enregistrements.opsParticulieres':
       return <OpsParticulieresPage />
 
-    // ── Menu Analyse ───────────────────────────────────────────────
-    case 'analyse':
-    case 'analyse.stca':
-      return <AnalysePage />
+    // ── Menu Analyse — géré comme overlay modal dans MainScreen, pas en MDI
+    // case 'analyse': / case 'analyse.stca': → MainScreen.tsx
     case 'analyse.assurance':
       return <AnalyseAssuranceWindow />
 
-    // ── Menu Assurances ────────────────────────────────────────────
-    case 'assurances.montantRestituer':
-      return <MontantRestituerWindow />
+    // ── Menu Assurances — géré comme overlay modal dans MainScreen
+    // case 'assurances.montantRestituer': → MainScreen.tsx
 
     // ── Menu Outils ───────────────────────────────────────────────
     case 'outils.gestionUtilisateurs':

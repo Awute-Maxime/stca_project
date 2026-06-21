@@ -249,6 +249,33 @@ Quand on dit « mise à jour », « copier », « reproduire » ou « porter » 
 
 ---
 
+## Règle 17 — Modals overlay : pas de fenêtre MDI pour les écrans avec permission admin
+
+Quand une fonctionnalité nécessite un mot de passe admin avant d'afficher son contenu (Analyse, Montant à restituer, etc.) :
+
+- **Intercepter le clic** dans `MainScreen.tsx` (sidebar ou menu) — ne PAS ouvrir de fenêtre MDI
+- Afficher le modal mot de passe en **overlay `position:fixed`** sur le MainScreen
+- **Aucune fenêtre blanche** ne doit apparaître derrière le modal
+- Après validation du mot de passe → afficher la fenêtre complète dans l'overlay
+- Les fenêtres overlay doivent avoir : barre de titre (drag), boutons −/□/✕ fonctionnels, redimensionnement (handle coin bas-droit), maximize (double-clic titre)
+
+---
+
+## Règle 18 — Boutons fonctionnels : chaque bouton reproduit l'action exacte du prototype
+
+Chaque bouton de l'interface doit reproduire **l'action exacte** de son équivalent dans le prototype. Pas de placeholder `notification.info()`.
+
+**Actions obligatoires :**
+- **Modifier** → ouvre Enregistrement + charge les données du véhicule + ferme la fenêtre source + passe en mode Modification
+- **Supprimer** → `WinConfirm` "Voulez-vous supprimer ?" → supprime → rafraîchit la liste
+- **Imprimer** → vérifie qu'il y a des données → ouvre l'aperçu impression A4 complet (toolbar, paramètres, miniature, preview)
+- **DUPLICATA / Renouvellement** → vérifie sélection → `EditionDocsModal` avec 10 options radio + prévisualiser
+- **NON Sortie** → vérifie si véhicule sorti → `WinConfirm` → toggle sortie → rafraîchit
+
+**L'app STCA II réelle est aussi une référence** pour l'organisation des colonnes (14 colonnes Liste Véhicules), le format d'adresse (Pays/Pays), et la disposition visuelle des fenêtres.
+
+---
+
 ## Plan d'exécution (rappel rapide)
 
 | Phase | Description | Statut |

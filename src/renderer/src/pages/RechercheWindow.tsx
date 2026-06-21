@@ -1,50 +1,19 @@
-import { useState } from 'react'
-import { Input, Button, Table, Tag, Empty, Typography, Space } from 'antd'
-import { SearchOutlined } from '@ant-design/icons'
-import type { ColumnsType } from 'antd/es/table'
+import { useState, useMemo, type ReactNode } from 'react'
+import { notification } from 'antd'
 import dayjs from 'dayjs'
-import { mockVehicules, type MockVehicule } from '@mock/vehicules'
-import { mockDestinations } from '@mock/destinations'
-
-const { Text } = Typography
+import { mockVehicules } from '@mock/vehicules'
+import { electronApi } from '@api/electron'
+import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
+import { WinAlert, WinConfirm, EditionDocsModal } from '@components/WinDialogs'
 
 const DEST_COLORS: Record<string, string> = {
-  AFO: 'green', CK: 'blue', KA: 'cyan', KE: 'orange',
-  KP: 'purple', KW: 'geekblue', NO: 'volcano', TO: 'gold',
-  'S/C': 'lime', POL: 'red'
+  AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
+  KP: '#16A34A', KW: '#16A34A', NO: '#16A34A',
+  'S/C': '#FFD700', POL: '#94A3B8',
 }
-
-const destLabel = (code: string): string =>
-  mockDestinations.find(d => d.code === code)?.nom ?? code
-
-const columns: ColumnsType<MockVehicule> = [
-  {
-    title: 'Immatriculation', dataIndex: 'immat', width: 120,
-    render: v => <strong style={{ color: '#1B3A6B', letterSpacing: 1, fontFamily: 'monospace' }}>{v}</strong>
-  },
-  {
-    title: 'N° Chassis (VIN)', dataIndex: 'chassis',
-    render: v => <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#555' }}>{v}</span>
-  },
-  { title: 'Type', dataIndex: 'typeVehicule', width: 90 },
-  { title: 'Marque / Modèle', dataIndex: 'marqueModele' },
-  {
-    title: 'Destination', dataIndex: 'destination', width: 150,
-    render: v => (
-      <Tag color={DEST_COLORS[v]} style={{ fontWeight: 600 }}>
-        {v} — {destLabel(v)}
-      </Tag>
-    )
-  },
-  {
-    title: 'Date', dataIndex: 'date', width: 120,
-    render: v => <span style={{ fontSize: 11, color: '#888' }}>{dayjs(v).format('DD/MM/YY HH:mm')}</span>
-  },
-  {
-    title: 'Acheteur', dataIndex: 'nomAcheteur', width: 140,
-    render: v => <span style={{ fontSize: 12 }}>{v}</span>
-  },
-]
+function destTxt(bg: string): string {
+  return (bg === '#FFD700' || bg === '#94A3B8') ? '#1E293B' : '#fff'
+}
 
 interface Props {
   mode: 'immat' | 'chassis'
@@ -52,80 +21,229 @@ interface Props {
 
 export default function RechercheWindow({ mode }: Props): JSX.Element {
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<MockVehicule[] | null>(null)
+  const [searched, setSearched] = useState(false)
+  const [frFilter, setFrFilter] = useState('')
+  const [selectedRef, setSelectedRef] = useState<string | null>(null)
+  const [alert, setAlert] = useState<ReactNode | null>(null)
+  const [confirm, setConfirm] = useState<{ msg: ReactNode; cb: () => void } | null>(null)
+  const [editionType, setEditionType] = useState<'duplicata' | 'renouvel' | null>(null)
 
-  const placeholder = mode === 'immat'
-    ? 'Ex : C7388, T5001, A3910…'
-    : 'Ex : ZFA29000000302873'
+  const checkSel = (): boolean => {
+    if (selectedRef) return true
+    const hasRows = searched && filtered.length > 0
+    const msg = hasRows
+      ? <>Veuillez sélectionner un enregistrement<br />dans la liste avant d&apos;effectuer cette opération.</>
+      : <>Aucun enregistrement affiché.<br />Entrez un {isImmat ? "numéro d'immatriculation" : 'N° de châssis'} et cliquez sur <strong>Rechercher</strong>,<br />puis choisissez un enregistrement.</>
+    setAlert(msg)
+    return false
+  }
 
-  const label = mode === 'immat' ? 'N° Immatriculation' : 'N° Chassis (VIN)'
+  const isImmat = mode === 'immat'
+  const label = isImmat ? 'N° Immatriculation' : 'N° Chassis (VIN)'
+  const placeholder = isImmat ? 'ex: A2050' : 'ex: WDB9636032L487321'
+  const emptyMsg = isImmat
+    ? "Entrez un numéro d'immatriculation et cliquez sur Rechercher"
+    : 'Entrez un numéro de châssis (VIN) et cliquez sur Rechercher'
 
-  const handleSearch = (): void => {
-    if (!query.trim()) { setResults([]); return }
-    const q = query.trim().toLowerCase()
-    const found = mockVehicules.filter(v =>
-      mode === 'immat'
-        ? v.immat.toLowerCase().includes(q)
-        : v.chassis.toLowerCase().includes(q)
+  const results = useMemo(() => {
+    if (!searched || !query) return []
+    const q = query.toUpperCase()
+    return mockVehicules.filter(v =>
+      isImmat ? v.immat.toUpperCase().includes(q) : v.chassis.toUpperCase().includes(q)
     )
-    setResults(found)
+  }, [searched, query, isImmat])
+
+  const filtered = useMemo(() => {
+    if (!frFilter) return results
+    return results.filter(v => v.destination === frFilter.toUpperCase())
+  }, [results, frFilter])
+
+  const doSearch = (): void => {
+    if (!query.trim()) {
+      notification.warning({ message: isImmat ? "Veuillez entrer un numéro d'immatriculation." : 'Veuillez entrer un numéro de châssis (VIN).', placement: 'bottomRight' })
+      return
+    }
+    setSearched(true)
+    setSelectedRef(null)
+  }
+
+  const thStyle: React.CSSProperties = {
+    fontSize: 9, fontWeight: 700, color: '#64748B', textTransform: 'uppercase',
+    letterSpacing: 0.4, padding: 8, borderBottom: '2px solid #E2E8F0',
+    textAlign: 'left', whiteSpace: 'nowrap', background: '#F8FAFF',
+  }
+  const tdStyle: React.CSSProperties = {
+    padding: 8, color: '#1E293B', borderBottom: '1px solid #F1F5F9',
   }
 
   return (
-    <div style={{ padding: '4px 0' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginBottom: 20 }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 11, color: '#888', marginBottom: 4, letterSpacing: 0.5 }}>
-            {label.toUpperCase()}
-          </div>
-          <Input
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            onPressEnter={handleSearch}
+    <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
+
+        {/* Barre recherche */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 6, padding: '7px 10px',
+          background: '#F8FAFF', borderBottom: '1px solid #E2E8F0', flexShrink: 0, flexWrap: 'wrap',
+        }}>
+          <label style={{ fontSize: 11.5, color: '#374151', whiteSpace: 'nowrap' }}>{label} :</label>
+          <input className="light-input" value={query}
+            onChange={e => setQuery(e.target.value.toUpperCase())}
+            onKeyDown={e => { if (e.key === 'Enter') doSearch() }}
             placeholder={placeholder}
-            style={{ fontFamily: 'monospace', letterSpacing: 1 }}
-            size="large"
-            autoFocus
-          />
+            style={{
+              padding: '3px 5px', fontSize: 11, width: isImmat ? 120 : 180, height: 26,
+              textTransform: 'uppercase',
+              fontFamily: isImmat ? undefined : "'Courier New', monospace",
+            }} />
+          <button onClick={doSearch} style={{
+            height: 32, padding: '0 12px', background: '#2563EB', color: '#fff',
+            border: 'none', borderRadius: 5, fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 4,
+          }}>🔍 Rechercher</button>
         </div>
-        <Button
-          type="primary"
-          icon={<SearchOutlined />}
-          size="large"
-          onClick={handleSearch}
-          style={{ background: '#1B3A6B', borderColor: '#1B3A6B', minWidth: 110 }}
-        >
-          Rechercher
-        </Button>
+
+        {/* Table — colonnes conformes au vrai STCA II */}
+        <div style={{ flex: 1, overflow: 'auto' }}>
+          <table style={{ width: '100%', minWidth: 1100, borderCollapse: 'collapse', fontSize: 11 }}>
+            <thead>
+              <tr>
+                <th style={thStyle}>Réf ↕</th>
+                <th style={thStyle}>Nom et prénom ↕</th>
+                <th style={thStyle}>Adresse ↕</th>
+                <th style={thStyle}>Code ↕</th>
+                <th style={thStyle}>Immatriculation ↕</th>
+                <th style={thStyle}>Marque et modèle ↕</th>
+                <th style={thStyle}>N° Chassis ↕</th>
+                <th style={thStyle}>N° de Tri ↕</th>
+                <th style={thStyle}>Sortant du parc ↕</th>
+                <th style={thStyle}>Enregistré le ↕</th>
+                <th style={thStyle}>Nom de l&apos;utilisateur ↕</th>
+              </tr>
+            </thead>
+            <tbody>
+              {!searched ? (
+                <tr><td colSpan={11} style={{ textAlign: 'center', padding: 40, color: '#94A3B8', fontStyle: 'italic' }}>{emptyMsg}</td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={11} style={{ textAlign: 'center', padding: 30, color: '#94A3B8', fontStyle: 'italic' }}>Aucun véhicule trouvé</td></tr>
+              ) : filtered.map(v => {
+                const bg = DEST_COLORS[v.destination] ?? '#6B7280'
+                const isSel = selectedRef === v.ref
+                const bbc = isSel ? '#BFDBFE' : '#F1F5F9'
+                return (
+                  <tr key={v.id} onClick={() => setSelectedRef(v.ref)}
+                    style={{ cursor: 'pointer', background: isSel ? '#EFF6FF' : undefined }}
+                    onMouseEnter={e => { if (!isSel) e.currentTarget.querySelectorAll('td').forEach(td => { (td as HTMLElement).style.background = '#F8FAFF' }) }}
+                    onMouseLeave={e => { if (!isSel) e.currentTarget.querySelectorAll('td').forEach(td => { (td as HTMLElement).style.background = '' }) }}
+                  >
+                    <td style={{ ...tdStyle, color: '#64748B', borderBottomColor: bbc }}>{v.ref}</td>
+                    <td style={{ ...tdStyle, color: '#1E293B', fontWeight: 500, borderBottomColor: bbc, textTransform: 'uppercase' }}>{v.nomAcheteur || '—'}</td>
+                    <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>{v.paysResidence}/{v.paysDestination || v.paysResidence}</td>
+                    <td style={{ ...tdStyle, textAlign: 'center', borderBottomColor: bbc }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 3, color: destTxt(bg), background: bg }}>{v.destination}</span>
+                    </td>
+                    <td style={{ ...tdStyle, borderBottomColor: bbc }}>
+                      <span style={{
+                        fontFamily: "'Courier New', monospace", fontWeight: 700, color: '#D97706', fontSize: 10.5,
+                        background: '#FFF7ED', border: '1px solid #FED7AA', padding: '2px 6px', borderRadius: 3,
+                      }}>{v.immat}</span>
+                    </td>
+                    <td style={{ ...tdStyle, color: '#1E293B', borderBottomColor: bbc, textTransform: 'uppercase' }}>{v.marqueModele}</td>
+                    <td style={{ ...tdStyle, fontFamily: "'Courier New', monospace", fontSize: 10, color: '#2563EB', borderBottomColor: bbc }}>{v.chassis}</td>
+                    <td style={{ ...tdStyle, textAlign: 'center', color: '#7C3AED', fontWeight: 600, borderBottomColor: bbc }}>
+                      {String(10000 + v.id).padStart(6, '0')}
+                    </td>
+                    <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>{v.parc || '—'}</td>
+                    <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>{dayjs(v.date).format('DD/MM/YYYY')}</td>
+                    <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>{v.agent}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Barre statut */}
+        <div style={{ padding: '4px 10px', background: '#FFFEF0', borderTop: '1px solid #E2E8F0', fontSize: 11, color: '#475569', flexShrink: 0 }}>
+          Nbr de Véhicule(s) : {filtered.length}
+        </div>
       </div>
 
-      {results === null && (
-        <div style={{ textAlign: 'center', color: '#aaa', paddingTop: 40 }}>
-          <SearchOutlined style={{ fontSize: 40, marginBottom: 12, display: 'block' }} />
-          <Text type="secondary">
-            Saisissez {mode === 'immat' ? 'un numéro d\'immatriculation' : 'un numéro de chassis'} et lancez la recherche
-          </Text>
-        </div>
-      )}
+      {/* Panneau actions droit */}
+      <div style={{
+        width: 160, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 5,
+        padding: '7px 6px', background: '#F8FAFF', borderLeft: '1px solid #E2E8F0', overflowY: 'auto',
+      }}>
+        <button onClick={() => { if (checkSel()) setEditionType('duplicata') }}
+          style={{
+            width: '100%', padding: '7px 6px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
+            border: '1px solid #BFDBFE', background: '#EFF6FF', color: '#1D4ED8', fontWeight: 700, lineHeight: 1.4,
+          }}>🖨 Rééditer un<br />DUPLICATA</button>
 
-      {results !== null && results.length === 0 && (
-        <Empty description={`Aucun véhicule trouvé pour « ${query} »`} />
-      )}
+        <button onClick={() => {
+          if (!checkSel()) return
+          const v = filtered.find(x => x.ref === selectedRef)
+          if (!v) return
+          localStorage.setItem('tcit_loadEnreg', JSON.stringify({
+            ref: v.ref, nom: v.nomAcheteur, resid: v.paysResidence, paydest: v.paysDestination,
+            marque: v.marqueModele, chassis: v.chassis, type: v.typeVehicule, dest: v.destination,
+            immat: v.immat, montant: v.montant, date: v.date, parc: v.parc, agent: v.agent,
+          }))
+          const cfg = WINDOW_REGISTRY['enregistrement']
+          if (cfg) electronApi.mdiOpen({ id: 'enregistrement', x: cfg.defaultX, y: cfg.defaultY, width: cfg.width, height: cfg.height })
+          notification.info({ message: `📋 Chargé : ${v.immat} — ${v.nomAcheteur || v.marqueModele}`, placement: 'bottomRight', duration: 2.5 })
+          window.dispatchEvent(new CustomEvent('mdi:close-self'))
+        }}
+          style={{
+            width: '100%', padding: '5px 6px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
+            border: '1px solid #CBD5E1', background: '#fff', color: '#1E293B',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+          }}>✏ Modifier</button>
 
-      {results !== null && results.length > 0 && (
-        <Space direction="vertical" style={{ width: '100%' }}>
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            {results.length} résultat(s) trouvé(s)
-          </Text>
-          <Table
-            columns={columns}
-            dataSource={results}
-            rowKey="id"
-            size="small"
-            pagination={false}
-            scroll={{ x: 900 }}
-          />
-        </Space>
+        <button onClick={() => {
+          if (!checkSel()) return
+          setConfirm({ msg: 'Voulez-vous supprimer cet enregistrement ?', cb: () => {
+            setSelectedRef(null); setSearched(true); setConfirm(null)
+            notification.success({ message: '✅ Enregistrement supprimé', placement: 'bottomRight' })
+          }})
+        }}
+          style={{
+            width: '100%', padding: '5px 6px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
+            border: '1px solid #FECACA', background: '#FFF5F5', color: '#DC2626', fontWeight: 600,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+          }}>⊖ Supprimer</button>
+
+        <button onClick={() => { if (checkSel()) setEditionType('renouvel') }}
+          style={{
+            width: '100%', padding: '7px 6px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
+            border: '1px solid #BFDBFE', background: '#EFF6FF', color: '#1D4ED8', fontWeight: 700, lineHeight: 1.4,
+          }}>🖨 Rééditer un<br />Renouvellem.</button>
+
+        <fieldset style={{ border: '1px solid #E2E8F0', borderRadius: 5, padding: '6px 8px', background: '#fff', marginTop: 2, margin: 0 }}>
+          <legend style={{ fontSize: 10.5, fontWeight: 600, color: '#374151', padding: '0 3px' }}>Filtrage Frontière</legend>
+          <input type="text" className="light-input" placeholder="ex: AFO" value={frFilter}
+            onChange={e => setFrFilter(e.target.value.toUpperCase())}
+            style={{ width: '100%', padding: '3px 5px', fontSize: 11, textTransform: 'uppercase', height: 26 }} />
+        </fieldset>
+
+        <div style={{ flex: 1 }} />
+
+        <button onClick={() => window.dispatchEvent(new CustomEvent('mdi:close-self'))}
+          style={{
+            width: '100%', padding: '5px 6px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
+            border: '1px solid #FECACA', background: '#FFF5F5', color: '#DC2626', fontWeight: 600,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+          }}>✕ Fermer</button>
+      </div>
+
+      {/* ── Overlays ─────────────────────────────────────────────── */}
+      {alert && <WinAlert message={alert} onClose={() => setAlert(null)} />}
+      {confirm && <WinConfirm message={confirm.msg} onOui={confirm.cb} onNon={() => setConfirm(null)} />}
+      {editionType && (
+        <EditionDocsModal type={editionType} onClose={() => setEditionType(null)}
+          onPrint={(doc, prev) => {
+            setEditionType(null)
+            notification.info({ message: `🖨 ${prev ? 'Prévisualisation' : 'Impression'} : ${doc}`, placement: 'bottomRight' })
+          }} />
       )}
     </div>
   )

@@ -1,162 +1,380 @@
-import { useState, useMemo } from 'react'
-import { Table, Input, Select, DatePicker, Button, Tag, Space, Card, Typography, Row, Col } from 'antd'
-import { SearchOutlined, ReloadOutlined, FileExcelOutlined } from '@ant-design/icons'
-import { motion } from 'framer-motion'
-import type { ColumnsType } from 'antd/es/table'
+import { useState, useMemo, type ReactNode } from 'react'
+import { notification } from 'antd'
 import dayjs from 'dayjs'
-import { mockVehicules, type MockVehicule } from '@mock/vehicules'
-import { mockDestinations } from '@mock/destinations'
-
-const { Title } = Typography
-const { RangePicker } = DatePicker
-
-type Vehicule = MockVehicule
-
-const DESTINATIONS = mockDestinations.map(d => d.code)
-
-const DEST_LABELS: Record<string, string> = Object.fromEntries(
-  mockDestinations.map(d => [d.code, d.nom])
-)
+import { mockVehicules } from '@mock/vehicules'
+import { electronApi } from '@api/electron'
+import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
+import { WinAlert, WinConfirm, EditionDocsModal } from '@components/WinDialogs'
 
 const DEST_COLORS: Record<string, string> = {
-  AFO: 'green', CK: 'blue', KA: 'cyan', KE: 'orange',
-  KP: 'purple', KW: 'geekblue', NO: 'volcano', TO: 'gold',
-  'S/C': 'lime', POL: 'red'
+  AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
+  KP: '#16A34A', KW: '#16A34A', NO: '#16A34A',
+  'S/C': '#FFD700', POL: '#94A3B8',
+}
+function destTxt(bg: string): string {
+  return (bg === '#FFD700' || bg === '#94A3B8') ? '#1E293B' : '#fff'
 }
 
-const mockData = mockVehicules
+const BTN = 'width:100%;padding:5px 6px;font-size:11px;border-radius:4px;cursor:pointer;border:1px solid'
 
 export default function ListePage(): JSX.Element {
-  const [search, setSearch] = useState('')
-  const [destFilter, setDestFilter] = useState<string | null>(null)
-  const [typeFilter, setTypeFilter] = useState<string | null>(null)
-  const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(null)
+  const todayISO = dayjs().format('YYYY-MM-DD')
+  const [from, setFrom] = useState(todayISO)
+  const [to, setTo] = useState(todayISO)
+  const [pointage, setPointage] = useState<'sortie' | 'non_sortie' | 'toutes'>('toutes')
+  const [frFilter, setFrFilter] = useState('')
+  const [selectedRef, setSelectedRef] = useState<string | null>(null)
+  const [alert, setAlert] = useState<ReactNode | null>(null)
+  const [confirm, setConfirm] = useState<{ msg: ReactNode; cb: () => void } | null>(null)
+  const [editionType, setEditionType] = useState<'duplicata' | 'renouvel' | null>(null)
+  const [printOpen, setPrintOpen] = useState(false)
+
+  const checkSel = (): boolean => {
+    if (selectedRef) return true
+    const msg = filtered.length > 0
+      ? <>Veuillez sélectionner un enregistrement<br />dans la liste avant d&apos;effectuer cette opération.</>
+      : <>Aucun enregistrement affiché.<br />Sélectionnez une période, cliquez sur <strong>Rechercher</strong>,<br />puis choisissez un enregistrement dans la liste.</>
+    setAlert(msg)
+    return false
+  }
 
   const filtered = useMemo(() => {
-    return mockData.filter(v => {
-      if (search && !v.immat.toLowerCase().includes(search.toLowerCase()) &&
-          !v.marqueModele.toLowerCase().includes(search.toLowerCase())) return false
-      if (destFilter && v.destination !== destFilter) return false
-      if (typeFilter && v.typeVehicule !== typeFilter) return false
-      if (dateRange) {
-        const d = dayjs(v.date)
-        if (d.isBefore(dateRange[0], 'day') || d.isAfter(dateRange[1], 'day')) return false
-      }
+    return mockVehicules.filter(v => {
+      if (v.date < from || v.date > to) return false
+      if (frFilter && v.destination !== frFilter.toUpperCase()) return false
+      if (pointage === 'sortie' && !v.recyclerPlaque) return false
+      if (pointage === 'non_sortie' && v.recyclerPlaque) return false
       return true
     })
-  }, [search, destFilter, typeFilter, dateRange])
+  }, [from, to, pointage, frFilter])
 
-  const columns: ColumnsType<Vehicule> = [
-    {
-      title: 'N°', dataIndex: 'id', width: 60,
-      render: (_, __, idx) => <span style={{ color: '#999', fontSize: 12 }}>{idx + 1}</span>
-    },
-    {
-      title: 'Immatriculation', dataIndex: 'immat',
-      render: v => <strong style={{ color: '#1B3A6B', letterSpacing: 1 }}>{v}</strong>
-    },
-    { title: 'Type', dataIndex: 'typeVehicule', width: 100 },
-    { title: 'Marque / Modèle', dataIndex: 'marqueModele' },
-    {
-      title: 'Destination', dataIndex: 'destination', width: 130,
-      render: v => (
-        <Tag color={DEST_COLORS[v]} style={{ fontWeight: 600 }}>
-          {v} — {DEST_LABELS[v]}
-        </Tag>
-      )
-    },
-    {
-      title: 'Date', dataIndex: 'date', width: 140,
-      render: v => <span style={{ fontSize: 12, color: '#666' }}>{dayjs(v).format('DD/MM/YY HH:mm')}</span>
-    },
-    {
-      title: 'Montant', dataIndex: 'montant', width: 110, align: 'right',
-      render: v => <strong style={{ color: '#1B3A6B' }}>{v.toLocaleString('fr-FR')} F</strong>
-    },
-    {
-      title: 'Agent', dataIndex: 'agent', width: 90,
-      render: v => <span style={{ fontSize: 12 }}>{v}</span>
-    }
-  ]
+  const sorties = filtered.filter(v => v.recyclerPlaque).length
 
-  const reset = (): void => {
-    setSearch('')
-    setDestFilter(null)
-    setTypeFilter(null)
-    setDateRange(null)
+  const thStyle: React.CSSProperties = {
+    fontSize: 9, fontWeight: 700, color: '#64748B', textTransform: 'uppercase',
+    letterSpacing: 0.4, padding: 8, borderBottom: '2px solid #E2E8F0',
+    textAlign: 'left', whiteSpace: 'nowrap', background: '#F8FAFF',
+  }
+  const tdStyle: React.CSSProperties = {
+    padding: 8, color: '#1E293B', borderBottom: '1px solid #F1F5F9',
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <Title level={4} style={{ margin: 0, color: '#1B3A6B' }}>
-          Liste des véhicules enregistrés
-        </Title>
-        <Button icon={<FileExcelOutlined />} style={{ borderColor: '#1B3A6B', color: '#1B3A6B' }}>
-          Exporter
-        </Button>
+    <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
+      {/* ── Zone principale gauche ──────────────────────────────────── */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
+
+        {/* Barre filtres date */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 6, padding: '7px 10px',
+          background: '#F8FAFF', borderBottom: '1px solid #E2E8F0', flexShrink: 0, flexWrap: 'wrap',
+        }}>
+          <label style={{ fontSize: 11.5, color: '#374151', whiteSpace: 'nowrap' }}>Date Début :</label>
+          <input type="date" className="light-input" value={from} onChange={e => setFrom(e.target.value)}
+            style={{ padding: '3px 5px', fontSize: 11, width: 126, height: 26 }} />
+          <span style={{ color: '#94A3B8', fontWeight: 700 }}>&gt;&gt;</span>
+          <label style={{ fontSize: 11.5, color: '#374151', whiteSpace: 'nowrap' }}>Date Fin :</label>
+          <input type="date" className="light-input" value={to} onChange={e => setTo(e.target.value)}
+            style={{ padding: '3px 5px', fontSize: 11, width: 126, height: 26 }} />
+          <button style={{
+            height: 32, padding: '0 12px', background: '#2563EB', color: '#fff',
+            border: 'none', borderRadius: 5, fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 4,
+          }}>🔍 Rechercher</button>
+        </div>
+
+        {/* Table scrollable — colonnes conformes au vrai STCA II */}
+        <div style={{ flex: 1, overflow: 'auto' }}>
+          <table style={{ width: '100%', minWidth: 1200, borderCollapse: 'collapse', fontSize: 11 }}>
+            <thead>
+              <tr>
+                <th style={thStyle}>Réf ↕</th>
+                <th style={thStyle}>Nom et prénom ↕</th>
+                <th style={thStyle}>Adresse ↕</th>
+                <th style={thStyle}>Code ↕</th>
+                <th style={thStyle}>Immatriculation ↕</th>
+                <th style={thStyle}>Marque et modèle ↕</th>
+                <th style={thStyle}>N° Chassis ↕</th>
+                <th style={thStyle}>N° de Tri ↕</th>
+                <th style={thStyle}>Sortant du parc ↕</th>
+                <th style={thStyle}>Enregistré le ↕</th>
+                <th style={thStyle}>Date du N° de Tri ↕</th>
+                <th style={thStyle}>Nom de l&apos;utilisateur ↕</th>
+                <th style={thStyle}>Sortie</th>
+                <th style={thStyle}>Sortie le ↕</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr><td colSpan={14} style={{ textAlign: 'center', padding: 30, color: '#94A3B8', fontStyle: 'italic' }}>Aucun véhicule trouvé</td></tr>
+              ) : filtered.map(v => {
+                const bg = DEST_COLORS[v.destination] ?? '#6B7280'
+                const isSelected = selectedRef === v.ref
+                const bbc = isSelected ? '#BFDBFE' : '#F1F5F9'
+                return (
+                  <tr key={v.id}
+                    onClick={() => setSelectedRef(v.ref)}
+                    style={{ cursor: 'pointer', background: isSelected ? '#EFF6FF' : undefined }}
+                    onMouseEnter={e => { if (!isSelected) e.currentTarget.querySelectorAll('td').forEach((td, i) => { (td as HTMLElement).style.background = (i === 0 && v.recyclerPlaque) ? '#BBF7D0' : '#F8FAFF' }) }}
+                    onMouseLeave={e => { if (!isSelected) e.currentTarget.querySelectorAll('td').forEach((td, i) => { (td as HTMLElement).style.background = (i === 0 && v.recyclerPlaque) ? '#D1FAE5' : '' }) }}
+                  >
+                    <td style={{ ...tdStyle, color: '#64748B', borderBottomColor: bbc, background: v.recyclerPlaque ? '#D1FAE5' : undefined }}>{v.ref}</td>
+                    <td style={{ ...tdStyle, color: '#1E293B', fontWeight: 500, borderBottomColor: bbc, textTransform: 'uppercase' }}>{v.nomAcheteur || '—'}</td>
+                    <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>{v.paysResidence}/{v.paysDestination || v.paysResidence}</td>
+                    <td style={{ ...tdStyle, textAlign: 'center', borderBottomColor: bbc }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 3, color: destTxt(bg), background: bg }}>{v.destination}</span>
+                    </td>
+                    <td style={{ ...tdStyle, borderBottomColor: bbc }}>
+                      <span style={{
+                        fontFamily: "'Courier New', monospace", fontWeight: 700, color: '#D97706', fontSize: 10.5,
+                        background: '#FFF7ED', border: '1px solid #FED7AA', padding: '2px 6px', borderRadius: 3,
+                      }}>{v.immat}</span>
+                    </td>
+                    <td style={{ ...tdStyle, color: '#1E293B', borderBottomColor: bbc, textTransform: 'uppercase' }}>{v.marqueModele}</td>
+                    <td style={{ ...tdStyle, fontFamily: "'Courier New', monospace", fontSize: 10, color: '#2563EB', borderBottomColor: bbc }}>{v.chassis}</td>
+                    <td style={{ ...tdStyle, textAlign: 'center', color: '#7C3AED', fontWeight: 600, borderBottomColor: bbc }}>
+                      {String(10000 + v.id).padStart(6, '0')}
+                    </td>
+                    <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>{v.parc || '—'}</td>
+                    <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>{dayjs(v.date).format('DD/MM/YYYY')}</td>
+                    <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>{dayjs(v.date).format('DD/MM/YYYY')}</td>
+                    <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>{v.agent}</td>
+                    <td style={{ ...tdStyle, textAlign: 'center', borderBottomColor: bbc }}>
+                      {v.recyclerPlaque
+                        ? <span style={{ color: '#16A34A', fontWeight: 700 }}>✓</span>
+                        : <span style={{ color: '#CBD5E1' }}>—</span>}
+                    </td>
+                    <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>
+                      {v.recyclerPlaque ? dayjs(v.date).add(1, 'day').format('DD/MM/YYYY') : ''}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Barre statut */}
+        <div style={{ padding: '4px 10px', background: '#FFFEF0', borderTop: '1px solid #E2E8F0', fontSize: 11, color: '#475569', flexShrink: 0 }}>
+          Nbr de Véhicule(s) : {filtered.length} &nbsp;-&nbsp; Nbr de Véhicule(s) Sortie(s) : {sorties}
+        </div>
       </div>
 
-      {/* Filtres */}
-      <Card style={{ marginBottom: 16, borderRadius: 8 }} bodyStyle={{ padding: '12px 16px' }}>
-        <Row gutter={[12, 8]} align="middle">
-          <Col flex="200px">
-            <Input
-              placeholder="Recherche immat / marque…"
-              prefix={<SearchOutlined style={{ color: '#ccc' }} />}
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              allowClear
-            />
-          </Col>
-          <Col flex="160px">
-            <Select
-              placeholder="Destination"
-              style={{ width: '100%' }}
-              value={destFilter}
-              onChange={setDestFilter}
-              allowClear
-              options={DESTINATIONS.map(d => ({ value: d, label: `${d} — ${DEST_LABELS[d]}` }))}
-            />
-          </Col>
-          <Col flex="140px">
-            <Select
-              placeholder="Type véhicule"
-              style={{ width: '100%' }}
-              value={typeFilter}
-              onChange={setTypeFilter}
-              allowClear
-              options={['Voiture', 'Camion', 'Moto', 'Bus', 'Pick-up'].map(t => ({ value: t, label: t }))}
-            />
-          </Col>
-          <Col flex="240px">
-            <RangePicker
-              style={{ width: '100%' }}
-              format="DD/MM/YYYY"
-              value={dateRange}
-              onChange={v => setDateRange(v as [dayjs.Dayjs, dayjs.Dayjs] | null)}
-            />
-          </Col>
-          <Col>
-            <Space>
-              <Button icon={<ReloadOutlined />} onClick={reset} size="small">Réinitialiser</Button>
-              <span style={{ color: '#999', fontSize: 12 }}>{filtered.length} résultat(s)</span>
-            </Space>
-          </Col>
-        </Row>
-      </Card>
+      {/* ── Panneau actions droit ───────────────────────────────────── */}
+      <div style={{
+        width: 160, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 5,
+        padding: '7px 6px', background: '#F8FAFF', borderLeft: '1px solid #E2E8F0', overflowY: 'auto',
+      }}>
+        {/* Rééditer DUPLICATA */}
+        <button onClick={() => { if (checkSel()) setEditionType('duplicata') }}
+          style={{
+            width: '100%', padding: '7px 6px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
+            border: '1px solid #BFDBFE', background: '#EFF6FF', color: '#1D4ED8', fontWeight: 700, lineHeight: 1.4,
+          }}>🖨 Rééditer un<br />DUPLICATA</button>
 
-      <Card style={{ borderRadius: 8 }} bodyStyle={{ padding: 0 }}>
-        <Table
-          columns={columns}
-          dataSource={filtered}
-          rowKey="id"
-          size="small"
-          pagination={{ pageSize: 15, showSizeChanger: false, showTotal: t => `${t} véhicule(s)` }}
-          scroll={{ x: 900 }}
-          rowClassName={(_, idx) => idx % 2 === 0 ? '' : 'table-row-alt'}
-        />
-      </Card>
-    </motion.div>
+        {/* Rééditer Renouvellement */}
+        <button onClick={() => { if (checkSel()) setEditionType('renouvel') }}
+          style={{
+            width: '100%', padding: '7px 6px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
+            border: '1px solid #BFDBFE', background: '#EFF6FF', color: '#1D4ED8', fontWeight: 700, lineHeight: 1.4,
+          }}>🖨 Rééditer un<br />Renouvellem.</button>
+
+        {/* Modifier — ouvre Enregistrement + charge les données + ferme Liste */}
+        <button onClick={() => {
+          if (!checkSel()) return
+          const v = filtered.find(x => x.ref === selectedRef)
+          if (!v) return
+          localStorage.setItem('tcit_loadEnreg', JSON.stringify({
+            ref: v.ref, nom: v.nomAcheteur, resid: v.paysResidence, paydest: v.paysDestination,
+            marque: v.marqueModele, chassis: v.chassis, type: v.typeVehicule, dest: v.destination,
+            immat: v.immat, montant: v.montant, date: v.date, parc: v.parc, agent: v.agent,
+          }))
+          const cfg = WINDOW_REGISTRY['enregistrement']
+          if (cfg) electronApi.mdiOpen({ id: 'enregistrement', x: cfg.defaultX, y: cfg.defaultY, width: cfg.width, height: cfg.height })
+          notification.info({ message: `📋 Chargé : ${v.immat} — ${v.nomAcheteur || v.marqueModele}`, placement: 'bottomRight', duration: 2.5 })
+          window.dispatchEvent(new CustomEvent('mdi:close-self'))
+        }}
+          style={{
+            width: '100%', padding: '5px 6px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
+            border: '1px solid #CBD5E1', background: '#fff', color: '#1E293B',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+          }}>✏ Modifier</button>
+
+        {/* Imprimer — ouvre aperçu impression de la liste filtrée */}
+        <button onClick={() => {
+          if (filtered.length === 0) { setAlert(<>Aucun enregistrement à imprimer.<br />Sélectionnez une période et cliquez sur <strong>Rechercher</strong>.</>); return }
+          setPrintOpen(true)
+        }}
+          style={{
+            width: '100%', padding: '5px 6px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
+            border: '1px solid #CBD5E1', background: '#fff', color: '#1E293B',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+          }}>🖨 Imprimer</button>
+
+        {/* Supprimer */}
+        <button onClick={() => {
+          if (!checkSel()) return
+          setConfirm({ msg: 'Voulez-vous supprimer cet enregistrement ?', cb: () => {
+            notification.success({ message: '✅ Enregistrement supprimé', placement: 'bottomRight' })
+            setSelectedRef(null); setConfirm(null)
+          }})
+        }}
+          style={{
+            width: '100%', padding: '5px 6px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
+            border: '1px solid #FECACA', background: '#FFF5F5', color: '#DC2626', fontWeight: 600,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+          }}>⊖ Supprimer</button>
+
+        {/* Filtrage Pointage */}
+        <fieldset style={{ border: '1px solid #E2E8F0', borderRadius: 5, padding: '6px 8px', background: '#fff', marginTop: 2, margin: 0 }}>
+          <legend style={{ fontSize: 10.5, fontWeight: 600, color: '#374151', padding: '0 3px' }}>Filtrage Pointage</legend>
+          <label style={{ display: 'block', fontSize: 11, cursor: 'pointer', marginBottom: 3 }}>
+            <input type="radio" name="lv-pointage" value="sortie" checked={pointage === 'sortie'}
+              onChange={() => setPointage('sortie')} style={{ accentColor: '#2563EB' }} /> Sortie
+          </label>
+          <label style={{ display: 'block', fontSize: 11, cursor: 'pointer', marginBottom: 3 }}>
+            <input type="radio" name="lv-pointage" value="non_sortie" checked={pointage === 'non_sortie'}
+              onChange={() => setPointage('non_sortie')} style={{ accentColor: '#2563EB' }} /> NON sortie
+          </label>
+          <label style={{ display: 'block', fontSize: 11, cursor: 'pointer' }}>
+            <input type="radio" name="lv-pointage" value="toutes" checked={pointage === 'toutes'}
+              onChange={() => setPointage('toutes')} style={{ accentColor: '#2563EB' }} /> Toutes
+          </label>
+        </fieldset>
+
+        {/* Filtrage Frontière */}
+        <fieldset style={{ border: '1px solid #E2E8F0', borderRadius: 5, padding: '6px 8px', background: '#fff', margin: 0 }}>
+          <legend style={{ fontSize: 10.5, fontWeight: 600, color: '#374151', padding: '0 3px' }}>Filtrage Frontière</legend>
+          <input type="text" className="light-input" placeholder="ex: AFO" value={frFilter}
+            onChange={e => setFrFilter(e.target.value.toUpperCase())}
+            style={{ width: '100%', padding: '3px 5px', fontSize: 11, textTransform: 'uppercase', height: 26 }} />
+        </fieldset>
+
+        {/* Spacer */}
+        <div style={{ flex: 1 }} />
+
+        {/* NON Sortie — décocher le pointage de sortie */}
+        <button onClick={() => {
+          if (!checkSel()) return
+          const v = filtered.find(x => x.ref === selectedRef)
+          if (!v) return
+          if (!v.recyclerPlaque) { notification.info({ message: "Ce véhicule n'est pas encore pointé comme sorti.", placement: 'bottomRight' }); return }
+          setConfirm({
+            msg: <>Décocher le pointage de sortie de ce véhicule ?<br /><small style={{ color: '#64748B' }}>Il sera considéré comme non sorti.</small></>,
+            cb: () => { v.recyclerPlaque = false; setSelectedRef(null); setConfirm(null); notification.success({ message: '✅ Véhicule remis en NON Sortie', placement: 'bottomRight' }) }
+          })
+        }} style={{
+          width: '100%', padding: '5px 6px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
+          border: '1px solid #FED7AA', background: '#FFF7ED', color: '#C2410C', fontWeight: 700,
+        }}>NON Sortie 🔶</button>
+
+        {/* Fermer */}
+        <button onClick={() => window.dispatchEvent(new CustomEvent('mdi:close-self'))}
+          style={{
+            width: '100%', padding: '5px 6px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
+            border: '1px solid #CBD5E1', background: '#F1F5F9', color: '#475569', fontWeight: 600,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+          }}>✕ Fermer</button>
+      </div>
+
+      {/* ── Overlays ─────────────────────────────────────────────── */}
+      {alert && <WinAlert message={alert} onClose={() => setAlert(null)} />}
+      {confirm && <WinConfirm message={confirm.msg} onOui={confirm.cb} onNon={() => setConfirm(null)} />}
+      {editionType && (
+        <EditionDocsModal type={editionType} onClose={() => setEditionType(null)}
+          onPrint={(doc, prev) => {
+            setEditionType(null)
+            notification.info({ message: `🖨 ${prev ? 'Prévisualisation' : 'Impression'} : ${doc}`, placement: 'bottomRight' })
+          }} />
+      )}
+
+      {/* ── Aperçu impression liste ─────────────────────────────── */}
+      {printOpen && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 950,
+          display: 'flex', flexDirection: 'column', background: '#fff',
+        }}>
+          <div style={{
+            background: '#1B3A6B', padding: '6px 14px',
+            display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0,
+          }}>
+            <span style={{ fontSize: 12, color: '#fff' }}>🖨</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', flex: 1 }}>Liste des véhicules enregistrés</span>
+            <button onClick={() => setPrintOpen(false)} style={{
+              width: 26, height: 26, background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)',
+              cursor: 'pointer', fontSize: 16, borderRadius: 4,
+            }}>✕</button>
+          </div>
+          <div style={{
+            display: 'flex', alignItems: 'center', borderBottom: '1px solid #E2E8F0',
+            background: '#F8FAFF', padding: '0 12px', flexShrink: 0,
+          }}>
+            <button style={{ padding: '8px 16px', fontSize: 11.5, fontWeight: 700, color: '#2563EB', border: 'none', borderBottom: '2px solid #2563EB', background: 'none', cursor: 'pointer' }}>👁 Aperçu</button>
+            <button onClick={() => window.print()} style={{ padding: '8px 16px', fontSize: 11.5, color: '#475569', border: 'none', background: 'none', cursor: 'pointer', borderBottom: '2px solid transparent' }}>🖨 Imprimer</button>
+            <span style={{ marginLeft: 'auto', fontSize: 11, color: '#94A3B8', paddingRight: 8 }}>100 %</span>
+          </div>
+          <div style={{ flex: 1, display: 'flex', overflow: 'hidden', background: '#94A3B8', minHeight: 0 }}>
+            <div style={{ width: 110, background: '#64748B', padding: 10, flexShrink: 0, overflowY: 'auto' }}>
+              <div style={{ background: '#fff', border: '1px solid #475569', padding: 4, cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+                <div style={{ fontSize: 5, fontWeight: 700, textAlign: 'center', color: '#1E293B', marginBottom: 2 }}>Liste des véhicules...</div>
+                <div style={{ height: 30, background: '#F1F5F9', border: '1px solid #E2E8F0' }} />
+                <div style={{ fontSize: 5, color: '#64748B', marginTop: 2, textAlign: 'center' }}>1</div>
+              </div>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: 24, display: 'flex', justifyContent: 'center' }}>
+              <div style={{ width: 842, minHeight: 595, background: '#fff', boxShadow: '0 4px 20px rgba(0,0,0,0.25)', padding: '36px 40px', fontFamily: 'Arial, sans-serif' }}>
+                <h2 style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', margin: '0 0 16px' }}>
+                  Liste des véhicules enregistrés pour la période du : {dayjs(from).format('DD/MM/YYYY')} au {dayjs(to).format('DD/MM/YYYY')}
+                </h2>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 9 }}>
+                  <thead><tr style={{ background: '#F1F5F9' }}>
+                    {['Réf', 'Nom et prénom', 'Adresse', 'Code', 'Immat.', 'Marque', 'N° Chassis', 'N° Tri', 'Transit', 'Date', 'Sortie le'].map(h => (
+                      <th key={h} style={{ border: '1px solid #CBD5E1', padding: '3px 4px', fontSize: 8, fontWeight: 600 }}>{h}</th>
+                    ))}
+                  </tr></thead>
+                  <tbody>
+                    {filtered.map((v, i) => (
+                      <tr key={v.id} style={{ background: i % 2 === 0 ? '#fff' : '#F8FAFF' }}>
+                        <td style={{ border: '1px solid #E2E8F0', padding: '3px 4px' }}>{v.ref}</td>
+                        <td style={{ border: '1px solid #E2E8F0', padding: '3px 4px', fontWeight: 500 }}>{v.nomAcheteur || '—'}</td>
+                        <td style={{ border: '1px solid #E2E8F0', padding: '3px 4px' }}>{v.paysResidence || '—'}</td>
+                        <td style={{ border: '1px solid #E2E8F0', padding: '3px 4px', textAlign: 'center', fontWeight: 700 }}>{v.destination}</td>
+                        <td style={{ border: '1px solid #E2E8F0', padding: '3px 4px', fontWeight: 700 }}>{v.immat}</td>
+                        <td style={{ border: '1px solid #E2E8F0', padding: '3px 4px' }}>{v.marqueModele}</td>
+                        <td style={{ border: '1px solid #E2E8F0', padding: '3px 4px', fontFamily: 'monospace', fontSize: 8 }}>{v.chassis}</td>
+                        <td style={{ border: '1px solid #E2E8F0', padding: '3px 4px', textAlign: 'center' }}>—</td>
+                        <td style={{ border: '1px solid #E2E8F0', padding: '3px 4px', fontSize: 8 }}>{v.parc || ''}</td>
+                        <td style={{ border: '1px solid #E2E8F0', padding: '3px 4px', textAlign: 'center' }}>{dayjs(v.date).format('DD/MM/YYYY')}</td>
+                        <td style={{ border: '1px solid #E2E8F0', padding: '3px 4px', textAlign: 'center', color: '#94A3B8' }}>
+                          {v.recyclerPlaque ? dayjs(v.date).add(1, 'day').format('DD/MM') : '__/__'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, fontSize: 10 }}>
+                  <span>Nombre de véhicules : <strong>{filtered.length}</strong></span>
+                  <span>Nombre de véhicules sorties : <strong>{sorties}</strong></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style={{
+            padding: '12px 20px', borderTop: '1px solid #E2E8F0',
+            display: 'flex', justifyContent: 'space-between', background: '#F8FAFF', flexShrink: 0,
+          }}>
+            <button onClick={() => setPrintOpen(false)} style={{
+              height: 34, padding: '0 16px', background: '#fff', color: '#374151',
+              border: '1px solid #D1D5DB', borderRadius: 5, fontSize: 12, cursor: 'pointer',
+            }}>✕ Fermer</button>
+            <button onClick={() => window.print()} style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '7px 20px',
+              background: '#2563EB', color: '#fff', border: 'none', borderRadius: 5,
+              fontSize: 12, fontWeight: 700, cursor: 'pointer',
+            }}><span style={{ fontSize: 18 }}>🖨</span> Lancer l&apos;impression</button>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }

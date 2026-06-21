@@ -1,216 +1,197 @@
-import { useState, useMemo } from 'react'
-import { Table, Input, Select, Button, Modal, Form, Tag } from 'antd'
-import {
-  SearchOutlined, PlusOutlined, EditOutlined,
-  DeleteOutlined, CarOutlined, CheckOutlined,
-} from '@ant-design/icons'
-import type { ColumnsType } from 'antd/es/table'
-import { mockVehicules } from '@mock/vehicules'
+import { useState } from 'react'
+import { notification } from 'antd'
 
-const C = {
-  blue:   '#1B3A6B',
-  accent: '#2563EB',
-  green:  '#16A34A',
-  muted:  '#6B7280',
-  border: '#E2E8F0',
-  bg:     '#F8FAFF',
-  danger: '#DC2626',
-}
-
-const TYPES_VEHICULE = ['Voiture', 'Camion', 'Moto', 'Bus', 'Pick-up', 'Minibus']
-const TYPE_COLORS: Record<string, string> = {
-  'Voiture': '#2563EB', 'Camion': '#D97706', 'Moto': '#DC2626',
-  'Bus': '#16A34A', 'Pick-up': '#7C3AED', 'Minibus': '#0891B2',
-}
-
-interface MarqueEntry {
-  id: number
-  marque: string
-  modele: string
-  type: string
-}
-
-const INITIAL_MARQUES: MarqueEntry[] = [
-  { id: 1,  marque: 'TOYOTA',     modele: 'COROLLA',          type: 'Voiture' },
-  { id: 2,  marque: 'TOYOTA',     modele: 'HILUX',            type: 'Pick-up' },
-  { id: 3,  marque: 'TOYOTA',     modele: 'HIACE',            type: 'Minibus' },
-  { id: 4,  marque: 'TOYOTA',     modele: 'LAND CRUISER',     type: 'Voiture' },
-  { id: 5,  marque: 'MERCEDES',   modele: 'ACTROS',           type: 'Camion' },
-  { id: 6,  marque: 'MERCEDES',   modele: 'SPRINTER',         type: 'Minibus' },
-  { id: 7,  marque: 'FORD',       modele: 'RANGER',           type: 'Pick-up' },
-  { id: 8,  marque: 'FORD',       modele: 'TRANSIT',          type: 'Camion' },
-  { id: 9,  marque: 'RENAULT',    modele: 'MASTER',           type: 'Camion' },
-  { id: 10, marque: 'RENAULT',    modele: 'TRAFIC',           type: 'Minibus' },
-  { id: 11, marque: 'PEUGEOT',    modele: '306',              type: 'Voiture' },
-  { id: 12, marque: 'PEUGEOT',    modele: 'BOXER',            type: 'Camion' },
-  { id: 13, marque: 'VOLKSWAGEN', modele: 'GOLF',             type: 'Voiture' },
-  { id: 14, marque: 'VOLKSWAGEN', modele: 'TRANSPORTER',      type: 'Camion' },
-  { id: 15, marque: 'NISSAN',     modele: 'NAVARA',           type: 'Pick-up' },
-  { id: 16, marque: 'NISSAN',     modele: 'PATROL',           type: 'Voiture' },
-  { id: 17, marque: 'HONDA',      modele: 'CB 125',           type: 'Moto' },
-  { id: 18, marque: 'YAMAHA',     modele: 'FZ 150',           type: 'Moto' },
-  { id: 19, marque: 'DAF',        modele: 'XF 105',           type: 'Camion' },
-  { id: 20, marque: 'MAN',        modele: 'TGX 18.480',       type: 'Camion' },
-  { id: 21, marque: 'MITSUBISHI', modele: 'L200',             type: 'Pick-up' },
-  { id: 22, marque: 'ISUZU',      modele: 'D-MAX',            type: 'Pick-up' },
-  { id: 23, marque: 'ACERBI',     modele: '125 PS',           type: 'Moto' },
-  { id: 24, marque: 'FIAT',       modele: 'DUCATO',           type: 'Camion' },
-  { id: 25, marque: 'OPEL',       modele: 'ASTRA',            type: 'Voiture' },
-  { id: 26, marque: 'HONDA',      modele: 'ACCORD',           type: 'Voiture' },
+const INITIAL_MARQUES = [
+  {id:1,nom:'140 H'},{id:2,nom:'3256 33'},{id:3,nom:'A.C.M. VQ-2485SA3/ ALLOY TIPPER'},
+  {id:4,nom:'ABG DD74'},{id:5,nom:'ABI E.B.G 1200'},{id:6,nom:'ACAM M 2770 G'},
+  {id:7,nom:'ACERBI 03G'},{id:8,nom:'ACERBI 08R'},{id:9,nom:'ACERBI 0L8451-BT0'},
+  {id:10,nom:'ACERBI 0L 88308T0/ ALLOY TIPPER'},{id:11,nom:'ACERBI 11L537'},{id:12,nom:'ACERBI 125 MG'},
+  {id:13,nom:'ACERBI 125 PS'},{id:14,nom:'ACERBI 135MG'},{id:15,nom:'ACERBI 135MHS'},
+  {id:16,nom:'ACERBI 135 MSH'},{id:17,nom:'ACERBI 135PG'},{id:18,nom:'ACERBI 135 PS'},
+  {id:19,nom:'ACERBI 135PS00'},{id:20,nom:'ACERBI 135 PSA'},{id:21,nom:'ACERBI 135PSF'},
+  {id:22,nom:'ACERBI 135 PSR'},{id:23,nom:'ACTM'},{id:24,nom:'ACTM 55315'},
+  {id:25,nom:'ACTM A24320C'},{id:26,nom:'ACTM ORIGINAL'},{id:27,nom:'ACTM R3232'},
+  {id:28,nom:'ACTM R 35315'},{id:29,nom:'A.C.T.M R44315'},{id:30,nom:'ACTM S070415'},
+  {id:31,nom:'ACTM S 322'},{id:32,nom:'ACTM S32215C'},{id:33,nom:'ACTM S32215E'},
+  {id:34,nom:'ACTM S32215H'},{id:35,nom:'ACTM S3322/ ALLOY TIPPER'},{id:36,nom:'ACTM S34320'},
+  {id:37,nom:'ACTM S34320A'},{id:38,nom:'ACTM S 443'},{id:39,nom:'ACTM S 44315'},
+  {id:40,nom:'FOTON BJ1069'},{id:41,nom:'HOWO A7'},{id:42,nom:'ISUZU NQR 75P'},
+  {id:43,nom:'MAN TGX 18.440'},{id:44,nom:'MERCEDES ACTROS 1844'},{id:45,nom:'NISSAN PATROL'},
+  {id:46,nom:'RENAULT TRUCKS T 480'},{id:47,nom:'SCANIA R500'},{id:48,nom:'TOYOTA HILUX'},
+  {id:49,nom:'TOYOTA LAND CRUISER 79'},{id:50,nom:'VOLVO FH16 750'},
 ]
 
 export default function FichierMarquesPage(): JSX.Element {
-  const [marques,      setMarques]      = useState<MarqueEntry[]>(INITIAL_MARQUES)
-  const [search,       setSearch]       = useState('')
-  const [typeFilter,   setTypeFilter]   = useState<string | undefined>()
-  const [modalOpen,    setModalOpen]    = useState(false)
-  const [editRow,      setEditRow]      = useState<MarqueEntry | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<number | null>(null)
-  const [form]                          = Form.useForm()
+  const [marques, setMarques] = useState(INITIAL_MARQUES)
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [dialogValue, setDialogValue] = useState('')
+  const [dialogMode, setDialogMode] = useState<'add' | 'edit'>('add')
+  const [dialogFootNote, setDialogFootNote] = useState('')
 
-  const countByModel = useMemo(() => {
-    const m = new Map<string, number>()
-    for (const v of mockVehicules) m.set(v.marqueModele, (m.get(v.marqueModele) ?? 0) + 1)
-    return m
-  }, [])
+  const sorted = [...marques].sort((a, b) => a.nom.localeCompare(b.nom, 'fr'))
 
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase()
-    return marques.filter(m => {
-      if (q && !m.marque.toLowerCase().includes(q) && !m.modele.toLowerCase().includes(q)) return false
-      if (typeFilter && m.type !== typeFilter) return false
-      return true
-    })
-  }, [marques, search, typeFilter])
-
-  const openAdd = (): void => { setEditRow(null); form.resetFields(); setModalOpen(true) }
-  const openEdit = (row: MarqueEntry): void => {
-    setEditRow(row); form.setFieldsValue(row); setModalOpen(true)
+  const checkSel = (): boolean => {
+    if (selectedId) return true
+    notification.warning({ message: 'Veuillez sélectionner une marque dans la liste.', placement: 'bottomRight' })
+    return false
   }
 
-  const handleSave = (): void => {
-    form.validateFields().then(vals => {
-      if (editRow) {
-        setMarques(prev => prev.map(m => m.id === editRow.id ? { ...m, ...vals } : m))
-      } else {
-        setMarques(prev => [...prev, { id: Date.now(), ...vals }])
-      }
-      setModalOpen(false)
-    })
+  const openAdd = (): void => {
+    setDialogMode('add'); setDialogValue(''); setDialogFootNote(''); setDialogOpen(true)
+  }
+  const openEdit = (): void => {
+    if (!checkSel()) return
+    const item = marques.find(m => m.id === selectedId)
+    if (!item) return
+    setDialogMode('edit'); setDialogValue(item.nom); setDialogFootNote(item.nom); setDialogOpen(true)
+  }
+  const doDelete = (): void => {
+    if (!checkSel()) return
+    const item = marques.find(m => m.id === selectedId)
+    if (!item) return
+    if (!confirm(`Supprimer "${item.nom}" ?`)) return
+    setMarques(prev => prev.filter(m => m.id !== selectedId))
+    setSelectedId(null)
+    notification.success({ message: '✅ Supprimé', placement: 'bottomRight' })
+  }
+  const dialogValidate = (): void => {
+    const val = dialogValue.trim()
+    if (!val) return
+    if (dialogMode === 'add') {
+      setMarques(prev => [...prev, { id: Date.now(), nom: val }])
+      notification.success({ message: '✅ Marque/modèle ajouté', placement: 'bottomRight' })
+    } else {
+      setMarques(prev => prev.map(m => m.id === selectedId ? { ...m, nom: val } : m))
+      notification.success({ message: '✅ Modifié', placement: 'bottomRight' })
+    }
+    setDialogOpen(false)
+  }
+  const doPrint = (): void => {
+    notification.info({ message: '🖨 Impression liste marques...', placement: 'bottomRight' })
   }
 
-  const handleDelete = (): void => {
-    if (deleteTarget == null) return
-    setMarques(prev => prev.filter(m => m.id !== deleteTarget))
-    setDeleteTarget(null)
-  }
-
-  const columns: ColumnsType<MarqueEntry> = [
-    {
-      title: 'Marque', dataIndex: 'marque', width: 140, sorter: (a, b) => a.marque.localeCompare(b.marque),
-      render: v => <span style={{ fontWeight: 700, color: C.blue, fontFamily: 'monospace', letterSpacing: 0.5 }}>{v}</span>,
-    },
-    {
-      title: 'Modèle', dataIndex: 'modele', sorter: (a, b) => a.modele.localeCompare(b.modele),
-      render: v => <span style={{ fontSize: 12, color: '#374151' }}>{v}</span>,
-    },
-    {
-      title: 'Type', dataIndex: 'type', width: 110,
-      render: v => (
-        <Tag style={{ fontWeight: 600, fontSize: 10, border: 'none', background: `${TYPE_COLORS[v] ?? C.muted}18`, color: TYPE_COLORS[v] ?? C.muted }}>
-          {v}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Enregistrements', width: 110, align: 'center' as const,
-      render: (_, row) => {
-        const key = `${row.marque} ${row.modele}`
-        const count = countByModel.get(key) ?? 0
-        return <span style={{ fontSize: 11, color: count > 0 ? C.green : C.muted, fontWeight: count > 0 ? 600 : 400 }}>{count}</span>
-      },
-    },
-    {
-      title: '', width: 80, align: 'center' as const,
-      render: (_, row) => (
-        <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
-          <Button size="small" icon={<EditOutlined />} onClick={() => openEdit(row)} />
-          <Button size="small" danger icon={<DeleteOutlined />} onClick={() => setDeleteTarget(row.id)} />
-        </div>
-      ),
-    },
-  ]
+  const btnStyle = (borderColor: string, bg: string, color: string, extra?: React.CSSProperties): React.CSSProperties => ({
+    width: '100%', padding: '5px 8px', fontSize: 11, borderRadius: 3, cursor: 'pointer',
+    border: `1px solid ${borderColor}`, background: bg, color,
+    textAlign: 'left', display: 'flex', alignItems: 'center', gap: 5,
+    ...extra,
+  })
 
   return (
-    <div style={{ animation: 'formEnter 0.3s ease' }}>
-      {/* Header */}
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+      {/* En-tête pleine largeur */}
       <div style={{
-        background: `linear-gradient(135deg, ${C.blue} 0%, ${C.accent} 100%)`,
-        padding: '8px 12px', marginBottom: 10, borderRadius: 6,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <CarOutlined style={{ color: 'rgba(255,255,255,0.85)', fontSize: 15 }} />
-          <span style={{ color: '#fff', fontSize: 10, fontWeight: 700, letterSpacing: 0.8 }}>
-            LISTE DES MARQUES / MODÈLES DE VÉHICULES
-          </span>
+        background: '#F5F3EE', color: '#1B3A6B', fontWeight: 700,
+        padding: '6px 10px', textAlign: 'center', fontSize: 11.5,
+        borderBottom: '2px solid #E2D9C8', flexShrink: 0,
+      }}>Marques - Modèles</div>
+
+      {/* Corps : table + sidebar */}
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+      {/* Zone table */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
+        <div style={{ flex: 1, overflow: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, tableLayout: 'fixed' }}>
+            <tbody>
+              {sorted.map(m => (
+                <tr key={m.id}
+                  onClick={() => setSelectedId(m.id)}
+                  onDoubleClick={openEdit}
+                  style={{
+                    cursor: 'pointer',
+                    background: selectedId === m.id ? '#EFF6FF' : undefined,
+                  }}
+                  onMouseEnter={e => { if (selectedId !== m.id) (e.currentTarget.firstChild as HTMLElement).style.background = '#F8FAFF' }}
+                  onMouseLeave={e => { if (selectedId !== m.id) (e.currentTarget.firstChild as HTMLElement).style.background = '' }}
+                >
+                  <td style={{
+                    padding: '3px 10px', color: '#1E293B', fontSize: 11.5,
+                    borderBottom: selectedId === m.id ? '1px solid #BFDBFE' : '1px solid #F1F5F9',
+                  }}>{m.nom}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 10 }}>{filtered.length} / {marques.length} entrées</span>
       </div>
 
-      {/* Filtres */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-        <Input placeholder="Rechercher marque ou modèle…" prefix={<SearchOutlined style={{ color: '#ccc' }} />}
-          value={search} onChange={e => setSearch(e.target.value)} allowClear style={{ flex: 1 }} size="small" />
-        <Select placeholder="Type véhicule" value={typeFilter} onChange={setTypeFilter} allowClear
-          options={TYPES_VEHICULE.map(t => ({ value: t, label: t }))} style={{ width: 150 }} size="small" />
-        <Button icon={<PlusOutlined />} type="primary" onClick={openAdd} size="small"
-          style={{ background: C.blue, borderColor: C.blue }}>
-          Ajouter
-        </Button>
+      {/* Panneau actions droit */}
+      <div style={{
+        width: 130, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 4,
+        padding: '6px 5px', background: '#F1F3F6', borderLeft: '1px solid #CBD5E1',
+      }}>
+        <button onClick={openAdd}
+          style={btnStyle('#B0C4DE', 'linear-gradient(to bottom, #fff, #E8EEF4)', '#1E293B', { fontWeight: 700 })}>
+          ➕ Nouveau
+        </button>
+        <button onClick={openEdit}
+          style={btnStyle('#B0C4DE', 'linear-gradient(to bottom, #fff, #E8EEF4)', '#1E293B')}>
+          🖊 Modifier
+        </button>
+        <button onClick={doDelete}
+          style={btnStyle('#B0C4DE', 'linear-gradient(to bottom, #fff, #E8EEF4)', '#DC2626', { fontWeight: 600 })}>
+          ➖ Supprimer
+        </button>
+        <div style={{ borderTop: '1px solid #CBD5E1', margin: '3px 0' }} />
+        <button onClick={doPrint}
+          style={btnStyle('#B0C4DE', 'linear-gradient(to bottom, #fff, #E8EEF4)', '#1E293B')}>
+          🖨 Imprimer
+        </button>
+        <div style={{ flex: 1 }} />
+        <button onClick={() => window.dispatchEvent(new CustomEvent('mdi:close-self'))}
+          style={btnStyle('#DC2626', 'linear-gradient(to bottom, #fff8f8, #FECACA)', '#DC2626', { fontWeight: 700 })}>
+          ✕ Quitter
+        </button>
       </div>
 
-      {/* Table */}
-      <Table
-        columns={columns} dataSource={filtered} rowKey="id" size="small"
-        pagination={{ pageSize: 12, showSizeChanger: false, showTotal: t => `${t} modèle(s)` }}
-        style={{ border: `1px solid ${C.border}`, borderRadius: 6 }}
-        rowClassName={(_, i) => i % 2 === 0 ? '' : 'table-row-alt'}
-      />
+      </div>{/* fin corps table+sidebar */}
 
-      {/* Modal ajout/édition */}
-      <Modal
-        title={<><CarOutlined style={{ color: C.blue, marginRight: 6 }} />{editRow ? 'Modifier la marque / modèle' : 'Ajouter une marque / modèle'}</>}
-        open={modalOpen} onOk={handleSave} onCancel={() => setModalOpen(false)}
-        okText={editRow ? 'Modifier' : 'Ajouter'}
-        okButtonProps={{ style: { background: C.blue, borderColor: C.blue } }}
-        width={380}
-      >
-        <Form form={form} layout="vertical" size="small" style={{ marginTop: 8 }}>
-          <Form.Item name="marque" label="Marque" rules={[{ required: true, message: 'Marque requise' }]}>
-            <Input placeholder="Ex : TOYOTA" style={{ textTransform: 'uppercase' }}
-              onChange={e => form.setFieldValue('marque', e.target.value.toUpperCase())} />
-          </Form.Item>
-          <Form.Item name="modele" label="Modèle" rules={[{ required: true, message: 'Modèle requis' }]}>
-            <Input placeholder="Ex : HILUX" />
-          </Form.Item>
-          <Form.Item name="type" label="Type de véhicule" rules={[{ required: true }]}>
-            <Select options={TYPES_VEHICULE.map(t => ({ value: t, label: t }))} placeholder="Sélectionner…" />
-          </Form.Item>
-        </Form>
-      </Modal>
-
-      {/* Modal suppression */}
-      <Modal
-        title="Confirmer la suppression" open={deleteTarget !== null}
-        onOk={handleDelete} onCancel={() => setDeleteTarget(null)}
-        okText="Supprimer" okButtonProps={{ danger: true }}
-        cancelText="Annuler" width={360}
-      >
-        <p style={{ fontSize: 12 }}>
-          Supprimer cette entrée ? Cette action ne peut pas être annulée.
-        </p>
-      </Modal>
+      {/* Dialog Création/Modification — style WinDev fidèle au prototype */}
+      {dialogOpen && (
+        <div style={{
+          position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200,
+        }}>
+          <div style={{
+            background: '#ECE9D8', border: '2px outset #ACA899', minWidth: 300,
+            boxShadow: '5px 5px 12px rgba(0,0,0,0.4)',
+          }}>
+            <div style={{
+              background: '#1B3A6B', color: '#fff', fontSize: 11, fontWeight: 600,
+              padding: '4px 8px', userSelect: 'none',
+            }}>
+              Création / Modification d&apos;un type de véhicule
+            </div>
+            <div style={{ padding: '16px 14px 12px' }}>
+              <div style={{ fontSize: 11.5, color: '#1E293B', fontWeight: 500, marginBottom: 6 }}>
+                Nom de la marque et du modèle
+              </div>
+              <input className="light-input" value={dialogValue}
+                onChange={e => setDialogValue(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') dialogValidate(); if (e.key === 'Escape') setDialogOpen(false) }}
+                autoFocus
+                style={{ width: '100%', boxSizing: 'border-box', padding: '4px 6px', fontSize: 12, display: 'block', height: 26 }} />
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 14 }}>
+                <button onClick={dialogValidate} style={{
+                  padding: '4px 20px', background: '#2563EB', color: '#fff',
+                  border: '1px solid #1D4ED8', borderRadius: 3, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                }}>✓ Valider</button>
+                <button onClick={() => setDialogOpen(false)} style={{
+                  padding: '4px 20px', background: '#DC2626', color: '#fff',
+                  border: '1px solid #B91C1C', borderRadius: 3, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                }}>✕ Quitter</button>
+              </div>
+              {dialogFootNote && (
+                <div style={{
+                  textAlign: 'center', marginTop: 10, fontSize: 10.5, color: '#1B3A6B',
+                  fontWeight: 600, borderTop: '1px solid #C8BFA8', paddingTop: 8,
+                }}>{dialogFootNote}</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

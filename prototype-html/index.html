@@ -2188,7 +2188,7 @@ function lvSupprimer(){
 let _editionDocsType='duplicata';
 function openEditionDocs(type){
   if(!lvCheckSelection())return;
-  _lastEdVehicle=VEHICULES.find(v=>v.ref===_liSelected)||null;
+  _lastEdVehicle=VEHICULES.find(v=>v.ref===_lvSelected)||null;
   _editionDocsType=type;
   const title=document.getElementById('m-edition-docs-title');
   if(title)title.textContent='Edition Documents : '+(type==='duplicata'?'DUPLICATA':'Renouvel.');

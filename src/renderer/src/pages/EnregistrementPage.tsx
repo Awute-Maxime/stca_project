@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { DatePicker, Modal, Input, Checkbox, Radio, Dropdown, notification } from 'antd'
 import type { MenuProps } from 'antd'
@@ -261,6 +261,34 @@ export default function EnregistrementPage(): JSX.Element {
   const [saved,         setSaved]       = useState(false)
   const [savedRef,      setSavedRef]    = useState<string | null>(null)
   const [showEdition,   setShowEdition] = useState(false)
+  const [editMode,      setEditMode]    = useState(false)
+
+  // ── Charger un véhicule depuis Liste/Recherche (mode Modification) ───────
+  useEffect(() => {
+    const raw = localStorage.getItem('tcit_loadEnreg')
+    if (!raw) return
+    localStorage.removeItem('tcit_loadEnreg')
+    try {
+      const v = JSON.parse(raw)
+      if (v.ref) setSavedRef(v.ref)
+      if (v.nom) setNomAcheteur(v.nom)
+      if (v.resid) setPaysResidence(v.resid)
+      if (v.paydest) setPaysDestination(v.paydest)
+      if (v.marque) setMarqueModele(v.marque)
+      if (v.chassis) setChassis(v.chassis)
+      if (v.type) setTypeVehicule(v.type)
+      if (v.dest) {
+        setDestination(v.dest)
+        const d = mockDestinations.find(dd => dd.code === v.dest)
+        if (d) setImmatGenere(v.immat || `${d.lettre}${String(d.numImmatActuel).padStart(4, '0')}`)
+      }
+      if (v.montant) setMontant(v.montant)
+      if (v.immat) setImmatGenere(v.immat)
+      if (v.date) setDate(dayjs(v.date))
+      setEditMode(true)
+    } catch { /* ignore */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // ── Historiques par champ ─────────────────────────────────────────────────
   const nomHist      = useFieldHistory('nomAcheteur')
@@ -386,7 +414,7 @@ export default function EnregistrementPage(): JSX.Element {
       }}>
         <span style={{ fontSize: 12, marginRight: 8 }}>📄</span>
         <span style={{ color: '#1B3A6B', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase', flex: 1 }}>
-          Enregistrement des Véhicules
+          {editMode ? "Modification d'un Enregistrement" : 'Enregistrement des Véhicules'}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           {progress.map((filled, i) => <ProgressDot key={i} filled={filled} />)}
@@ -593,32 +621,48 @@ export default function EnregistrementPage(): JSX.Element {
       </div>
 
       {/* ── Barre d'actions ────────────────────────────────────────────── */}
-      {!saved && (
+      {!saved && !editMode && (
         <div style={{
           display: 'flex', justifyContent: 'flex-end', gap: 8,
           padding: '9px 14px', borderTop: '1px solid #E2E8F0', background: '#F8FAFF', flexShrink: 0,
         }}>
-          {/* .bs */}
           <button onClick={handleReset} style={{
             height: 32, padding: '0 16px', background: '#F8FAFF', color: '#64748B',
             border: '1px solid #D1D5DB', borderRadius: 5, fontSize: 12, cursor: 'pointer',
-            transition: 'all 0.2s',
           }}>Réinitialiser</button>
-          {/* .bs border-color:#DC2626 */}
           <button onClick={handleReset} style={{
             height: 32, padding: '0 16px', background: '#F8FAFF', color: '#DC2626',
             border: '1px solid #DC2626', borderRadius: 5, fontSize: 12, cursor: 'pointer',
-            transition: 'all 0.2s',
           }}>Annuler</button>
-          {/* .be */}
           <button onClick={handleEnregistrer} disabled={loading || !formReady} style={{
             height: 32, padding: '0 22px', background: loading || !formReady ? '#9CA3AF' : '#2563EB',
             color: '#fff', border: 'none', borderRadius: 5, fontSize: 12, fontWeight: 700,
             cursor: loading || !formReady ? 'default' : 'pointer',
-            transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 6,
+            display: 'flex', alignItems: 'center', gap: 6,
           }}>
             {loading ? '⟳ Enregistrement...' : '💾 Enregistrer'}
           </button>
+        </div>
+      )}
+
+      {/* ── Barre d'actions — mode Modification ─────────────────────── */}
+      {!saved && editMode && (
+        <div style={{
+          display: 'flex', justifyContent: 'flex-end', gap: 8,
+          padding: '9px 14px', borderTop: '1px solid #E2E8F0', background: '#FFF7ED', flexShrink: 0,
+        }}>
+          <button onClick={() => { setEditMode(false); handleReset(); window.dispatchEvent(new CustomEvent('mdi:close-self')) }} style={{
+            height: 32, padding: '0 16px', background: '#FFF7ED', color: '#DC2626',
+            border: '1px solid #DC2626', borderRadius: 5, fontSize: 12, cursor: 'pointer',
+          }}>✕ Fermer</button>
+          <button onClick={() => {
+            notification.success({ message: `✅ Véhicule ${savedRef} modifié`, placement: 'bottomRight' })
+            setEditMode(false); handleReset()
+          }} style={{
+            height: 32, padding: '0 22px', background: '#D97706', color: '#fff',
+            border: '1px solid #D97706', borderRadius: 5, fontSize: 12, fontWeight: 700,
+            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+          }}>✏ Modifier</button>
         </div>
       )}
 

@@ -1,10 +1,12 @@
-import { useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
-import { appColors } from '@theme/windev-theme'
+import { useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { useAuthStore } from '@store/authStore'
 import MenuBar from '@components/shell/MenuBar'
 import StatusBar from '@components/shell/StatusBar'
 import NavSidebar, { type SidebarItem } from '@components/shell/NavSidebar'
 import DashboardHome from '@pages/DashboardHome'
+import AnalysePage from '@pages/AnalysePage'
+import { MontantRestituerWindow } from '@pages/AssuranceWindows'
 import { WINDOW_REGISTRY } from './WINDOW_REGISTRY'
 import { mockVehicules } from '@mock/vehicules'
 import { electronApi } from '@api/electron'
@@ -16,11 +18,22 @@ interface MainScreenProps {
 
 export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.Element {
   const location = useLocation()
+  const navigate = useNavigate()
+  const logout = useAuthStore(s => s.logout)
+  const [analyseOpen, setAnalyseOpen] = useState(false)
+  const [assuranceOpen, setAssuranceOpen] = useState(false)
 
   const openById = (id: string): void => {
+    if (id === 'analyse' || id === 'analyse.stca') {
+      setAnalyseOpen(true)
+      return
+    }
+    if (id === 'assurances.montantRestituer') {
+      setAssuranceOpen(true)
+      return
+    }
     const config = WINDOW_REGISTRY[id]
     if (!config) return
-    // Chaque fenêtre MDI = une BrowserWindow Electron séparée
     electronApi.mdiOpen({
       id,
       x: config.defaultX,
@@ -41,6 +54,20 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
   const handleSidebarSelect = (id: SidebarItem['id']): void => openById(id)
 
   const handleMenuItemClick = (key: string): void => {
+    if (key === 'analyse' || key === 'analyse.stca') {
+      setAnalyseOpen(true)
+      return
+    }
+    if (key === 'fichier.fermerSession') {
+      electronApi.resizeForLogin()
+      logout()
+      navigate('/login')
+      return
+    }
+    if (key === 'fichier.quitter') {
+      electronApi.closeWindow()
+      return
+    }
     if (WINDOW_REGISTRY[key]) openById(key)
   }
 
@@ -51,7 +78,6 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         <NavSidebar onSelect={handleSidebarSelect} activeId={undefined} />
 
-        {/* Bureau MDI — dashboard en fond, les BrowserWindows flottent par-dessus */}
         <div style={{
           flex: 1,
           background: '#EEF2F9',
@@ -66,6 +92,9 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
       <StatusBar nbVehiculesAujourdhui={
         mockVehicules.filter(v => dayjs(v.date).isSame(dayjs(), 'day')).length
       } />
+
+      {analyseOpen && <AnalysePage onClose={() => setAnalyseOpen(false)} />}
+      {assuranceOpen && <MontantRestituerWindow onClose={() => setAssuranceOpen(false)} />}
     </div>
   )
 }
