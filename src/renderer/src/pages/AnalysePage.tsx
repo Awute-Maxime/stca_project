@@ -3,6 +3,7 @@ import dayjs from 'dayjs'
 import { type MockVehicule } from '@mock/vehicules'
 import { useVehicules } from '@mock/vehiculesStore'
 import { mockDestinations } from '@mock/destinations'
+import DraggableWindow from '@components/DraggableWindow'
 
 /* ── FR locale helpers ──────────────────────────────────────────────── */
 const FR_DAYS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
@@ -457,16 +458,12 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
       {/*  Step 3b: Assurance Gain                                     */}
       {/* ============================================================ */}
       {step === 'assurance' && (
-        <div style={overlayStyle}>
-          <div style={{ ...mb2, width: 960, maxWidth: '95vw', maxHeight: '92vh' }}>
-            {/* Titlebar */}
-            <div style={mh}>
-              <span style={{ fontSize: 12, marginRight: 8 }}>💰</span>
-              <span style={{ flex: 1 }}>Gain généré par les assurances</span>
-              <button style={mhc} onClick={() => setStep('sector')}
-                onMouseEnter={closeHoverIn} onMouseLeave={closeHoverOut}>✕</button>
-            </div>
-
+        <DraggableWindow
+          title="Gain généré par les assurances"
+          icon="💰"
+          width={960}
+          onClose={() => setStep('sector')}
+        >
             {/* Filters bar */}
             <div style={{
               display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px',
@@ -555,35 +552,25 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
                 </span>
               </span>
             </div>
-          </div>
-        </div>
+        </DraggableWindow>
       )}
 
       {/* ============================================================ */}
       {/*  Step 4: Print Preview (shared)                              */}
       {/* ============================================================ */}
       {step === 'print_preview' && (
-        <div style={overlayStyle}>
-          <div style={{
-            ...mb2, width: 820, maxWidth: '95vw', maxHeight: '92vh',
-          }}>
-            {/* Titlebar */}
-            <div style={mh}>
-              <span style={{ fontSize: 12, marginRight: 8 }}>&#128424;</span>
-              <span style={{ flex: 1 }}>
-                {reportSource === 'assurance'
-                  ? 'Gain généré par les assurances'
-                  : reportSource === 'tcit_detail'
-                    ? 'Rapport détaillé — TCIT'
-                    : reportSource === 'tcit_resume'
-                      ? 'Rapport résumé — TCIT'
-                      : 'Rapport annuel — TCIT'}
-              </span>
-              <button style={mhc}
-                onClick={() => setStep(reportSource === 'assurance' ? 'assurance' : 'tcit_config')}
-                onMouseEnter={closeHoverIn} onMouseLeave={closeHoverOut}>✕</button>
-            </div>
-
+        <DraggableWindow
+          title={reportSource === 'assurance'
+            ? 'Gain généré par les assurances'
+            : reportSource === 'tcit_detail'
+              ? 'Rapport détaillé — TCIT'
+              : reportSource === 'tcit_resume'
+                ? 'Rapport résumé — TCIT'
+                : 'Rapport annuel — TCIT'}
+          icon="🖨"
+          width={820}
+          onClose={() => setStep(reportSource === 'assurance' ? 'assurance' : 'tcit_config')}
+        >
             {/* Toolbar onglets */}
             <div style={{
               display: 'flex', alignItems: 'center', borderBottom: '1px solid #E2E8F0',
@@ -702,8 +689,7 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
                 <span style={{ fontSize: 18 }}>&#128424;</span> Lancer l&apos;impression
               </button>
             </div>
-          </div>
-        </div>
+        </DraggableWindow>
       )}
     </div>
   )

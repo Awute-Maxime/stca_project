@@ -5,6 +5,7 @@ import { useVehicules } from '@mock/vehiculesStore'
 import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 import { WinAlert, WinConfirm, EditionDocsModal } from '@components/WinDialogs'
+import DraggableWindow from '@components/DraggableWindow'
 
 const DEST_COLORS: Record<string, string> = {
   AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
@@ -307,37 +308,14 @@ export default function ListePage(): JSX.Element {
           }} />
       )}
 
-      {/* ── Aperçu avant impression — copie fidèle du prototype (m-liste-print) ── */}
+      {/* ── Aperçu avant impression — fidèle au prototype (m-liste-print), fenêtre déplaçable/redimensionnable (Règle 17) ── */}
       {printOpen && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 800,
-        }}>
-          <div style={{
-            background: '#fff', border: '1px solid #E2E8F0', borderRadius: 10,
-            boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
-            width: 900, maxWidth: '96vw', maxHeight: '92vh',
-            display: 'flex', flexDirection: 'column', padding: 0,
-          }}>
-            {/* Titlebar — .mh */}
-            <div style={{
-              display: 'flex', alignItems: 'center', padding: '14px 20px',
-              borderBottom: '1px solid #E2E8F0', background: '#1B3A6B', borderRadius: '10px 10px 0 0',
-            }}>
-              <span style={{ fontSize: 12, marginRight: 8 }}>🖨</span>
-              <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: '#fff' }}>
-                Aperçu avant impression — Liste des Véhicules
-              </span>
-              <button onClick={() => setPrintOpen(false)} style={{
-                width: 26, height: 26, background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)',
-                cursor: 'pointer', fontSize: 17, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                borderRadius: 4, transition: 'all 0.15s',
-              }}
-                onMouseEnter={e => { const b = e.currentTarget; b.style.background = 'rgba(255,255,255,0.15)'; b.style.color = '#fff' }}
-                onMouseLeave={e => { const b = e.currentTarget; b.style.background = 'none'; b.style.color = 'rgba(255,255,255,0.6)' }}
-              >✕</button>
-            </div>
-
+        <DraggableWindow
+          title="Aperçu avant impression — Liste des Véhicules"
+          icon="🖨"
+          width={900}
+          onClose={() => setPrintOpen(false)}
+        >
             {/* Barre outils impression */}
             <div style={{
               display: 'flex', alignItems: 'center', gap: 10, padding: '8px 16px',
@@ -423,8 +401,7 @@ export default function ListePage(): JSX.Element {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+        </DraggableWindow>
       )}
     </div>
   )

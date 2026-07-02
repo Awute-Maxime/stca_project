@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import type { CSSProperties } from 'react'
+import DraggableWindow from '../DraggableWindow'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CARTE GRISE — Certificat d'immatriculation provisoire de véhicule
@@ -185,28 +186,16 @@ export function CarteGriseApercu({ data, onClose, autoPrint, onAfterPrint }: {
   }, [autoPrint])
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 2000,
-      display: 'flex', flexDirection: 'column', background: '#fff',
-    }}>
+    <DraggableWindow
+      title={autoPrint
+        ? 'Impression Carte Grise en cours… (fiche pré-imprimée 10,5 × 21,2 cm)'
+        : 'Aperçu — Carte Grise (fiche pré-imprimée 10,5 × 21,2 cm)'}
+      icon="🖨"
+      width={560}
+      zIndex={2000}
+      onClose={onClose}
+    >
       <PrintCss />
-
-      {/* Titlebar */}
-      <div style={{
-        background: '#1B3A6B', padding: '6px 14px',
-        display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0,
-      }}>
-        <span style={{ fontSize: 12, color: '#fff' }}>🖨</span>
-        <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', flex: 1 }}>
-          {autoPrint
-            ? 'Impression Carte Grise en cours… (fiche pré-imprimée 10,5 × 21,2 cm)'
-            : 'Aperçu — Carte Grise (fiche pré-imprimée 10,5 × 21,2 cm)'}
-        </span>
-        <button onClick={onClose} style={{
-          width: 26, height: 26, background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)',
-          cursor: 'pointer', fontSize: 16, borderRadius: 4,
-        }}>✕</button>
-      </div>
 
       {/* Zone aperçu — fiche centrée sur fond gris */}
       <div style={{
@@ -237,7 +226,7 @@ export function CarteGriseApercu({ data, onClose, autoPrint, onAfterPrint }: {
           </button>
         )}
       </div>
-    </div>
+    </DraggableWindow>
   )
 }
 

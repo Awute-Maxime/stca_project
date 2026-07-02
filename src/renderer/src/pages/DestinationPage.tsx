@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useVehicules } from '@mock/vehiculesStore'
 import dayjs from 'dayjs'
+import DraggableWindow from '@components/DraggableWindow'
 
 export default function DestinationPage(): JSX.Element {
   const vehicules = useVehicules() // store partagé — synchro auto
@@ -118,32 +119,12 @@ export default function DestinationPage(): JSX.Element {
 
       {/* ── Modal Aperçu Impression ────────────────────────────────────── */}
       {printOpen && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 800,
-        }}>
-          <div style={{
-            background: '#fff', border: '1px solid #E2E8F0', borderRadius: 10,
-            boxShadow: '0 20px 60px rgba(0,0,0,0.15)', width: 820, maxWidth: '95vw', maxHeight: '92vh',
-            display: 'flex', flexDirection: 'column', animation: 'formEnter 0.2s ease',
-          }}>
-            {/* Titlebar — .mh */}
-            <div style={{
-              display: 'flex', alignItems: 'center', padding: '14px 20px',
-              borderBottom: '1px solid #E2E8F0', background: '#1B3A6B', borderRadius: '10px 10px 0 0',
-            }}>
-              <span style={{ fontSize: 12, marginRight: 8 }}>🖨</span>
-              <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: '#fff' }}>Liste des Véhicules par destination</span>
-              <button onClick={() => setPrintOpen(false)} style={{
-                width: 26, height: 26, background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)',
-                cursor: 'pointer', fontSize: 17, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                borderRadius: 4, transition: 'all 0.15s',
-              }}
-                onMouseEnter={e => { const b = e.currentTarget; b.style.background = 'rgba(255,255,255,0.15)'; b.style.color = '#fff' }}
-                onMouseLeave={e => { const b = e.currentTarget; b.style.background = 'none'; b.style.color = 'rgba(255,255,255,0.6)' }}
-              >✕</button>
-            </div>
-
+        <DraggableWindow
+          title="Liste des Véhicules par destination"
+          icon="🖨"
+          width={820}
+          onClose={() => setPrintOpen(false)}
+        >
             {/* Toolbar onglets */}
             <div style={{
               display: 'flex', alignItems: 'center', borderBottom: '1px solid #E2E8F0',
@@ -272,8 +253,7 @@ export default function DestinationPage(): JSX.Element {
                 <span style={{ fontSize: 18 }}>🖨</span> Lancer l&apos;impression
               </button>
             </div>
-          </div>
-        </div>
+        </DraggableWindow>
       )}
     </div>
   )
