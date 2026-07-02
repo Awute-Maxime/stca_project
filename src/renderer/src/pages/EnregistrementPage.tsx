@@ -10,6 +10,7 @@ import {
 import dayjs from 'dayjs'
 import { mockDestinations } from '@mock/destinations'
 import { addVehicule, nextRef, nextId, countAddedForDest } from '@mock/vehiculesStore'
+import { CarteGriseApercu, CarteGrisePrintDirect, type CarteGriseData } from '@components/documents/CarteGrise'
 
 const TYPES_VEHICULE = ['Voiture', 'Camion', 'Moto', 'Bus', 'Pick-up', 'Minibus']
 const MONTANT_FIXE   = 10000
@@ -704,6 +705,18 @@ export default function EnregistrementPage(): JSX.Element {
       <EditionDocumentsModal
         open={showEdition}
         reference={savedRef}
+        data={{
+          immat: immatGenere ?? '',
+          destCode: destination ?? '',
+          nom: nomAcheteur,
+          adresse: paysResidence,
+          numTri,
+          dateTri: dateTri.format('DD/MM/YYYY'),
+          marque: marqueModele,
+          chassis,
+          parc: maisonTransit,
+          dateDelivrance: dayjs().format('DD/MM/YYYY'),
+        }}
         onClose={() => setShowEdition(false)}
       />
 
@@ -736,29 +749,64 @@ const EDITION_OPTIONS = [
   'Feuillet N°3 Cond. Part. (Blanc A4)',
 ]
 
-function EditionDocumentsModal({ open, reference, onClose }: {
+// Indices des options d'édition qui incluent la Carte Grise
+const OPTIONS_AVEC_CG = [0, 1, 2, 5]
+
+function EditionDocumentsModal({ open, reference, data, onClose }: {
   open: boolean
   reference: string | null
+  data: CarteGriseData
   onClose: () => void
 }): JSX.Element {
   const [selected,      setSelected]     = useState(0)
   const [previsualiser, setPrevisualiser]= useState(false)
   const [printing,      setPrinting]     = useState(false)
+  // 'apercu' = bouton Aperçu (consultation) · 'apercu-print' = aperçu rapide + impression auto · 'direct' = impression sans aperçu
+  const [cgView,        setCgView]       = useState<'apercu' | 'apercu-print' | 'direct' | null>(null)
 
+  const notImplemented = (): void => {
+    notification.info({
+      message: 'Document non encore implémenté',
+      description: EDITION_OPTIONS[selected],
+      duration: 4,
+      placement: 'bottomRight',
+    })
+  }
+
+  // Bouton Aperçu : consultation seule (impression manuelle depuis l'aperçu)
+  const handleApercu = (): void => {
+    if (OPTIONS_AVEC_CG.includes(selected)) setCgView('apercu')
+    else notImplemented()
+  }
+
+  // Bouton Imprimer :
+  // - Prévisualiser coché → aperçu rapide + impression lancée en même temps (sans validation)
+  // - Prévisualiser décoché → impression directe, aucun aperçu
   const handleImprimer = async (): Promise<void> => {
+    if (OPTIONS_AVEC_CG.includes(selected)) {
+      setCgView(previsualiser ? 'apercu-print' : 'direct')
+      return
+    }
+    // Autres documents — pas encore implémentés (simulation)
     setPrinting(true)
     await new Promise(r => setTimeout(r, 800))
     setPrinting(false)
-    notification.info({
-      message: 'Impression simulée',
-      description: `Aucune imprimante configurée — ${EDITION_OPTIONS[selected]}`,
-      duration: 4,
+    notImplemented()
+    onClose()
+  }
+
+  const finishPrint = (): void => {
+    setCgView(null)
+    notification.success({
+      message: '🖨 Carte grise envoyée à l\'impression',
+      description: 'Fiche pré-imprimée 10,5 × 21,2 cm',
       placement: 'bottomRight',
     })
     onClose()
   }
 
   return (
+    <>
     <Modal
       title={
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -812,6 +860,15 @@ function EditionDocumentsModal({ open, reference, onClose }: {
           }}>
             Fermer
           </button>
+          {/* Aperçu — consultation avant impression */}
+          <button onClick={handleApercu} style={{
+            height: 30, padding: '0 14px', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+            border: `1px solid ${C.accent}`, borderRadius: 5,
+            background: '#EFF6FF', color: C.accent,
+            display: 'flex', alignItems: 'center', gap: 5,
+          }}>
+            👁 Aperçu
+          </button>
           <button onClick={handleImprimer} disabled={printing} style={{
             height: 30, padding: '0 16px', fontSize: 11, fontWeight: 700,
             border: 'none', borderRadius: 5, cursor: printing ? 'not-allowed' : 'pointer',
@@ -827,6 +884,27 @@ function EditionDocumentsModal({ open, reference, onClose }: {
         </div>
       </div>
     </Modal>
+
+    {/* ── Bouton Aperçu : consultation, impression manuelle possible ── */}
+    {cgView === 'apercu' && (
+      <CarteGriseApercu data={data} onClose={() => setCgView(null)} />
+    )}
+
+    {/* ── Imprimer + Prévisualiser coché : aperçu rapide + impression auto ── */}
+    {cgView === 'apercu-print' && (
+      <CarteGriseApercu
+        data={data}
+        autoPrint
+        onAfterPrint={finishPrint}
+        onClose={() => setCgView(null)}
+      />
+    )}
+
+    {/* ── Imprimer + Prévisualiser décoché : impression directe sans aperçu ── */}
+    {cgView === 'direct' && (
+      <CarteGrisePrintDirect data={data} onDone={finishPrint} />
+    )}
+    </>
   )
 }
 
