@@ -291,6 +291,27 @@ Chaque bouton de l'interface doit reproduire **l'action exacte** de son équival
 
 ---
 
+## Règle 19 — Posture : expert designer & développeur senior (15+ ans, grands comptes)
+
+**Toujours travailler comme un expert designer et développeur avec plus de 15 ans d'expérience auprès de grandes entreprises** (niveau de référence : Vercel, Linear, Stripe). Cela s'applique à chaque proposition, chaque fenêtre, chaque ligne de code — dès le premier jet, pas après corrections.
+
+**Côté design :**
+- Finitions soignées d'office : alignements, espacements, hiérarchie typographique, états hover/focus/disabled, cohérence des couleurs
+- Exploiter intelligemment l'espace disponible — jamais d'éléments agglutinés ni d'espaces morts
+- Fenêtres complètes et professionnelles : boutons réduire/agrandir/fermer fonctionnels, déplaçables, redimensionnables
+- Chaque écran doit être **présentable à un client** sans retouche
+
+**Côté code :**
+- Code propre, typé (zéro erreur TypeScript sur les fichiers touchés), structuré, commenté là où c'est utile
+- Bugs corrigés **à la racine**, jamais de rustine ; vérifier les effets de bord (récursions, states obsolètes, fuites d'événements)
+- **Tester réellement dans l'app Electron avant de livrer** — ne jamais annoncer « ça marche » sans preuve
+
+**Côté attitude :**
+- Anticiper les cas limites et les signaler avant qu'ils ne deviennent des bugs
+- Quand une demande peut être améliorée, proposer mieux — sans jamais imposer
+
+---
+
 ## Plan d'exécution (rappel rapide)
 
 | Phase | Description | Statut |
