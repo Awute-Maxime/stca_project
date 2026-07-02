@@ -18,11 +18,20 @@ function setupMdiIPC(): void {
       return
     }
 
-    const mainBounds = mainWin?.getBounds() ?? { x: 0, y: 0 }
+    // Toutes les fenêtres secondaires s'ouvrent CENTRÉES par rapport à la
+    // fenêtre principale (payload.x/y ignorés), sans déborder de l'écran.
+    const mainBounds = mainWin && !mainWin.isDestroyed()
+      ? mainWin.getBounds()
+      : screen.getPrimaryDisplay().workArea
+    const workArea = screen.getDisplayMatching(mainBounds).workArea
+    let childX = Math.round(mainBounds.x + (mainBounds.width - payload.width) / 2)
+    let childY = Math.round(mainBounds.y + (mainBounds.height - payload.height) / 2)
+    childX = Math.max(workArea.x, Math.min(childX, workArea.x + workArea.width - payload.width))
+    childY = Math.max(workArea.y, Math.min(childY, workArea.y + workArea.height - payload.height))
 
     const child = new BrowserWindow({
-      x: mainBounds.x + payload.x,
-      y: mainBounds.y + payload.y,
+      x: childX,
+      y: childY,
       width: payload.width,
       height: payload.height,
       frame: false,
