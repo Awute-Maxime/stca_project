@@ -307,90 +307,122 @@ export default function ListePage(): JSX.Element {
           }} />
       )}
 
-      {/* ── Aperçu impression liste ─────────────────────────────── */}
+      {/* ── Aperçu avant impression — copie fidèle du prototype (m-liste-print) ── */}
       {printOpen && (
         <div style={{
-          position: 'fixed', inset: 0, zIndex: 950,
-          display: 'flex', flexDirection: 'column', background: '#fff',
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 800,
         }}>
           <div style={{
-            background: '#1B3A6B', padding: '6px 14px',
-            display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0,
+            background: '#fff', border: '1px solid #E2E8F0', borderRadius: 10,
+            boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+            width: 900, maxWidth: '96vw', maxHeight: '92vh',
+            display: 'flex', flexDirection: 'column', padding: 0,
           }}>
-            <span style={{ fontSize: 12, color: '#fff' }}>🖨</span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', flex: 1 }}>Liste des véhicules enregistrés</span>
-            <button onClick={() => setPrintOpen(false)} style={{
-              width: 26, height: 26, background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)',
-              cursor: 'pointer', fontSize: 16, borderRadius: 4,
-            }}>✕</button>
-          </div>
-          <div style={{
-            display: 'flex', alignItems: 'center', borderBottom: '1px solid #E2E8F0',
-            background: '#F8FAFF', padding: '0 12px', flexShrink: 0,
-          }}>
-            <button style={{ padding: '8px 16px', fontSize: 11.5, fontWeight: 700, color: '#2563EB', border: 'none', borderBottom: '2px solid #2563EB', background: 'none', cursor: 'pointer' }}>👁 Aperçu</button>
-            <button onClick={() => window.print()} style={{ padding: '8px 16px', fontSize: 11.5, color: '#475569', border: 'none', background: 'none', cursor: 'pointer', borderBottom: '2px solid transparent' }}>🖨 Imprimer</button>
-            <span style={{ marginLeft: 'auto', fontSize: 11, color: '#94A3B8', paddingRight: 8 }}>100 %</span>
-          </div>
-          <div style={{ flex: 1, display: 'flex', overflow: 'hidden', background: '#94A3B8', minHeight: 0 }}>
-            <div style={{ width: 110, background: '#64748B', padding: 10, flexShrink: 0, overflowY: 'auto' }}>
-              <div style={{ background: '#fff', border: '1px solid #475569', padding: 4, cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
-                <div style={{ fontSize: 5, fontWeight: 700, textAlign: 'center', color: '#1E293B', marginBottom: 2 }}>Liste des véhicules...</div>
-                <div style={{ height: 30, background: '#F1F5F9', border: '1px solid #E2E8F0' }} />
-                <div style={{ fontSize: 5, color: '#64748B', marginTop: 2, textAlign: 'center' }}>1</div>
-              </div>
+            {/* Titlebar — .mh */}
+            <div style={{
+              display: 'flex', alignItems: 'center', padding: '14px 20px',
+              borderBottom: '1px solid #E2E8F0', background: '#1B3A6B', borderRadius: '10px 10px 0 0',
+            }}>
+              <span style={{ fontSize: 12, marginRight: 8 }}>🖨</span>
+              <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: '#fff' }}>
+                Aperçu avant impression — Liste des Véhicules
+              </span>
+              <button onClick={() => setPrintOpen(false)} style={{
+                width: 26, height: 26, background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)',
+                cursor: 'pointer', fontSize: 17, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                borderRadius: 4, transition: 'all 0.15s',
+              }}
+                onMouseEnter={e => { const b = e.currentTarget; b.style.background = 'rgba(255,255,255,0.15)'; b.style.color = '#fff' }}
+                onMouseLeave={e => { const b = e.currentTarget; b.style.background = 'none'; b.style.color = 'rgba(255,255,255,0.6)' }}
+              >✕</button>
             </div>
-            <div style={{ flex: 1, overflowY: 'auto', padding: 24, display: 'flex', justifyContent: 'center' }}>
-              <div style={{ width: 842, minHeight: 595, background: '#fff', boxShadow: '0 4px 20px rgba(0,0,0,0.25)', padding: '36px 40px', fontFamily: 'Arial, sans-serif' }}>
-                <h2 style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', margin: '0 0 16px' }}>
-                  Liste des véhicules enregistrés pour la période du : {dayjs(appliedFrom).format('DD/MM/YYYY')} au {dayjs(appliedTo).format('DD/MM/YYYY')}
-                </h2>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 9 }}>
-                  <thead><tr style={{ background: '#F1F5F9' }}>
-                    {['Réf', 'Nom et prénom', 'Adresse', 'Code', 'Immat.', 'Marque', 'N° Chassis', 'N° Tri', 'Transit', 'Date', 'Sortie le'].map(h => (
-                      <th key={h} style={{ border: '1px solid #CBD5E1', padding: '3px 4px', fontSize: 8, fontWeight: 600 }}>{h}</th>
-                    ))}
-                  </tr></thead>
+
+            {/* Barre outils impression */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 10, padding: '8px 16px',
+              background: '#F8FAFF', borderBottom: '1px solid #E2E8F0', flexShrink: 0,
+            }}>
+              <button onClick={() => window.print()} style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '5px 16px',
+                fontSize: 12, fontWeight: 700, background: '#2563EB', color: '#fff',
+                border: 'none', borderRadius: 5, cursor: 'pointer',
+              }}>🖨 Lancer l&apos;impression</button>
+              <span style={{ fontSize: 11, color: '#94A3B8' }}>|</span>
+              <span style={{ fontSize: 11, color: '#475569' }}>A4 Paysage</span>
+              <div style={{ flex: 1 }} />
+              <button onClick={() => setPrintOpen(false)} style={{
+                padding: '4px 14px', fontSize: 11.5, background: '#fff', color: '#374151',
+                border: '1px solid #D1D5DB', borderRadius: 5, cursor: 'pointer',
+              }}>Fermer</button>
+            </div>
+
+            {/* Zone rapport */}
+            <div style={{ flex: 1, overflow: 'auto', background: '#E5E7EB', padding: 20 }}>
+              <div style={{
+                background: '#fff', width: '100%', minHeight: 500,
+                padding: '28px 32px', boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
+              }}>
+                {/* Titre rapport — encadré */}
+                <div style={{
+                  textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#1E293B',
+                  background: '#F1F5F9', border: '1px solid #CBD5E1',
+                  padding: '8px 16px', marginBottom: 16,
+                }}>
+                  Liste des véhicules enregistrés pour la période du : {dayjs(appliedFrom).format('DD/MM/YYYY')} &nbsp;au&nbsp; {dayjs(appliedTo).format('DD/MM/YYYY')}
+                </div>
+
+                {/* Table rapport — en-tête navy */}
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
+                  <thead>
+                    <tr style={{ background: '#1B3A6B', color: '#fff' }}>
+                      <th style={{ padding: '5px 6px', border: '1px solid #CBD5E1', whiteSpace: 'nowrap' }}>Ref</th>
+                      <th style={{ padding: '5px 6px', border: '1px solid #CBD5E1', whiteSpace: 'nowrap' }}>Nom et prénom</th>
+                      <th style={{ padding: '5px 6px', border: '1px solid #CBD5E1', whiteSpace: 'nowrap' }}>Adresse</th>
+                      <th style={{ padding: '5px 6px', border: '1px solid #CBD5E1', textAlign: 'center' }}>Code</th>
+                      <th style={{ padding: '5px 6px', border: '1px solid #CBD5E1', whiteSpace: 'nowrap' }}>Immatriculation</th>
+                      <th style={{ padding: '5px 6px', border: '1px solid #CBD5E1', whiteSpace: 'nowrap' }}>Marque et modèle</th>
+                      <th style={{ padding: '5px 6px', border: '1px solid #CBD5E1', whiteSpace: 'nowrap' }}>N° Chassis</th>
+                      <th style={{ padding: '5px 6px', border: '1px solid #CBD5E1', whiteSpace: 'nowrap', textAlign: 'center' }}>N° de Tri</th>
+                      <th style={{ padding: '5px 6px', border: '1px solid #CBD5E1', whiteSpace: 'nowrap' }}>Parc</th>
+                      <th style={{ padding: '5px 6px', border: '1px solid #CBD5E1', whiteSpace: 'nowrap', textAlign: 'center' }}>Date</th>
+                      <th style={{ padding: '5px 6px', border: '1px solid #CBD5E1', whiteSpace: 'nowrap', textAlign: 'center' }}>Sortie le</th>
+                    </tr>
+                  </thead>
                   <tbody>
-                    {filtered.map((v, i) => (
-                      <tr key={v.id} style={{ background: i % 2 === 0 ? '#fff' : '#F8FAFF' }}>
-                        <td style={{ border: '1px solid #E2E8F0', padding: '3px 4px' }}>{v.ref}</td>
-                        <td style={{ border: '1px solid #E2E8F0', padding: '3px 4px', fontWeight: 500 }}>{v.nomAcheteur || '—'}</td>
-                        <td style={{ border: '1px solid #E2E8F0', padding: '3px 4px' }}>{v.paysResidence || '—'}</td>
-                        <td style={{ border: '1px solid #E2E8F0', padding: '3px 4px', textAlign: 'center', fontWeight: 700 }}>{v.destination}</td>
-                        <td style={{ border: '1px solid #E2E8F0', padding: '3px 4px', fontWeight: 700 }}>{v.immat}</td>
-                        <td style={{ border: '1px solid #E2E8F0', padding: '3px 4px' }}>{v.marqueModele}</td>
-                        <td style={{ border: '1px solid #E2E8F0', padding: '3px 4px', fontFamily: 'monospace', fontSize: 8 }}>{v.chassis}</td>
-                        <td style={{ border: '1px solid #E2E8F0', padding: '3px 4px', textAlign: 'center' }}>—</td>
-                        <td style={{ border: '1px solid #E2E8F0', padding: '3px 4px', fontSize: 8 }}>{v.parc || ''}</td>
-                        <td style={{ border: '1px solid #E2E8F0', padding: '3px 4px', textAlign: 'center' }}>{dayjs(v.date).format('DD/MM/YYYY')}</td>
-                        <td style={{ border: '1px solid #E2E8F0', padding: '3px 4px', textAlign: 'center', color: '#94A3B8' }}>
-                          {v.recyclerPlaque ? dayjs(v.date).add(1, 'day').format('DD/MM') : '__/__'}
-                        </td>
-                      </tr>
-                    ))}
+                    {filtered.map((v, i) => {
+                      const bg = DEST_COLORS[v.destination] ?? '#6B7280'
+                      return (
+                        <tr key={v.id} style={{ background: i % 2 === 0 ? '#fff' : '#F8FAFF' }}>
+                          <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0' }}>{v.ref}</td>
+                          <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0', fontWeight: 500 }}>{v.nomAcheteur || '—'}</td>
+                          <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0' }}>{v.paysResidence || '—'}</td>
+                          <td style={{
+                            padding: '4px 6px', border: '1px solid #E2E8F0', textAlign: 'center',
+                            fontWeight: 700, color: destTxt(bg), background: bg,
+                          }}>{v.destination}</td>
+                          <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0', fontWeight: 700 }}>{v.immat}</td>
+                          <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0' }}>{v.marqueModele}</td>
+                          <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0', fontFamily: "'Courier New', monospace", fontSize: 9.5 }}>{v.chassis}</td>
+                          <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0', textAlign: 'center' }}>{String(10000 + v.id).padStart(6, '0')}</td>
+                          <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0', fontSize: 9.5 }}>{v.parc || ''}</td>
+                          <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0', textAlign: 'center' }}>{dayjs(v.date).format('DD/MM/YYYY')}</td>
+                          <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0', textAlign: 'center', color: '#94A3B8' }}>
+                            {v.recyclerPlaque ? dayjs(v.date).add(1, 'day').format('DD/MM/YYYY') : '__/__'}
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, fontSize: 10 }}>
-                  <span>Nombre de véhicules : <strong>{filtered.length}</strong></span>
-                  <span>Nombre de véhicules sorties : <strong>{sorties}</strong></span>
+
+                {/* Pied de rapport */}
+                <div style={{ marginTop: 14, fontSize: 11, color: '#1E293B', display: 'flex', gap: 40 }}>
+                  <span>Nombre de véhicules &nbsp; <strong>{filtered.length}</strong></span>
+                  <span>Nombre de véhicules sorties : &nbsp; <strong>{sorties}</strong></span>
                 </div>
               </div>
             </div>
-          </div>
-          <div style={{
-            padding: '12px 20px', borderTop: '1px solid #E2E8F0',
-            display: 'flex', justifyContent: 'space-between', background: '#F8FAFF', flexShrink: 0,
-          }}>
-            <button onClick={() => setPrintOpen(false)} style={{
-              height: 34, padding: '0 16px', background: '#fff', color: '#374151',
-              border: '1px solid #D1D5DB', borderRadius: 5, fontSize: 12, cursor: 'pointer',
-            }}>✕ Fermer</button>
-            <button onClick={() => window.print()} style={{
-              display: 'flex', alignItems: 'center', gap: 8, padding: '7px 20px',
-              background: '#2563EB', color: '#fff', border: 'none', borderRadius: 5,
-              fontSize: 12, fontWeight: 700, cursor: 'pointer',
-            }}><span style={{ fontSize: 18 }}>🖨</span> Lancer l&apos;impression</button>
           </div>
         </div>
       )}
