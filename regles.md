@@ -170,6 +170,21 @@ Raison : si `ELECTRON_RUN_AS_NODE=1`, Electron se comporte comme Node.js et `req
 
 Dans PowerShell : `$env:ELECTRON_RUN_AS_NODE = $null`
 
+**Méthode complète pour lancer ET piloter l'app Electron réelle (validée 02/07/2026) :**
+```bash
+cd "F:\AI PROJECTS\STCA-Electron"
+unset ELECTRON_RUN_AS_NODE
+npx electron-vite dev -- --remote-debugging-port=9222   # en background
+
+# Pilotage via CLI chrome-devtools (npm i -g chrome-devtools-mcp, une fois) :
+chrome-devtools stop
+chrome-devtools start --browserUrl "http://127.0.0.1:9222"
+chrome-devtools list_pages   # chaque BrowserWindow = une page
+```
+- Inputs React contrôlés : setter natif + `dispatchEvent(new Event('input'|'change', {bubbles:true}))`
+- Lire l'état APRÈS un clic dans un 2e `evaluate_script` (re-render asynchrone)
+- « Protocol error: Target closed » pendant une fermeture de fenêtre = comportement attendu
+
 ---
 
 ## Règle 12 — Design visuel : PREMIUM DARK uniquement (ajoutée 10/06/2026)

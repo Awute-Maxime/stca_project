@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Typography } from 'antd'
-import { mockVehicules } from '@mock/vehicules'
+import { useVehicules } from '@mock/vehiculesStore'
 import { mockDestinations } from '@mock/destinations'
 import dayjs from 'dayjs'
 
@@ -81,19 +81,20 @@ function SectionTitle({ label }: { label: string }): JSX.Element {
 }
 
 export default function DashboardHome(): JSX.Element {
+  const vehicules = useVehicules() // store partagé — synchro auto à chaque enregistrement
   const today = dayjs().format('YYYY-MM-DD')
 
   const stats = useMemo(() => {
-    const total = mockVehicules.length
-    const totalFcfa = mockVehicules.reduce((s, v) => s + v.montant, 0)
-    const todayCount = mockVehicules.filter(v => v.date.startsWith(today)).length
-    const frontieres = new Set(mockVehicules.map(v => v.destination)).size
+    const total = vehicules.length
+    const totalFcfa = vehicules.reduce((s, v) => s + v.montant, 0)
+    const todayCount = vehicules.filter(v => v.date.startsWith(today)).length
+    const frontieres = new Set(vehicules.map(v => v.destination)).size
     return { total, totalFcfa, todayCount, frontieres }
-  }, [today])
+  }, [vehicules, today])
 
   const destRows = useMemo(() => {
     const map = new Map<string, number>()
-    for (const v of mockVehicules) {
+    for (const v of vehicules) {
       map.set(v.destination, (map.get(v.destination) ?? 0) + 1)
     }
     const max = Math.max(...map.values())
@@ -101,21 +102,21 @@ export default function DashboardHome(): JSX.Element {
       .map(([code, count]) => ({ code, count, pct: Math.round((count / max) * 100) }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 6)
-  }, [])
+  }, [vehicules])
 
   const typeRows = useMemo(() => {
     const map = new Map<string, number>()
-    for (const v of mockVehicules) {
+    for (const v of vehicules) {
       map.set(v.typeVehicule, (map.get(v.typeVehicule) ?? 0) + 1)
     }
     return Array.from(map.entries())
-      .map(([type, count]) => ({ type, count, pct: Math.round((count / mockVehicules.length) * 100) }))
+      .map(([type, count]) => ({ type, count, pct: Math.round((count / vehicules.length) * 100) }))
       .sort((a, b) => b.count - a.count)
-  }, [])
+  }, [vehicules])
 
   const derniers = useMemo(() =>
-    [...mockVehicules].sort((a, b) => dayjs(b.date).unix() - dayjs(a.date).unix()).slice(0, 5),
-    []
+    [...vehicules].sort((a, b) => dayjs(b.date).unix() - dayjs(a.date).unix()).slice(0, 5),
+    [vehicules]
   )
 
   return (

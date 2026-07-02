@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { CSSProperties } from 'react'
 import { useParams } from 'react-router-dom'
 import { ConfigProvider } from 'antd'
@@ -42,6 +42,22 @@ function TitleBtn({ type, onClick }: { type: BtnType; onClick: () => void }): JS
 
 export default function MdiWindowHost(): JSX.Element {
   const { id } = useParams<{ id: string }>()
+
+  // Ponts events custom → IPC : permet aux pages internes de fermer/ouvrir des fenêtres
+  useEffect(() => {
+    const closeHandler = (): void => electronApi.mdiSelfClose()
+    const openHandler = (e: Event): void => {
+      const targetId = (e as CustomEvent<string>).detail
+      const cfg = WINDOW_REGISTRY[targetId]
+      if (cfg) electronApi.mdiOpen({ id: targetId, x: cfg.defaultX, y: cfg.defaultY, width: cfg.width, height: cfg.height })
+    }
+    window.addEventListener('mdi:close-self', closeHandler)
+    window.addEventListener('mdi:open-window', openHandler as EventListener)
+    return () => {
+      window.removeEventListener('mdi:close-self', closeHandler)
+      window.removeEventListener('mdi:open-window', openHandler as EventListener)
+    }
+  }, [])
 
   if (!id) {
     return <div style={{ padding: 20, color: '#DC2626' }}>Fenêtre introuvable</div>

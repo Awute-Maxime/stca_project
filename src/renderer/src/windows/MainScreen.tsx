@@ -8,7 +8,7 @@ import DashboardHome from '@pages/DashboardHome'
 import AnalysePage from '@pages/AnalysePage'
 import { MontantRestituerWindow } from '@pages/AssuranceWindows'
 import { WINDOW_REGISTRY } from './WINDOW_REGISTRY'
-import { mockVehicules } from '@mock/vehicules'
+import { useVehicules } from '@mock/vehiculesStore'
 import { electronApi } from '@api/electron'
 import dayjs from 'dayjs'
 
@@ -17,6 +17,7 @@ interface MainScreenProps {
 }
 
 export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.Element {
+  const vehicules = useVehicules() // store partagé — synchro auto (statusbar)
   const location = useLocation()
   const navigate = useNavigate()
   const logout = useAuthStore(s => s.logout)
@@ -90,7 +91,7 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
       </div>
 
       <StatusBar nbVehiculesAujourdhui={
-        mockVehicules.filter(v => dayjs(v.date).isSame(dayjs(), 'day')).length
+        vehicules.filter(v => dayjs(v.date).isSame(dayjs(), 'day')).length
       } />
 
       {analyseOpen && <AnalysePage onClose={() => setAnalyseOpen(false)} />}

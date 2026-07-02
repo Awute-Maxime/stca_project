@@ -2,13 +2,14 @@ import { useState, useMemo } from 'react'
 import { DatePicker, notification } from 'antd'
 import { SearchOutlined, PrinterOutlined, CloseOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
-import { mockVehicules } from '@mock/vehicules'
+import { useVehicules } from '@mock/vehiculesStore'
 import { mockDestinations } from '@mock/destinations'
 
+// Palette exacte du prototype (ligne 919)
 const DEST_COLORS: Record<string, string> = {
-  AFO: '#16A34A', CK: '#2563EB', KA: '#0891B2', KE: '#D97706',
-  KP: '#7C3AED', KW: '#1D4ED8', NO: '#DC2626', TO: '#B45309',
-  'S/C': '#65A30D', POL: '#9F1239',
+  AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
+  KP: '#16A34A', KW: '#16A34A', NO: '#16A34A',
+  'S/C': '#FFD700', POL: '#94A3B8',
 }
 
 function textOnBg(hex: string): string {
@@ -19,6 +20,7 @@ function textOnBg(hex: string): string {
 }
 
 export default function ListeParDestPage(): JSX.Element {
+  const vehicules = useVehicules() // store partagé — synchro auto
   const [from, setFrom] = useState(dayjs().subtract(30, 'day'))
   const [to, setTo] = useState(dayjs())
   const [active, setActive] = useState(false)
@@ -27,7 +29,10 @@ export default function ListeParDestPage(): JSX.Element {
     if (!active) return null
     const fromStr = from.format('YYYY-MM-DD')
     const toStr = to.format('YYYY-MM-DD')
-    const filtered = mockVehicules.filter(v => v.date >= fromStr && v.date <= toStr)
+    const filtered = vehicules.filter(v => {
+      const d = v.date.slice(0, 10) // date seule (les mocks contiennent HH:mm)
+      return d >= fromStr && d <= toStr
+    })
     const map = new Map<string, typeof filtered>()
     for (const v of filtered) {
       const list = map.get(v.destination) ?? []

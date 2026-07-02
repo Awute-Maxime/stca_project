@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useCallback } from 'react'
 import { notification } from 'antd'
 import dayjs from 'dayjs'
-import { mockVehicules } from '@mock/vehicules'
+import { useVehicules } from '@mock/vehiculesStore'
 
 const DEST_COLORS: Record<string, string> = {
   AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
@@ -30,9 +30,10 @@ export function AnalyseAssuranceWindow(): JSX.Element {
 }
 
 export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): JSX.Element {
+  const vehicules = useVehicules() // store partagé — synchro auto
   const closeWindow = (): void => {
     if (onClose) onClose()
-    else closeWindow()
+    else window.dispatchEvent(new CustomEvent('mdi:close-self'))
   }
   const todayISO = dayjs().format('YYYY-MM-DD')
   const [authed, setAuthed] = useState(false)
@@ -100,8 +101,11 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
   }
 
   const filtered = useMemo(() => {
-    return mockVehicules.filter(v => v.date >= from && v.date <= to)
-  }, [from, to])
+    return vehicules.filter(v => {
+      const d = v.date.slice(0, 10) // date seule (les mocks contiennent HH:mm)
+      return d >= from && d <= to
+    })
+  }, [vehicules, from, to])
 
   const totalRestituer = filtered.reduce((s, v) => s + Math.round(v.montant * 0.78), 0)
   const sorties = filtered.filter(v => v.recyclerPlaque).length

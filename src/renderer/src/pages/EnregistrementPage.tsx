@@ -9,6 +9,7 @@ import {
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { mockDestinations } from '@mock/destinations'
+import { addVehicule, nextRef, nextId, countAddedForDest } from '@mock/vehiculesStore'
 
 const TYPES_VEHICULE = ['Voiture', 'Camion', 'Moto', 'Bus', 'Pick-up', 'Minibus']
 const MONTANT_FIXE   = 10000
@@ -264,8 +265,7 @@ export default function EnregistrementPage(): JSX.Element {
   const [editMode,      setEditMode]    = useState(false)
 
   // ── Charger un véhicule depuis Liste/Recherche (mode Modification) ───────
-  useEffect(() => {
-    const raw = localStorage.getItem('tcit_loadEnreg')
+  const applyLoadedVehicle = (raw: string | null): void => {
     if (!raw) return
     localStorage.removeItem('tcit_loadEnreg')
     try {
@@ -287,6 +287,17 @@ export default function EnregistrementPage(): JSX.Element {
       if (v.date) setDate(dayjs(v.date))
       setEditMode(true)
     } catch { /* ignore */ }
+  }
+
+  useEffect(() => {
+    // 1) Au montage — fenêtre fraîchement ouverte par « Modifier »
+    applyLoadedVehicle(localStorage.getItem('tcit_loadEnreg'))
+    // 2) Via l'event storage — fenêtre Enregistrement DÉJÀ ouverte : bascule en Modification
+    const onStorage = (e: StorageEvent): void => {
+      if (e.key === 'tcit_loadEnreg' && e.newValue) applyLoadedVehicle(e.newValue)
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -313,7 +324,8 @@ export default function EnregistrementPage(): JSX.Element {
   const handleDestinationChange = (code: string): void => {
     const dest = mockDestinations.find(d => d.code === code)
     if (dest) {
-      const num = String(dest.numImmatActuel + 1).padStart(4, '0')
+      // Compteur incrémenté des enregistrements déjà ajoutés pour cette destination
+      const num = String(dest.numImmatActuel + 1 + countAddedForDest(code)).padStart(4, '0')
       setImmatGenere(`${dest.lettre}${num}`)
       setMontant(MONTANT_FIXE)
       setDestination(code)
@@ -344,7 +356,26 @@ export default function EnregistrementPage(): JSX.Element {
 
     // Simulation sauvegarde DB
     await new Promise(r => setTimeout(r, 600))
-    const ref = String(610268 + Math.floor(Math.random() * 1000))
+
+    // Ajout réel au store partagé — synchronise Liste, Dashboard, etc. (toutes fenêtres)
+    const ref = nextRef()
+    addVehicule({
+      id: nextId(),
+      ref,
+      date: dayjs().format('YYYY-MM-DD HH:mm'),
+      immat: immatGenere ?? '',
+      chassis,
+      typeVehicule: typeVehicule ?? '',
+      marqueModele,
+      destination: destination ?? '',
+      montant: montant ?? MONTANT_FIXE,
+      nomAcheteur,
+      paysResidence,
+      paysDestination,
+      parc: maisonTransit, // colonne « Sortant du parc » = maison de transit (cf. STCA II réel)
+      agent: 'awute',
+      recyclerPlaque: false, // nouveau véhicule = pas encore sorti
+    })
     setSavedRef(ref)
 
     // Stub Poste Plaques — envoi des 3 données (serveur simulé hors ligne)
@@ -546,7 +577,9 @@ export default function EnregistrementPage(): JSX.Element {
             {destination && destNom && (
               <div style={{
                 flex: 1, padding: '4px 14px', borderRadius: 4, fontSize: 11.5, fontWeight: 700,
-                color: '#fff', whiteSpace: 'nowrap', letterSpacing: 0.3, textAlign: 'center',
+                // Jaune (S/C) et gris (POL) → texte sombre, sinon blanc — prototype updateDestLabel
+                color: (DEST_COLORS[destination] === '#FFD700' || DEST_COLORS[destination] === '#94A3B8') ? '#1E293B' : '#fff',
+                whiteSpace: 'nowrap', letterSpacing: 0.3, textAlign: 'center',
                 background: DEST_COLORS[destination] ?? '#6B7280',
               }}>{destNom}</div>
             )}
@@ -630,7 +663,8 @@ export default function EnregistrementPage(): JSX.Element {
             height: 32, padding: '0 16px', background: '#F8FAFF', color: '#64748B',
             border: '1px solid #D1D5DB', borderRadius: 5, fontSize: 12, cursor: 'pointer',
           }}>Réinitialiser</button>
-          <button onClick={handleReset} style={{
+          {/* Annuler = fermer la fenêtre — prototype : closeWin('enregistrement') */}
+          <button onClick={() => window.dispatchEvent(new CustomEvent('mdi:close-self'))} style={{
             height: 32, padding: '0 16px', background: '#F8FAFF', color: '#DC2626',
             border: '1px solid #DC2626', borderRadius: 5, fontSize: 12, cursor: 'pointer',
           }}>Annuler</button>

@@ -15,6 +15,6 @@ export const mockDestinations: MockDestination[] = [
   { code: 'KW',  nom: 'Kwodjoviakope',   tarif: 10000, lettre: 'C', numImmatActuel: 6637 },
   { code: 'NO',  nom: 'Noépé',           tarif: 10000, lettre: 'A', numImmatActuel: 3910 },
   { code: 'TO',  nom: 'Tohoum',          tarif: 10000, lettre: 'C', numImmatActuel: 7490 },
-  { code: 'S\\C',nom: 'Sanvi condji',    tarif: 10000, lettre: 'A', numImmatActuel: 8039 },
+  { code: 'S/C', nom: 'Sanvi condji',    tarif: 10000, lettre: 'A', numImmatActuel: 8039 },
   { code: 'POL', nom: 'Réexportation',   tarif: 10000, lettre: 'A', numImmatActuel: 3 }
 ]

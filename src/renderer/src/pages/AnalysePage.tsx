@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import dayjs from 'dayjs'
-import { mockVehicules } from '@mock/vehicules'
+import { type MockVehicule } from '@mock/vehicules'
+import { useVehicules } from '@mock/vehiculesStore'
 import { mockDestinations } from '@mock/destinations'
 
 /* ── FR locale helpers ──────────────────────────────────────────────── */
@@ -68,6 +69,16 @@ function anlApplyPeriod(preset: string): { from: string; to: string } {
   }
 }
 
+/* ── Couleurs destination — palette exacte du prototype (ligne 919) ── */
+const DEST_COLORS: Record<string, string> = {
+  AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
+  KP: '#16A34A', KW: '#16A34A', NO: '#16A34A',
+  'S/C': '#FFD700', POL: '#94A3B8',
+}
+function destTxt(bg: string): string {
+  return (bg === '#FFD700' || bg === '#94A3B8') ? '#1E293B' : '#fff'
+}
+
 /* ── Destination label helper ───────────────────────────────────────── */
 function destLabel(code: string): string {
   return mockDestinations.find(d => d.code === code)?.nom ?? code
@@ -89,6 +100,7 @@ type ReportSource = 'tcit_detail' | 'tcit_resume' | 'tcit_annual' | 'assurance'
 /*  AnalysePage — Multi-step modal flow                                */
 /* ================================================================== */
 export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.Element {
+  const vehicules = useVehicules() // store partagé — synchro auto
   const todayISO = dayjs().format('YYYY-MM-DD')
 
   /* ── Step navigation state ──────────────────────────────────────── */
@@ -127,19 +139,19 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
 
   /* ── Filtered data for TCIT reports ─────────────────────────────── */
   const tcitFiltered = useMemo(() => {
-    return mockVehicules.filter(v => {
+    return vehicules.filter(v => {
       const vDate = v.date.substring(0, 10)
       return vDate >= dateFrom && vDate <= dateTo
     })
-  }, [dateFrom, dateTo])
+  }, [vehicules, dateFrom, dateTo])
 
   /* ── Filtered data for assurance ────────────────────────────────── */
   const assurFiltered = useMemo(() => {
-    return mockVehicules.filter(v => {
+    return vehicules.filter(v => {
       const vDate = v.date.substring(0, 10)
       return vDate >= assurFrom && vDate <= assurTo
     })
-  }, [assurFrom, assurTo])
+  }, [vehicules, assurFrom, assurTo])
 
   /* ── Total gain assurance ───────────────────────────────────────── */
   const assurGainTotal = assurFiltered.length * 2264
@@ -507,7 +519,13 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
                       <td style={{ padding: '6px 10px', color: '#1E293B' }}>{v.marqueModele}</td>
                       <td style={{ padding: '6px 10px', color: '#64748B', fontFamily: 'monospace', fontSize: 10 }}>{v.chassis}</td>
                       <td style={{ padding: '6px 10px', fontWeight: 700, color: '#1B3A6B' }}>{v.immat}</td>
-                      <td style={{ padding: '6px 10px', color: '#475569' }}>{v.destination}</td>
+                      <td style={{ padding: '6px 10px', textAlign: 'center' }}>
+                        <span style={{
+                          fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 3,
+                          color: destTxt(DEST_COLORS[v.destination] ?? '#6B7280'),
+                          background: DEST_COLORS[v.destination] ?? '#6B7280',
+                        }}>{v.destination}</span>
+                      </td>
                       <td style={{ padding: '6px 10px', color: '#475569' }}>{randomPolice(v.id)}</td>
                     </tr>
                   ))}
@@ -696,7 +714,7 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
 /* ================================================================== */
 
 interface ReportProps {
-  data: typeof mockVehicules
+  data: MockVehicule[]
   dateFrom: string
   dateTo: string
 }

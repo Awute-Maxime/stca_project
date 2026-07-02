@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react'
-import { mockVehicules } from '@mock/vehicules'
+import { useVehicules } from '@mock/vehiculesStore'
 import dayjs from 'dayjs'
 
 export default function DestinationPage(): JSX.Element {
+  const vehicules = useVehicules() // store partagé — synchro auto
   const todayISO = dayjs().format('YYYY-MM-DD')
   const [from, setFrom] = useState(todayISO)
   const [to, setTo]     = useState(todayISO)
@@ -10,8 +11,9 @@ export default function DestinationPage(): JSX.Element {
 
   const { rows, total } = useMemo(() => {
     const counts: Record<string, { n: number; dt: string }> = {}
-    for (const v of mockVehicules) {
-      if (v.date < from || v.date > to) continue
+    for (const v of vehicules) {
+      const d = v.date.slice(0, 10) // date seule (les mocks contiennent HH:mm)
+      if (d < from || d > to) continue
       if (!counts[v.destination]) counts[v.destination] = { n: 0, dt: v.date }
       counts[v.destination].n++
       counts[v.destination].dt = v.date
@@ -19,7 +21,7 @@ export default function DestinationPage(): JSX.Element {
     const entries = Object.entries(counts)
     const t = entries.reduce((s, [, d]) => s + d.n, 0)
     return { rows: entries, total: t }
-  }, [from, to])
+  }, [vehicules, from, to])
 
   const doReset = (): void => { setFrom(todayISO); setTo(todayISO) }
 

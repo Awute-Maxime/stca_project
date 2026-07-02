@@ -1,7 +1,7 @@
 import { useState, useMemo, type ReactNode } from 'react'
 import { notification } from 'antd'
 import dayjs from 'dayjs'
-import { mockVehicules } from '@mock/vehicules'
+import { useVehicules } from '@mock/vehiculesStore'
 import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 import { WinAlert, WinConfirm, EditionDocsModal } from '@components/WinDialogs'
@@ -18,16 +18,28 @@ function destTxt(bg: string): string {
 const BTN = 'width:100%;padding:5px 6px;font-size:11px;border-radius:4px;cursor:pointer;border:1px solid'
 
 export default function ListePage(): JSX.Element {
+  const vehicules = useVehicules() // store partagé — se met à jour à chaque nouvel enregistrement
   const todayISO = dayjs().format('YYYY-MM-DD')
+  // Dates saisies (inputs) vs dates appliquées (utilisées pour filtrer, MAJ au clic Rechercher)
   const [from, setFrom] = useState(todayISO)
   const [to, setTo] = useState(todayISO)
+  const [appliedFrom, setAppliedFrom] = useState(todayISO)
+  const [appliedTo, setAppliedTo] = useState(todayISO)
   const [pointage, setPointage] = useState<'sortie' | 'non_sortie' | 'toutes'>('toutes')
   const [frFilter, setFrFilter] = useState('')
   const [selectedRef, setSelectedRef] = useState<string | null>(null)
+  const [hoveredRef, setHoveredRef] = useState<string | null>(null)
   const [alert, setAlert] = useState<ReactNode | null>(null)
   const [confirm, setConfirm] = useState<{ msg: ReactNode; cb: () => void } | null>(null)
   const [editionType, setEditionType] = useState<'duplicata' | 'renouvel' | null>(null)
   const [printOpen, setPrintOpen] = useState(false)
+
+  // Rechercher : applique les dates saisies (comme doSearchListe du prototype)
+  const doSearch = (): void => {
+    setAppliedFrom(from)
+    setAppliedTo(to)
+    setSelectedRef(null)
+  }
 
   const checkSel = (): boolean => {
     if (selectedRef) return true
@@ -39,14 +51,15 @@ export default function ListePage(): JSX.Element {
   }
 
   const filtered = useMemo(() => {
-    return mockVehicules.filter(v => {
-      if (v.date < from || v.date > to) return false
+    return vehicules.filter(v => {
+      const d = v.date.slice(0, 10) // date seule (les mocks contiennent HH:mm) — comme dmyToISO du prototype
+      if (d < appliedFrom || d > appliedTo) return false
       if (frFilter && v.destination !== frFilter.toUpperCase()) return false
       if (pointage === 'sortie' && !v.recyclerPlaque) return false
       if (pointage === 'non_sortie' && v.recyclerPlaque) return false
       return true
     })
-  }, [from, to, pointage, frFilter])
+  }, [vehicules, appliedFrom, appliedTo, pointage, frFilter])
 
   const sorties = filtered.filter(v => v.recyclerPlaque).length
 
@@ -76,7 +89,7 @@ export default function ListePage(): JSX.Element {
           <label style={{ fontSize: 11.5, color: '#374151', whiteSpace: 'nowrap' }}>Date Fin :</label>
           <input type="date" className="light-input" value={to} onChange={e => setTo(e.target.value)}
             style={{ padding: '3px 5px', fontSize: 11, width: 126, height: 26 }} />
-          <button style={{
+          <button onClick={doSearch} style={{
             height: 32, padding: '0 12px', background: '#2563EB', color: '#fff',
             border: 'none', borderRadius: 5, fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: 4,
@@ -110,15 +123,21 @@ export default function ListePage(): JSX.Element {
               ) : filtered.map(v => {
                 const bg = DEST_COLORS[v.destination] ?? '#6B7280'
                 const isSelected = selectedRef === v.ref
+                const isHovered = hoveredRef === v.ref
                 const bbc = isSelected ? '#BFDBFE' : '#F1F5F9'
+                const rowBg = isSelected ? '#EFF6FF' : (isHovered ? '#F8FAFF' : undefined)
+                // Cellule Réf verte si véhicule sorti (variante plus foncée au survol)
+                const refBg = v.recyclerPlaque
+                  ? (isHovered && !isSelected ? '#BBF7D0' : '#D1FAE5')
+                  : undefined
                 return (
                   <tr key={v.id}
                     onClick={() => setSelectedRef(v.ref)}
-                    style={{ cursor: 'pointer', background: isSelected ? '#EFF6FF' : undefined }}
-                    onMouseEnter={e => { if (!isSelected) e.currentTarget.querySelectorAll('td').forEach((td, i) => { (td as HTMLElement).style.background = (i === 0 && v.recyclerPlaque) ? '#BBF7D0' : '#F8FAFF' }) }}
-                    onMouseLeave={e => { if (!isSelected) e.currentTarget.querySelectorAll('td').forEach((td, i) => { (td as HTMLElement).style.background = (i === 0 && v.recyclerPlaque) ? '#D1FAE5' : '' }) }}
+                    onMouseEnter={() => setHoveredRef(v.ref)}
+                    onMouseLeave={() => setHoveredRef(null)}
+                    style={{ cursor: 'pointer', background: rowBg }}
                   >
-                    <td style={{ ...tdStyle, color: '#64748B', borderBottomColor: bbc, background: v.recyclerPlaque ? '#D1FAE5' : undefined }}>{v.ref}</td>
+                    <td style={{ ...tdStyle, color: '#64748B', borderBottomColor: bbc, background: refBg }}>{v.ref}</td>
                     <td style={{ ...tdStyle, color: '#1E293B', fontWeight: 500, borderBottomColor: bbc, textTransform: 'uppercase' }}>{v.nomAcheteur || '—'}</td>
                     <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>{v.paysResidence}/{v.paysDestination || v.paysResidence}</td>
                     <td style={{ ...tdStyle, textAlign: 'center', borderBottomColor: bbc }}>
@@ -324,7 +343,7 @@ export default function ListePage(): JSX.Element {
             <div style={{ flex: 1, overflowY: 'auto', padding: 24, display: 'flex', justifyContent: 'center' }}>
               <div style={{ width: 842, minHeight: 595, background: '#fff', boxShadow: '0 4px 20px rgba(0,0,0,0.25)', padding: '36px 40px', fontFamily: 'Arial, sans-serif' }}>
                 <h2 style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', margin: '0 0 16px' }}>
-                  Liste des véhicules enregistrés pour la période du : {dayjs(from).format('DD/MM/YYYY')} au {dayjs(to).format('DD/MM/YYYY')}
+                  Liste des véhicules enregistrés pour la période du : {dayjs(appliedFrom).format('DD/MM/YYYY')} au {dayjs(appliedTo).format('DD/MM/YYYY')}
                 </h2>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 9 }}>
                   <thead><tr style={{ background: '#F1F5F9' }}>

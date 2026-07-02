@@ -1,7 +1,7 @@
 import { useState, useMemo, type ReactNode } from 'react'
 import { notification } from 'antd'
 import dayjs from 'dayjs'
-import { mockVehicules } from '@mock/vehicules'
+import { useVehicules } from '@mock/vehiculesStore'
 import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 import { WinAlert, WinConfirm, EditionDocsModal } from '@components/WinDialogs'
@@ -20,10 +20,12 @@ interface Props {
 }
 
 export default function RechercheWindow({ mode }: Props): JSX.Element {
+  const vehicules = useVehicules() // store partagé — synchro auto
   const [query, setQuery] = useState('')
   const [searched, setSearched] = useState(false)
   const [frFilter, setFrFilter] = useState('')
   const [selectedRef, setSelectedRef] = useState<string | null>(null)
+  const [hoveredRef, setHoveredRef] = useState<string | null>(null)
   const [alert, setAlert] = useState<ReactNode | null>(null)
   const [confirm, setConfirm] = useState<{ msg: ReactNode; cb: () => void } | null>(null)
   const [editionType, setEditionType] = useState<'duplicata' | 'renouvel' | null>(null)
@@ -48,10 +50,10 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
   const results = useMemo(() => {
     if (!searched || !query) return []
     const q = query.toUpperCase()
-    return mockVehicules.filter(v =>
+    return vehicules.filter(v =>
       isImmat ? v.immat.toUpperCase().includes(q) : v.chassis.toUpperCase().includes(q)
     )
-  }, [searched, query, isImmat])
+  }, [vehicules, searched, query, isImmat])
 
   const filtered = useMemo(() => {
     if (!frFilter) return results
@@ -128,12 +130,14 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
               ) : filtered.map(v => {
                 const bg = DEST_COLORS[v.destination] ?? '#6B7280'
                 const isSel = selectedRef === v.ref
+                const isHov = hoveredRef === v.ref
                 const bbc = isSel ? '#BFDBFE' : '#F1F5F9'
+                const rowBg = isSel ? '#EFF6FF' : (isHov ? '#F8FAFF' : undefined)
                 return (
                   <tr key={v.id} onClick={() => setSelectedRef(v.ref)}
-                    style={{ cursor: 'pointer', background: isSel ? '#EFF6FF' : undefined }}
-                    onMouseEnter={e => { if (!isSel) e.currentTarget.querySelectorAll('td').forEach(td => { (td as HTMLElement).style.background = '#F8FAFF' }) }}
-                    onMouseLeave={e => { if (!isSel) e.currentTarget.querySelectorAll('td').forEach(td => { (td as HTMLElement).style.background = '' }) }}
+                    onMouseEnter={() => setHoveredRef(v.ref)}
+                    onMouseLeave={() => setHoveredRef(null)}
+                    style={{ cursor: 'pointer', background: rowBg }}
                   >
                     <td style={{ ...tdStyle, color: '#64748B', borderBottomColor: bbc }}>{v.ref}</td>
                     <td style={{ ...tdStyle, color: '#1E293B', fontWeight: 500, borderBottomColor: bbc, textTransform: 'uppercase' }}>{v.nomAcheteur || '—'}</td>
