@@ -41,6 +41,9 @@ export const WINDOW_REGISTRY: Record<string, WindowConfig> = {
   'outils.exporter':                { title: 'Exportation des enregistrements de véhicules',     defaultX: 260, defaultY: 154, width: 680, height: 420 },
   'outils.pointage':                { title: 'Pointage / Dépointage de la sortie des véhicules', defaultX: 200, defaultY: 124, width: 980, height: 660 },
 
+  // ── Aperçus avant impression (BrowserWindows libres — Règle 10) ──
+  'apercu.listeVehicules':          { title: 'Aperçu avant impression — Liste des Véhicules',    defaultX: 140, defaultY:  60, width: 900, height: 720 },
+
   // ── Menu Aide ─────────────────────────────────────────────────
   'aide.copyright':                 { title: 'Copyright',  defaultX: 400, defaultY: 244, width: 500, height: 280 },
   'aide.version':                   { title: 'Version',    defaultX: 420, defaultY: 254, width: 500, height: 340 },

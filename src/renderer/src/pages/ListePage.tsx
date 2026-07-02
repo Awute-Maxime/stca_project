@@ -5,7 +5,6 @@ import { useVehicules } from '@mock/vehiculesStore'
 import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 import { WinAlert, WinConfirm, EditionDocsModal } from '@components/WinDialogs'
-import DraggableWindow from '@components/DraggableWindow'
 
 const DEST_COLORS: Record<string, string> = {
   AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
@@ -33,7 +32,6 @@ export default function ListePage(): JSX.Element {
   const [alert, setAlert] = useState<ReactNode | null>(null)
   const [confirm, setConfirm] = useState<{ msg: ReactNode; cb: () => void } | null>(null)
   const [editionType, setEditionType] = useState<'duplicata' | 'renouvel' | null>(null)
-  const [printOpen, setPrintOpen] = useState(false)
 
   // Rechercher : applique les dates saisies (comme doSearchListe du prototype)
   const doSearch = (): void => {
@@ -220,10 +218,12 @@ export default function ListePage(): JSX.Element {
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
           }}>✏ Modifier</button>
 
-        {/* Imprimer — ouvre aperçu impression de la liste filtrée */}
+        {/* Imprimer — ouvre l'aperçu dans sa PROPRE BrowserWindow (Règle 10 : fenêtre libre, pas emprisonnée) */}
         <button onClick={() => {
           if (filtered.length === 0) { setAlert(<>Aucun enregistrement à imprimer.<br />Sélectionnez une période et cliquez sur <strong>Rechercher</strong>.</>); return }
-          setPrintOpen(true)
+          localStorage.setItem('tcit_apercu_liste', JSON.stringify({ from: appliedFrom, to: appliedTo, pointage, frFilter }))
+          const cfg = WINDOW_REGISTRY['apercu.listeVehicules']
+          if (cfg) electronApi.mdiOpen({ id: 'apercu.listeVehicules', x: cfg.defaultX, y: cfg.defaultY, width: cfg.width, height: cfg.height })
         }}
           style={{
             width: '100%', padding: '5px 6px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
@@ -308,101 +308,6 @@ export default function ListePage(): JSX.Element {
           }} />
       )}
 
-      {/* ── Aperçu avant impression — fidèle au prototype (m-liste-print), fenêtre déplaçable/redimensionnable (Règle 17) ── */}
-      {printOpen && (
-        <DraggableWindow
-          title="Aperçu avant impression — Liste des Véhicules"
-          icon="🖨"
-          width={900}
-          onClose={() => setPrintOpen(false)}
-        >
-            {/* Barre outils impression */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 10, padding: '8px 16px',
-              background: '#F8FAFF', borderBottom: '1px solid #E2E8F0', flexShrink: 0,
-            }}>
-              <button onClick={() => window.print()} style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '5px 16px',
-                fontSize: 12, fontWeight: 700, background: '#2563EB', color: '#fff',
-                border: 'none', borderRadius: 5, cursor: 'pointer',
-              }}>🖨 Lancer l&apos;impression</button>
-              <span style={{ fontSize: 11, color: '#94A3B8' }}>|</span>
-              <span style={{ fontSize: 11, color: '#475569' }}>A4 Paysage</span>
-              <div style={{ flex: 1 }} />
-              <button onClick={() => setPrintOpen(false)} style={{
-                padding: '4px 14px', fontSize: 11.5, background: '#fff', color: '#374151',
-                border: '1px solid #D1D5DB', borderRadius: 5, cursor: 'pointer',
-              }}>Fermer</button>
-            </div>
-
-            {/* Zone rapport */}
-            <div style={{ flex: 1, overflow: 'auto', background: '#E5E7EB', padding: 20 }}>
-              <div style={{
-                background: '#fff', width: '100%', minHeight: 500,
-                padding: '28px 32px', boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
-              }}>
-                {/* Titre rapport — encadré */}
-                <div style={{
-                  textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#1E293B',
-                  background: '#F1F5F9', border: '1px solid #CBD5E1',
-                  padding: '8px 16px', marginBottom: 16,
-                }}>
-                  Liste des véhicules enregistrés pour la période du : {dayjs(appliedFrom).format('DD/MM/YYYY')} &nbsp;au&nbsp; {dayjs(appliedTo).format('DD/MM/YYYY')}
-                </div>
-
-                {/* Table rapport — en-tête navy */}
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
-                  <thead>
-                    <tr style={{ background: '#1B3A6B', color: '#fff' }}>
-                      <th style={{ padding: '5px 6px', border: '1px solid #CBD5E1', whiteSpace: 'nowrap' }}>Ref</th>
-                      <th style={{ padding: '5px 6px', border: '1px solid #CBD5E1', whiteSpace: 'nowrap' }}>Nom et prénom</th>
-                      <th style={{ padding: '5px 6px', border: '1px solid #CBD5E1', whiteSpace: 'nowrap' }}>Adresse</th>
-                      <th style={{ padding: '5px 6px', border: '1px solid #CBD5E1', textAlign: 'center' }}>Code</th>
-                      <th style={{ padding: '5px 6px', border: '1px solid #CBD5E1', whiteSpace: 'nowrap' }}>Immatriculation</th>
-                      <th style={{ padding: '5px 6px', border: '1px solid #CBD5E1', whiteSpace: 'nowrap' }}>Marque et modèle</th>
-                      <th style={{ padding: '5px 6px', border: '1px solid #CBD5E1', whiteSpace: 'nowrap' }}>N° Chassis</th>
-                      <th style={{ padding: '5px 6px', border: '1px solid #CBD5E1', whiteSpace: 'nowrap', textAlign: 'center' }}>N° de Tri</th>
-                      <th style={{ padding: '5px 6px', border: '1px solid #CBD5E1', whiteSpace: 'nowrap' }}>Parc</th>
-                      <th style={{ padding: '5px 6px', border: '1px solid #CBD5E1', whiteSpace: 'nowrap', textAlign: 'center' }}>Date</th>
-                      <th style={{ padding: '5px 6px', border: '1px solid #CBD5E1', whiteSpace: 'nowrap', textAlign: 'center' }}>Sortie le</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.map((v, i) => {
-                      const bg = DEST_COLORS[v.destination] ?? '#6B7280'
-                      return (
-                        <tr key={v.id} style={{ background: i % 2 === 0 ? '#fff' : '#F8FAFF' }}>
-                          <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0' }}>{v.ref}</td>
-                          <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0', fontWeight: 500 }}>{v.nomAcheteur || '—'}</td>
-                          <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0' }}>{v.paysResidence || '—'}</td>
-                          <td style={{
-                            padding: '4px 6px', border: '1px solid #E2E8F0', textAlign: 'center',
-                            fontWeight: 700, color: destTxt(bg), background: bg,
-                          }}>{v.destination}</td>
-                          <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0', fontWeight: 700 }}>{v.immat}</td>
-                          <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0' }}>{v.marqueModele}</td>
-                          <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0', fontFamily: "'Courier New', monospace", fontSize: 9.5 }}>{v.chassis}</td>
-                          <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0', textAlign: 'center' }}>{String(10000 + v.id).padStart(6, '0')}</td>
-                          <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0', fontSize: 9.5 }}>{v.parc || ''}</td>
-                          <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0', textAlign: 'center' }}>{dayjs(v.date).format('DD/MM/YYYY')}</td>
-                          <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0', textAlign: 'center', color: '#94A3B8' }}>
-                            {v.recyclerPlaque ? dayjs(v.date).add(1, 'day').format('DD/MM/YYYY') : '__/__'}
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-
-                {/* Pied de rapport */}
-                <div style={{ marginTop: 14, fontSize: 11, color: '#1E293B', display: 'flex', gap: 40 }}>
-                  <span>Nombre de véhicules &nbsp; <strong>{filtered.length}</strong></span>
-                  <span>Nombre de véhicules sorties : &nbsp; <strong>{sorties}</strong></span>
-                </div>
-              </div>
-            </div>
-        </DraggableWindow>
-      )}
     </div>
   )
 }
