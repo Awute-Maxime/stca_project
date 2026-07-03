@@ -10,7 +10,9 @@ import {
 import dayjs from 'dayjs'
 import { mockDestinations } from '@mock/destinations'
 import { addVehicule, nextRef, nextId, countAddedForDest } from '@mock/vehiculesStore'
-import { CarteGriseApercu, CarteGrisePrintDirect, type CarteGriseData } from '@components/documents/CarteGrise'
+import { CarteGrisePrintDirect, type CarteGriseData } from '@components/documents/CarteGrise'
+import { electronApi } from '@api/electron'
+import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 
 const TYPES_VEHICULE = ['Voiture', 'Camion', 'Moto', 'Bus', 'Pick-up', 'Minibus']
 const MONTANT_FIXE   = 10000
@@ -761,8 +763,11 @@ function EditionDocumentsModal({ open, reference, data, onClose }: {
   const [selected,      setSelected]     = useState(0)
   const [previsualiser, setPrevisualiser]= useState(false)
   const [printing,      setPrinting]     = useState(false)
-  // 'apercu' = bouton Aperçu (consultation) · 'apercu-print' = aperçu rapide + impression auto · 'direct' = impression sans aperçu
-  const [cgView,        setCgView]       = useState<'apercu' | 'apercu-print' | 'direct' | null>(null)
+  // 'direct' = impression sans aperçu (les aperçus s'ouvrent dans leur propre
+  // BrowserWindow apercu.carteGrise — Règle 10)
+  const [cgView,        setCgView]       = useState<'direct' | null>(null)
+  // ts de la demande d'impression en cours (pour reconnaître le signal retour)
+  const [pendingTs,     setPendingTs]    = useState<number | null>(null)
 
   const notImplemented = (): void => {
     notification.info({
@@ -773,9 +778,18 @@ function EditionDocumentsModal({ open, reference, data, onClose }: {
     })
   }
 
+  // Ouvre la fenêtre d'aperçu Carte Grise (BrowserWindow propre)
+  const openCgWindow = (autoPrint: boolean): number => {
+    const ts = Date.now()
+    localStorage.setItem('tcit_apercu_carteGrise', JSON.stringify({ data, autoPrint, ts }))
+    const cfg = WINDOW_REGISTRY['apercu.carteGrise']
+    if (cfg) electronApi.mdiOpen({ id: 'apercu.carteGrise', x: cfg.defaultX, y: cfg.defaultY, width: cfg.width, height: cfg.height })
+    return ts
+  }
+
   // Bouton Aperçu : consultation seule (impression manuelle depuis l'aperçu)
   const handleApercu = (): void => {
-    if (OPTIONS_AVEC_CG.includes(selected)) setCgView('apercu')
+    if (OPTIONS_AVEC_CG.includes(selected)) openCgWindow(false)
     else notImplemented()
   }
 
@@ -784,7 +798,8 @@ function EditionDocumentsModal({ open, reference, data, onClose }: {
   // - Prévisualiser décoché → impression directe, aucun aperçu
   const handleImprimer = async (): Promise<void> => {
     if (OPTIONS_AVEC_CG.includes(selected)) {
-      setCgView(previsualiser ? 'apercu-print' : 'direct')
+      if (previsualiser) setPendingTs(openCgWindow(true))
+      else setCgView('direct')
       return
     }
     // Autres documents — pas encore implémentés (simulation)
@@ -797,6 +812,7 @@ function EditionDocumentsModal({ open, reference, data, onClose }: {
 
   const finishPrint = (): void => {
     setCgView(null)
+    setPendingTs(null)
     notification.success({
       message: '🖨 Carte grise envoyée à l\'impression',
       description: 'Fiche pré-imprimée 10,5 × 21,2 cm',
@@ -804,6 +820,17 @@ function EditionDocumentsModal({ open, reference, data, onClose }: {
     })
     onClose()
   }
+
+  // Signal retour de la fenêtre d'aperçu autoPrint : impression lancée
+  useEffect(() => {
+    if (pendingTs == null) return
+    const onStorage = (e: StorageEvent): void => {
+      if (e.key === 'tcit_cg_printed' && e.newValue === String(pendingTs)) finishPrint()
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingTs])
 
   return (
     <>
@@ -884,21 +911,6 @@ function EditionDocumentsModal({ open, reference, data, onClose }: {
         </div>
       </div>
     </Modal>
-
-    {/* ── Bouton Aperçu : consultation, impression manuelle possible ── */}
-    {cgView === 'apercu' && (
-      <CarteGriseApercu data={data} onClose={() => setCgView(null)} />
-    )}
-
-    {/* ── Imprimer + Prévisualiser coché : aperçu rapide + impression auto ── */}
-    {cgView === 'apercu-print' && (
-      <CarteGriseApercu
-        data={data}
-        autoPrint
-        onAfterPrint={finishPrint}
-        onClose={() => setCgView(null)}
-      />
-    )}
 
     {/* ── Imprimer + Prévisualiser décoché : impression directe sans aperçu ── */}
     {cgView === 'direct' && (

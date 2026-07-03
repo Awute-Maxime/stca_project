@@ -4,6 +4,9 @@ import ListePage from '@pages/ListePage'
 import ListeParDestPage from '@pages/ListeParDestPage'
 import ListePrintPreview from '@pages/ListePrintPreview'
 import ListeParDestPrintPreview from '@pages/ListeParDestPrintPreview'
+import DestinationPrintPreview from '@pages/DestinationPrintPreview'
+import CarteGriseApercuWindow from '@pages/CarteGriseApercuWindow'
+import AnalysePrintPreview from '@pages/AnalysePrintPreview'
 import OpsParticulieresPage from '@pages/OpsParticulieresPage'
 import RechercheWindow from '@pages/RechercheWindow'
 import { CopyrightWindow, VersionWindow, IdReseauWindow } from '@pages/InfoWindows'
@@ -50,6 +53,12 @@ export function renderWindowContent(id: string): JSX.Element {
       return <ListePrintPreview />
     case 'apercu.listeParDest':
       return <ListeParDestPrintPreview />
+    case 'apercu.destination':
+      return <DestinationPrintPreview />
+    case 'apercu.carteGrise':
+      return <CarteGriseApercuWindow />
+    case 'apercu.analyse':
+      return <AnalysePrintPreview />
 
     // ── Menu Analyse — géré comme overlay modal dans MainScreen, pas en MDI
     // case 'analyse': / case 'analyse.stca': → MainScreen.tsx

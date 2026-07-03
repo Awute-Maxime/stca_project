@@ -1,24 +1,16 @@
 import { useState, useMemo } from 'react'
 import dayjs from 'dayjs'
-import { type MockVehicule } from '@mock/vehicules'
 import { useVehicules } from '@mock/vehiculesStore'
-import { mockDestinations } from '@mock/destinations'
 import DraggableWindow from '@components/DraggableWindow'
+import { electronApi } from '@api/electron'
+import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 
 /* ── FR locale helpers ──────────────────────────────────────────────── */
 const FR_DAYS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
-const FR_MONTHS = [
-  'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-  'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
-]
 
 function frDayName(iso: string): string {
   const d = new Date(iso)
   return isNaN(d.getTime()) ? '' : FR_DAYS[d.getDay()]
-}
-
-function fmtDateFR(iso: string): string {
-  return iso ? dayjs(iso).format('DD/MM/YYYY') : ''
 }
 
 /* ── Period preset logic ────────────────────────────────────────────── */
@@ -80,11 +72,6 @@ function destTxt(bg: string): string {
   return (bg === '#FFD700' || bg === '#94A3B8') ? '#1E293B' : '#fff'
 }
 
-/* ── Destination label helper ───────────────────────────────────────── */
-function destLabel(code: string): string {
-  return mockDestinations.find(d => d.code === code)?.nom ?? code
-}
-
 /* ── Random Police Number ───────────────────────────────────────────── */
 function randomPolice(seed: number): string {
   const n = 100000 + ((seed * 7919) % 900000)
@@ -92,7 +79,7 @@ function randomPolice(seed: number): string {
 }
 
 /* ── Types ──────────────────────────────────────────────────────────── */
-type Step = 'password' | 'sector' | 'tcit_config' | 'assurance' | 'print_preview'
+type Step = 'password' | 'sector' | 'tcit_config' | 'assurance'
 type TcitTab = 'detail' | 'resume' | 'annual'
 type GroupBy = 'jour' | 'mois' | 'destination'
 type ReportSource = 'tcit_detail' | 'tcit_resume' | 'tcit_annual' | 'assurance'
@@ -120,9 +107,6 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
   const [assurTo, setAssurTo] = useState(todayISO)
   const [assurType, setAssurType] = useState('all')
 
-  /* ── Print preview state ────────────────────────────────────────── */
-  const [reportSource, setReportSource] = useState<ReportSource>('tcit_detail')
-
   /* ── Close window ───────────────────────────────────────────────── */
   const closeWindow = (): void => {
     onClose()
@@ -137,14 +121,6 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
       setDateTo(to)
     }
   }
-
-  /* ── Filtered data for TCIT reports ─────────────────────────────── */
-  const tcitFiltered = useMemo(() => {
-    return vehicules.filter(v => {
-      const vDate = v.date.substring(0, 10)
-      return vDate >= dateFrom && vDate <= dateTo
-    })
-  }, [vehicules, dateFrom, dateTo])
 
   /* ── Filtered data for assurance ────────────────────────────────── */
   const assurFiltered = useMemo(() => {
@@ -162,10 +138,17 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
     setStep('sector')
   }
 
-  /* ── Navigate to print preview ──────────────────────────────────── */
+  /* ── Aperçu avant impression — BrowserWindow propre (Règle 10) ──── */
   const openPrint = (source: ReportSource): void => {
-    setReportSource(source)
-    setStep('print_preview')
+    const isAssur = source === 'assurance'
+    localStorage.setItem('tcit_apercu_analyse', JSON.stringify({
+      reportSource: source,
+      dateFrom: isAssur ? assurFrom : dateFrom,
+      dateTo: isAssur ? assurTo : dateTo,
+      groupBy,
+    }))
+    const cfg = WINDOW_REGISTRY['apercu.analyse']
+    if (cfg) electronApi.mdiOpen({ id: 'apercu.analyse', x: cfg.defaultX, y: cfg.defaultY, width: cfg.width, height: cfg.height })
   }
 
   /* ────────────────────────────────────────────────────────────────── */
@@ -554,415 +537,6 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
             </div>
         </DraggableWindow>
       )}
-
-      {/* ============================================================ */}
-      {/*  Step 4: Print Preview (shared)                              */}
-      {/* ============================================================ */}
-      {step === 'print_preview' && (
-        <DraggableWindow
-          title={reportSource === 'assurance'
-            ? 'Gain généré par les assurances'
-            : reportSource === 'tcit_detail'
-              ? 'Rapport détaillé — TCIT'
-              : reportSource === 'tcit_resume'
-                ? 'Rapport résumé — TCIT'
-                : 'Rapport annuel — TCIT'}
-          icon="🖨"
-          width={820}
-          onClose={() => setStep(reportSource === 'assurance' ? 'assurance' : 'tcit_config')}
-        >
-            {/* Toolbar onglets */}
-            <div style={{
-              display: 'flex', alignItems: 'center', borderBottom: '1px solid #E2E8F0',
-              background: '#F8FAFF', padding: '0 12px', flexShrink: 0,
-            }}>
-              <button style={{
-                padding: '8px 16px', fontSize: 11.5, fontWeight: 700, color: '#2563EB',
-                border: 'none', borderBottom: '2px solid #2563EB', background: 'none', cursor: 'pointer',
-              }}>&#128065; Aperçu</button>
-              <button onClick={() => window.print()} style={{
-                padding: '8px 16px', fontSize: 11.5, color: '#475569',
-                border: 'none', background: 'none', cursor: 'pointer', borderBottom: '2px solid transparent',
-              }}>&#128424; Imprimer</button>
-              <button style={{
-                padding: '8px 16px', fontSize: 11.5, color: '#475569',
-                border: 'none', background: 'none', cursor: 'pointer', borderBottom: '2px solid transparent',
-              }}>&#128228; Exporter</button>
-              <button style={{
-                padding: '8px 16px', fontSize: 11.5, color: '#475569',
-                border: 'none', background: 'none', cursor: 'pointer', borderBottom: '2px solid transparent',
-              }}>&#128269; Rechercher</button>
-              <button style={{
-                padding: '8px 16px', fontSize: 11.5, color: '#475569',
-                border: 'none', background: 'none', cursor: 'pointer', borderBottom: '2px solid transparent',
-              }}>&#9999;&#65039; Annoter</button>
-              <span style={{ marginLeft: 'auto', fontSize: 11, color: '#94A3B8', paddingRight: 8 }}>100 %</span>
-            </div>
-
-            {/* Printer params bar */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 16, padding: '8px 16px',
-              borderBottom: '1px solid #E2E8F0', background: '#fff', fontSize: 11.5, flexShrink: 0,
-            }}>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px',
-                border: '1px solid #CBD5E1', borderRadius: 5, minWidth: 180,
-              }}>
-                <span style={{ fontSize: 18 }}>&#128424;</span>
-                <div>
-                  <div style={{ fontWeight: 600, color: '#1E293B', fontSize: 11 }}>AnyDesk Printer</div>
-                  <div style={{ color: '#16A34A', fontSize: 10 }}>Prêt</div>
-                </div>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', color: '#1E293B' }}>
-                  <input type="radio" name="anl-color" defaultChecked style={{ accentColor: '#2563EB' }} /> Couleur
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', color: '#1E293B' }}>
-                  <input type="radio" name="anl-color" style={{ accentColor: '#2563EB' }} /> Noir et blanc
-                </label>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', color: '#1E293B' }}>
-                  <input type="radio" name="anl-pages" defaultChecked style={{ accentColor: '#2563EB' }} /> Toutes les pages
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', color: '#1E293B' }}>
-                  <input type="radio" name="anl-pages" style={{ accentColor: '#2563EB' }} /> Page courante
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', color: '#94A3B8' }}>
-                  <input type="radio" name="anl-pages" disabled style={{ accentColor: '#2563EB' }} /> Pages{' '}
-                  <input type="text" placeholder="1-10, 25-30, 35" disabled style={{
-                    width: 110, border: '1px solid #D1D5DB', borderRadius: 3,
-                    padding: '2px 5px', fontSize: 10, color: '#94A3B8',
-                  }} />
-                </label>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
-                <span style={{ color: '#475569' }}>Copies</span>
-                <input type="number" defaultValue={1} min={1} style={{
-                  width: 50, border: '1px solid #D1D5DB', borderRadius: 4,
-                  padding: '3px 6px', fontSize: 12, textAlign: 'center',
-                }} />
-              </div>
-            </div>
-
-            {/* Corps : miniature + aperçu A4 */}
-            <div style={{ flex: 1, display: 'flex', gap: 0, overflow: 'hidden', background: '#94A3B8', minHeight: 0 }}>
-              {/* Miniature */}
-              <div style={{ width: 110, background: '#64748B', padding: 10, flexShrink: 0, overflowY: 'auto' }}>
-                <div style={{
-                  background: '#fff', border: '1px solid #475569', padding: 4, marginBottom: 6,
-                  cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
-                }}>
-                  <div style={{ fontSize: 5, fontWeight: 700, textAlign: 'center', color: '#1E293B', marginBottom: 3 }}>
-                    {reportSource === 'assurance' ? 'Gain assurance...' : 'Rapport TCIT...'}
-                  </div>
-                  <div style={{ height: 2, background: '#CBD5E1', marginBottom: 2 }} />
-                  <div style={{ height: 30, background: '#F1F5F9', border: '1px solid #E2E8F0' }} />
-                  <div style={{ fontSize: 5, color: '#64748B', marginTop: 2, textAlign: 'center' }}>1</div>
-                </div>
-              </div>
-
-              {/* Aperçu A4 */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: 24, display: 'flex', justifyContent: 'center' }}>
-                <div style={{
-                  width: 595, minHeight: 842, background: '#fff',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.25)', padding: '48px 56px', fontFamily: 'Arial, sans-serif',
-                }}>
-                  {reportSource === 'tcit_detail' && <ReportDetail data={tcitFiltered} groupBy={groupBy} dateFrom={dateFrom} dateTo={dateTo} />}
-                  {reportSource === 'tcit_resume' && <ReportResume data={tcitFiltered} groupBy={groupBy} dateFrom={dateFrom} dateTo={dateTo} />}
-                  {reportSource === 'tcit_annual' && <ReportAnnual data={tcitFiltered} dateFrom={dateFrom} dateTo={dateTo} />}
-                  {reportSource === 'assurance' && <ReportAssurance data={assurFiltered} dateFrom={assurFrom} dateTo={assurTo} gainTotal={assurGainTotal} />}
-                </div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div style={{
-              ...mft, justifyContent: 'space-between',
-            }}>
-              <button style={bc}
-                onClick={() => setStep(reportSource === 'assurance' ? 'assurance' : 'tcit_config')}>
-                ✕ Fermer
-              </button>
-              <button style={be} onClick={() => window.print()}>
-                <span style={{ fontSize: 18 }}>&#128424;</span> Lancer l&apos;impression
-              </button>
-            </div>
-        </DraggableWindow>
-      )}
-    </div>
-  )
-}
-
-/* ================================================================== */
-/*  Report sub-components for A4 preview                               */
-/* ================================================================== */
-
-interface ReportProps {
-  data: MockVehicule[]
-  dateFrom: string
-  dateTo: string
-}
-
-/* ── DETAIL report ──────────────────────────────────────────────────── */
-function ReportDetail({ data, groupBy, dateFrom, dateTo }: ReportProps & { groupBy: GroupBy }): JSX.Element {
-  const dateLabel = dateFrom === dateTo
-    ? fmtDateFR(dateFrom)
-    : `${fmtDateFR(dateFrom)} au ${fmtDateFR(dateTo)}`
-
-  const groupTitle = groupBy === 'jour' ? 'jour' : groupBy === 'mois' ? 'mois' : 'destination'
-
-  /* Group data */
-  const groups = useMemo(() => {
-    const map = new Map<string, typeof data>()
-    for (const v of data) {
-      let key: string
-      if (groupBy === 'jour') {
-        key = dayjs(v.date).format('DD/MM/YYYY')
-      } else if (groupBy === 'mois') {
-        const d = new Date(v.date)
-        key = FR_MONTHS[d.getMonth()] + ' ' + d.getFullYear()
-      } else {
-        key = v.destination + ' — ' + destLabel(v.destination)
-      }
-      if (!map.has(key)) map.set(key, [])
-      map.get(key)!.push(v)
-    }
-    return Array.from(map.entries())
-  }, [data, groupBy])
-
-  const grandTotal = data.reduce((s, v) => s + v.montant, 0)
-
-  const thS: React.CSSProperties = {
-    border: '1px solid #CBD5E1', padding: '5px 8px', fontSize: 9.5,
-    fontWeight: 700, background: '#F1F5F9', color: '#1E293B',
-  }
-  const tdS: React.CSSProperties = {
-    border: '1px solid #CBD5E1', padding: '4px 8px', fontSize: 9, color: '#1E293B',
-  }
-
-  return (
-    <div>
-      <p style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', margin: '0 0 6px', color: '#1B3A6B' }}>
-        Rapport détaillé par {groupTitle}
-      </p>
-      <p style={{ fontSize: 10, textAlign: 'center', margin: '0 0 18px', color: '#475569' }}>
-        Période : {dateLabel}
-      </p>
-
-      {groups.map(([label, items]) => {
-        const subTotal = items.reduce((s, v) => s + v.montant, 0)
-        return (
-          <div key={label} style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#2563EB', marginBottom: 4, borderBottom: '1px solid #E2E8F0', paddingBottom: 2 }}>
-              {label}
-            </div>
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 4 }}>
-              <thead>
-                <tr>
-                  <th style={thS}>Référence</th>
-                  <th style={thS}>Nom</th>
-                  <th style={thS}>Code/Date</th>
-                  <th style={thS}>Immatriculation</th>
-                  <th style={{ ...thS, textAlign: 'right' }}>Montant</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map(v => (
-                  <tr key={v.id}>
-                    <td style={tdS}>{v.ref}</td>
-                    <td style={tdS}>{v.nomAcheteur}</td>
-                    <td style={tdS}>{v.destination}/{dayjs(v.date).format('DD/MM/YY')}</td>
-                    <td style={{ ...tdS, fontWeight: 600 }}>{v.immat}</td>
-                    <td style={{ ...tdS, textAlign: 'right' }}>{v.montant.toLocaleString('fr-FR')}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <div style={{ textAlign: 'right', fontSize: 9.5, fontWeight: 700, color: '#1E293B' }}>
-              Sous-total : {subTotal.toLocaleString('fr-FR')} FCFA ({items.length} véhicule{items.length > 1 ? 's' : ''})
-            </div>
-          </div>
-        )
-      })}
-
-      <div style={{
-        borderTop: '2px solid #1B3A6B', marginTop: 10, paddingTop: 8,
-        textAlign: 'right', fontSize: 11, fontWeight: 700, color: '#DC2626',
-      }}>
-        TOTAL GENERAL : {grandTotal.toLocaleString('fr-FR')} FCFA ({data.length} véhicule{data.length > 1 ? 's' : ''})
-      </div>
-    </div>
-  )
-}
-
-/* ── RESUME report ──────────────────────────────────────────────────── */
-function ReportResume({ data, groupBy, dateFrom, dateTo }: ReportProps & { groupBy: GroupBy }): JSX.Element {
-  const dateLabel = dateFrom === dateTo
-    ? fmtDateFR(dateFrom)
-    : `${fmtDateFR(dateFrom)} au ${fmtDateFR(dateTo)}`
-
-  const groupTitle = groupBy === 'jour' ? 'jour' : groupBy === 'mois' ? 'mois' : 'destination'
-
-  const lines = useMemo(() => {
-    const map = new Map<string, { count: number; montant: number }>()
-    for (const v of data) {
-      let key: string
-      if (groupBy === 'jour') {
-        key = dayjs(v.date).format('DD/MM/YYYY')
-      } else if (groupBy === 'mois') {
-        const d = new Date(v.date)
-        key = FR_MONTHS[d.getMonth()] + ' ' + d.getFullYear()
-      } else {
-        key = v.destination + ' — ' + destLabel(v.destination)
-      }
-      const cur = map.get(key) ?? { count: 0, montant: 0 }
-      map.set(key, { count: cur.count + 1, montant: cur.montant + v.montant })
-    }
-    return Array.from(map.entries())
-  }, [data, groupBy])
-
-  const grandTotal = data.reduce((s, v) => s + v.montant, 0)
-
-  return (
-    <div>
-      <p style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', margin: '0 0 6px', color: '#1B3A6B' }}>
-        Rapport résumé par {groupTitle}
-      </p>
-      <p style={{ fontSize: 10, textAlign: 'center', margin: '0 0 18px', color: '#475569' }}>
-        Période : {dateLabel}
-      </p>
-
-      {lines.map(([label, val]) => (
-        <div key={label} style={{ marginBottom: 6 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#1E293B' }}>
-            <span style={{ fontWeight: 600 }}>{label}</span>
-            <span>{val.count} véh. — {val.montant.toLocaleString('fr-FR')} FCFA</span>
-          </div>
-          <div style={{ borderBottom: '1px dashed #CBD5E1', marginTop: 3 }} />
-        </div>
-      ))}
-
-      <div style={{
-        borderTop: '2px solid #1B3A6B', marginTop: 14, paddingTop: 8,
-        textAlign: 'right', fontSize: 11, fontWeight: 700, color: '#DC2626',
-      }}>
-        TOTAL GENERAL : {grandTotal.toLocaleString('fr-FR')} FCFA ({data.length} véhicule{data.length > 1 ? 's' : ''})
-      </div>
-    </div>
-  )
-}
-
-/* ── ANNUAL report ──────────────────────────────────────────────────── */
-function ReportAnnual({ data, dateFrom, dateTo }: ReportProps): JSX.Element {
-  const dateLabel = dateFrom === dateTo
-    ? fmtDateFR(dateFrom)
-    : `${fmtDateFR(dateFrom)} au ${fmtDateFR(dateTo)}`
-
-  const monthGroups = useMemo(() => {
-    const map = new Map<number, Map<string, number>>()
-    for (const v of data) {
-      const d = new Date(v.date)
-      const month = d.getMonth()
-      if (!map.has(month)) map.set(month, new Map())
-      const destMap = map.get(month)!
-      destMap.set(v.destination, (destMap.get(v.destination) ?? 0) + v.montant)
-    }
-    return Array.from(map.entries()).sort((a, b) => a[0] - b[0])
-  }, [data])
-
-  const grandTotal = data.reduce((s, v) => s + v.montant, 0)
-
-  const thS: React.CSSProperties = {
-    border: '1px solid #CBD5E1', padding: '5px 8px', fontSize: 9.5,
-    fontWeight: 700, background: '#F1F5F9', color: '#1E293B',
-  }
-  const tdS: React.CSSProperties = {
-    border: '1px solid #CBD5E1', padding: '4px 8px', fontSize: 9, color: '#1E293B',
-  }
-
-  return (
-    <div>
-      <p style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', margin: '0 0 6px', color: '#1B3A6B' }}>
-        Rapport annuel
-      </p>
-      <p style={{ fontSize: 10, textAlign: 'center', margin: '0 0 18px', color: '#475569' }}>
-        Période : {dateLabel}
-      </p>
-
-      {monthGroups.map(([monthIdx, destMap]) => {
-        const monthTotal = Array.from(destMap.values()).reduce((s, v) => s + v, 0)
-        return (
-          <div key={monthIdx} style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#2563EB', marginBottom: 4, borderBottom: '1px solid #E2E8F0', paddingBottom: 2 }}>
-              {FR_MONTHS[monthIdx]}
-            </div>
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 4 }}>
-              <thead>
-                <tr>
-                  <th style={thS}>Destination</th>
-                  <th style={{ ...thS, textAlign: 'right' }}>Montant</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Array.from(destMap.entries()).map(([dest, montant]) => (
-                  <tr key={dest}>
-                    <td style={tdS}>{dest} — {destLabel(dest)}</td>
-                    <td style={{ ...tdS, textAlign: 'right' }}>{montant.toLocaleString('fr-FR')} FCFA</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <div style={{ textAlign: 'right', fontSize: 9.5, fontWeight: 700, color: '#1E293B' }}>
-              Sous-total {FR_MONTHS[monthIdx]} : {monthTotal.toLocaleString('fr-FR')} FCFA
-            </div>
-          </div>
-        )
-      })}
-
-      <div style={{
-        borderTop: '2px solid #1B3A6B', marginTop: 10, paddingTop: 8,
-        textAlign: 'right', fontSize: 11, fontWeight: 700, color: '#DC2626',
-      }}>
-        TOTAL ANNUEL : {grandTotal.toLocaleString('fr-FR')} FCFA
-      </div>
-    </div>
-  )
-}
-
-/* ── ASSURANCE report ───────────────────────────────────────────────── */
-function ReportAssurance({ data, dateFrom, dateTo, gainTotal }: ReportProps & { gainTotal: number }): JSX.Element {
-  const dateLabel = dateFrom === dateTo
-    ? fmtDateFR(dateFrom)
-    : `${fmtDateFR(dateFrom)} au ${fmtDateFR(dateTo)}`
-
-  return (
-    <div>
-      <p style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', margin: '0 0 6px', color: '#1B3A6B' }}>
-        Gain généré par les assurances
-      </p>
-      <p style={{ fontSize: 10, textAlign: 'center', margin: '0 0 18px', color: '#475569' }}>
-        Période : {dateLabel}
-      </p>
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14, fontSize: 11 }}>
-        <span>
-          <span style={{ fontWeight: 600, color: '#374151' }}>Nbr de Véhicule(s) : </span>
-          <span style={{ color: '#DC2626', fontWeight: 700 }}>{data.length}</span>
-        </span>
-        <span>
-          <span style={{ fontWeight: 600, color: '#374151' }}>Gain Total : </span>
-          <span style={{ color: '#DC2626', fontWeight: 700 }}>{gainTotal.toLocaleString('fr-FR')} FCFA</span>
-        </span>
-      </div>
-
-      <div style={{
-        borderTop: '2px solid #1B3A6B', marginTop: 10, paddingTop: 8,
-        textAlign: 'center', fontSize: 10, color: '#64748B',
-      }}>
-        Type d&apos;assurance : POOL TPV VT - MOTO &mdash; Gain unitaire : 2 264 FCFA
-      </div>
     </div>
   )
 }

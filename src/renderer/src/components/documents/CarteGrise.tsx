@@ -1,6 +1,5 @@
 import { useEffect } from 'react'
 import type { CSSProperties } from 'react'
-import DraggableWindow from '../DraggableWindow'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CARTE GRISE — Certificat d'immatriculation provisoire de véhicule
@@ -143,7 +142,7 @@ export function CarteGriseDoc({ data }: { data: CarteGriseData }): JSX.Element {
 }
 
 // ── CSS d'impression : page 105×212mm, seules les données du document ───────
-function PrintCss(): JSX.Element {
+export function PrintCss(): JSX.Element {
   return (
     <style>{`
       @media print {
@@ -159,74 +158,6 @@ function PrintCss(): JSX.Element {
         }
       }
     `}</style>
-  )
-}
-
-// ── Aperçu plein écran ───────────────────────────────────────────────────────
-// - Mode normal (bouton Aperçu) : l'utilisateur regarde puis lance l'impression
-//   lui-même ou ferme.
-// - Mode autoPrint (Imprimer + Prévisualiser coché) : aperçu rapide affiché ET
-//   impression lancée en même temps, sans validation ; onAfterPrint est appelé
-//   à la fin.
-export function CarteGriseApercu({ data, onClose, autoPrint, onAfterPrint }: {
-  data: CarteGriseData
-  onClose: () => void
-  autoPrint?: boolean
-  onAfterPrint?: () => void
-}): JSX.Element {
-  useEffect(() => {
-    if (!autoPrint) return
-    // Laisse l'aperçu rapide se peindre à l'écran, puis imprime immédiatement
-    const t = setTimeout(() => {
-      window.print()
-      onAfterPrint?.()
-    }, 350)
-    return () => clearTimeout(t)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoPrint])
-
-  return (
-    <DraggableWindow
-      title={autoPrint
-        ? 'Impression Carte Grise en cours… (fiche pré-imprimée 10,5 × 21,2 cm)'
-        : 'Aperçu — Carte Grise (fiche pré-imprimée 10,5 × 21,2 cm)'}
-      icon="🖨"
-      width={560}
-      zIndex={2000}
-      onClose={onClose}
-    >
-      <PrintCss />
-
-      {/* Zone aperçu — fiche centrée sur fond gris */}
-      <div style={{
-        flex: 1, overflow: 'auto', background: '#94A3B8',
-        display: 'flex', justifyContent: 'center', padding: 24, minHeight: 0,
-      }}>
-        <div style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.35)', height: 'fit-content' }}>
-          <CarteGriseDoc data={data} />
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div style={{
-        padding: '12px 20px', borderTop: '1px solid #E2E8F0',
-        display: 'flex', justifyContent: 'space-between', background: '#F8FAFF', flexShrink: 0,
-      }}>
-        <button onClick={onClose} style={{
-          height: 34, padding: '0 16px', background: '#fff', color: '#374151',
-          border: '1px solid #D1D5DB', borderRadius: 5, fontSize: 12, cursor: 'pointer',
-        }}>✕ Fermer</button>
-        {!autoPrint && (
-          <button onClick={() => window.print()} style={{
-            display: 'flex', alignItems: 'center', gap: 8, padding: '7px 20px',
-            background: '#2563EB', color: '#fff', border: 'none', borderRadius: 5,
-            fontSize: 12, fontWeight: 700, cursor: 'pointer',
-          }}>
-            <span style={{ fontSize: 18 }}>🖨</span> Lancer l&apos;impression
-          </button>
-        )}
-      </div>
-    </DraggableWindow>
   )
 }
 

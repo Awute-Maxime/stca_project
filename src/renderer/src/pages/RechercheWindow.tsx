@@ -5,6 +5,10 @@ import { useVehicules } from '@mock/vehiculesStore'
 import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 import { WinAlert, WinConfirm, EditionDocsModal } from '@components/WinDialogs'
+import { CarteGrisePrintDirect, type CarteGriseData } from '@components/documents/CarteGrise'
+
+// Choix d'édition qui incluent la Carte Grise (mêmes valeurs que WinDialogs.DOC_OPTIONS)
+const DOCS_AVEC_CG = ['tous', 'facture_cg', 'cg_fiche_id', 'uniq_cg']
 
 const DEST_COLORS: Record<string, string> = {
   AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
@@ -29,6 +33,7 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
   const [alert, setAlert] = useState<ReactNode | null>(null)
   const [confirm, setConfirm] = useState<{ msg: ReactNode; cb: () => void } | null>(null)
   const [editionType, setEditionType] = useState<'duplicata' | 'renouvel' | null>(null)
+  const [cgDirect, setCgDirect] = useState<CarteGriseData | null>(null)
 
   const checkSel = (): boolean => {
     if (selectedRef) return true
@@ -246,8 +251,38 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
         <EditionDocsModal type={editionType} onClose={() => setEditionType(null)}
           onPrint={(doc, prev) => {
             setEditionType(null)
+            const v = filtered.find(x => x.ref === selectedRef)
+            if (v && DOCS_AVEC_CG.includes(doc)) {
+              // Réédition Carte Grise — mêmes chemins que l'Enregistrement :
+              // Prévisualiser coché → aperçu rapide + impression auto (BrowserWindow
+              // apercu.carteGrise) ; décoché → impression directe sans aperçu.
+              const data: CarteGriseData = {
+                immat: v.immat, destCode: v.destination, nom: v.nomAcheteur,
+                adresse: v.paysResidence, numTri: '', dateTri: '',
+                marque: v.marqueModele, chassis: v.chassis, parc: v.parc,
+                dateDelivrance: dayjs(v.date).format('DD/MM/YYYY'),
+              }
+              if (prev) {
+                localStorage.setItem('tcit_apercu_carteGrise', JSON.stringify({ data, autoPrint: true, ts: Date.now() }))
+                const cfg = WINDOW_REGISTRY['apercu.carteGrise']
+                if (cfg) electronApi.mdiOpen({ id: 'apercu.carteGrise', x: cfg.defaultX, y: cfg.defaultY, width: cfg.width, height: cfg.height })
+              } else {
+                setCgDirect(data)
+              }
+              return
+            }
             notification.info({ message: `🖨 ${prev ? 'Prévisualisation' : 'Impression'} : ${doc}`, placement: 'bottomRight' })
           }} />
+      )}
+      {cgDirect && (
+        <CarteGrisePrintDirect data={cgDirect} onDone={() => {
+          setCgDirect(null)
+          notification.success({
+            message: '🖨 Carte grise envoyée à l\'impression',
+            description: 'Fiche pré-imprimée 10,5 × 21,2 cm',
+            placement: 'bottomRight',
+          })
+        }} />
       )}
     </div>
   )

@@ -44,6 +44,9 @@ export const WINDOW_REGISTRY: Record<string, WindowConfig> = {
   // ── Aperçus avant impression (BrowserWindows libres — Règle 10) ──
   'apercu.listeVehicules':          { title: 'Aperçu avant impression — Liste des Véhicules',    defaultX: 140, defaultY:  60, width: 900, height: 720 },
   'apercu.listeParDest':            { title: 'Liste des Véhicules par destination',              defaultX: 200, defaultY:  50, width: 700, height: 760 },
+  'apercu.destination':             { title: 'Liste des Véhicules par destination',              defaultX: 180, defaultY:  50, width: 860, height: 740 },
+  'apercu.carteGrise':              { title: 'Aperçu — Carte Grise (fiche pré-imprimée 10,5 × 21,2 cm)', defaultX: 240, defaultY: 30, width: 560, height: 900 },
+  'apercu.analyse':                 { title: 'Aperçu avant impression — Rapport d\'analyse',     defaultX: 180, defaultY:  50, width: 860, height: 740 },
 
   // ── Menu Aide ─────────────────────────────────────────────────
   'aide.copyright':                 { title: 'Copyright',  defaultX: 400, defaultY: 244, width: 500, height: 280 },

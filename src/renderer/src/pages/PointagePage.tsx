@@ -17,10 +17,14 @@ const C = {
   danger: '#DC2626',
 }
 
+// Palette exacte du prototype (identique aux autres fenêtres)
 const DEST_COLORS: Record<string, string> = {
-  AFO: 'green', CK: 'blue', KA: 'cyan', KE: 'orange',
-  KP: 'purple', KW: 'geekblue', NO: 'volcano', TO: 'gold',
-  'S/C': 'lime', POL: 'red',
+  AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
+  KP: '#16A34A', KW: '#16A34A', NO: '#16A34A',
+  'S/C': '#FFD700', POL: '#94A3B8',
+}
+function destTxt(bg: string): string {
+  return (bg === '#FFD700' || bg === '#94A3B8') ? '#1E293B' : '#fff'
 }
 const destLabel = (code: string): string => mockDestinations.find(d => d.code === code)?.nom ?? code
 
@@ -78,7 +82,10 @@ export default function PointagePage(): JSX.Element {
     { title: 'Marque / Modèle', dataIndex: 'marqueModele', render: v => <span style={{ fontSize: 12 }}>{v}</span> },
     {
       title: 'Destination', dataIndex: 'destination', width: 140,
-      render: v => <Tag color={DEST_COLORS[v]} style={{ fontWeight: 600, fontSize: 10 }}>{v} — {destLabel(v)}</Tag>,
+      render: v => {
+        const bg = DEST_COLORS[v] ?? '#6B7280'
+        return <Tag style={{ fontWeight: 600, fontSize: 10, background: bg, color: destTxt(bg), borderColor: bg }}>{v} — {destLabel(v)}</Tag>
+      },
     },
     {
       title: 'Acheteur', dataIndex: 'nomAcheteur', width: 140,
