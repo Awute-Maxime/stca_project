@@ -43,6 +43,7 @@ export const WINDOW_REGISTRY: Record<string, WindowConfig> = {
 
   // ── Aperçus avant impression (BrowserWindows libres — Règle 10) ──
   'apercu.listeVehicules':          { title: 'Aperçu avant impression — Liste des Véhicules',    defaultX: 140, defaultY:  60, width: 900, height: 720 },
+  'apercu.listeParDest':            { title: 'Liste des Véhicules par destination',              defaultX: 200, defaultY:  50, width: 700, height: 760 },
 
   // ── Menu Aide ─────────────────────────────────────────────────
   'aide.copyright':                 { title: 'Copyright',  defaultX: 400, defaultY: 244, width: 500, height: 280 },

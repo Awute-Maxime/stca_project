@@ -3,6 +3,7 @@ import DestinationPage from '@pages/DestinationPage'
 import ListePage from '@pages/ListePage'
 import ListeParDestPage from '@pages/ListeParDestPage'
 import ListePrintPreview from '@pages/ListePrintPreview'
+import ListeParDestPrintPreview from '@pages/ListeParDestPrintPreview'
 import OpsParticulieresPage from '@pages/OpsParticulieresPage'
 import RechercheWindow from '@pages/RechercheWindow'
 import { CopyrightWindow, VersionWindow, IdReseauWindow } from '@pages/InfoWindows'
@@ -47,6 +48,8 @@ export function renderWindowContent(id: string): JSX.Element {
     // ── Aperçus avant impression (BrowserWindows libres — Règle 10) ──
     case 'apercu.listeVehicules':
       return <ListePrintPreview />
+    case 'apercu.listeParDest':
+      return <ListeParDestPrintPreview />
 
     // ── Menu Analyse — géré comme overlay modal dans MainScreen, pas en MDI
     // case 'analyse': / case 'analyse.stca': → MainScreen.tsx
