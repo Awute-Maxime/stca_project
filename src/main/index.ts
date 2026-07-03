@@ -100,6 +100,9 @@ function createWindow(): void {
 
   ipcMain.on('window:resize-for-login', () => {
     win.setResizable(true)
+    // Annule le minimum 1024×700 posé par resize-for-main, sinon Electron
+    // refuse de rétrécir et le login s'affiche dans la grande fenêtre
+    win.setMinimumSize(1, 1)
     win.setSize(440, 360)
     win.setResizable(false)
     win.center()
@@ -107,6 +110,7 @@ function createWindow(): void {
 
   ipcMain.on('window:resize-for-login-admin', () => {
     win.setResizable(true)
+    win.setMinimumSize(1, 1)
     win.setSize(440, 400)
     win.setResizable(false)
     win.center()
