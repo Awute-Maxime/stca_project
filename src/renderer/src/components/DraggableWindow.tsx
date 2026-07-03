@@ -119,13 +119,13 @@ export default function DraggableWindow({
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex, pointerEvents: 'none' }}>
-      {/* Fond assombri — clic = fermer */}
+      {/* Fond assombri — clic = fermer, apparition en fondu */}
       <div
         onClick={onClose}
-        style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', pointerEvents: 'auto' }}
+        style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', pointerEvents: 'auto', animation: 'overlayFade 0.18s ease' }}
       />
 
-      {/* Fenêtre */}
+      {/* Fenêtre — entrée animée douce */}
       <div style={{
         position: 'absolute',
         left: winPos.x, top: winPos.y,
@@ -138,6 +138,7 @@ export default function DraggableWindow({
         boxShadow: '0 20px 60px rgba(0,0,0,0.25), 0 4px 12px rgba(0,0,0,0.15)',
         border: maximized ? 'none' : '1px solid rgba(0,0,0,0.12)',
         pointerEvents: 'auto',
+        animation: 'winEnter 0.22s ease',
       }}>
 
         {/* Barre de titre — drag + double-clic maximiser */}

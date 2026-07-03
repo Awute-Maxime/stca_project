@@ -22,16 +22,92 @@ body {
   width: 100vw;
 }
 
-/* ── Scrollbar premium dark ───────────────────────── */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
-::-webkit-scrollbar-thumb { background: rgba(79,156,249,0.3); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(79,156,249,0.55); }
+/* ── Sélection de texte aux couleurs TCIT ──────────── */
+::selection {
+  background: rgba(37, 99, 235, 0.22);
+  color: inherit;
+}
+
+/* ── Scrollbar claire premium (UI bleu-blanc TCIT) ── */
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: #C7D2E0;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A9C8;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-corner { background: transparent; }
+
+/* ── Micro-interactions boutons (globales) ──────────
+   Feedback uniforme sur TOUS les boutons de l'app :
+   survol légèrement assombri, pression enfoncée. */
+button:not(:disabled) {
+  transition:
+    transform 0.1s ease,
+    filter 0.15s ease,
+    box-shadow 0.2s ease,
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+button:not(:disabled):hover  { filter: brightness(0.965) saturate(1.04); }
+button:not(:disabled):active { transform: scale(0.965); filter: brightness(0.93); }
+
+/* ── Focus clavier visible (accessibilité pro) ────── */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #2563EB;
+  outline-offset: 1px;
+}
+
+/* ── Cohérence des cases / radios natives ─────────── */
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: #2563EB;
+}
+
+/* ── Champs date : indicateur calendrier discret ──── */
+input[type='date']::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 0.15s ease;
+}
+input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
+
+/* ── Lignes de tableau : survol adouci ────────────── */
+tbody tr { transition: background 0.12s ease; }
+
+/* ── Notifications Ant aux couleurs TCIT ──────────── */
+.ant-notification-notice {
+  border-radius: 10px !important;
+  border-left: 3px solid #2563EB !important;
+  box-shadow: 0 12px 40px rgba(15, 40, 80, 0.16), 0 2px 8px rgba(15, 40, 80, 0.08) !important;
+}
 
 /* ── Keyframes ────────────────────────────────────── */
 @keyframes formEnter {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Entrée du contenu d'une fenêtre MDI / overlay */
+@keyframes winEnter {
+  from { opacity: 0; transform: translateY(6px) scale(0.992); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+/* Fondu du voile derrière les fenêtres overlay */
+@keyframes overlayFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 @keyframes immatReveal {
@@ -59,86 +135,20 @@ body {
   to   { opacity: 1; transform: translateX(0); }
 }
 
-/* ── MDI Window child dark base ───────────────────── */
-.mdi-dark {
-  background: #080f1d;
-  color: #E8EDF5;
+@keyframes btnPulse {
+  0%, 100% { box-shadow: 0 3px 12px rgba(37,99,235,0.4); transform: translateY(0); }
+  50%       { box-shadow: 0 5px 22px rgba(37,99,235,0.65), 0 0 0 4px rgba(37,99,235,0.12); transform: translateY(-1px); }
 }
 
-/* ── Ant Design dark overrides for MDI ────────────── */
-.mdi-dark .ant-select-selector,
-.mdi-dark .ant-picker {
-  background: rgba(255,255,255,0.06) !important;
-  border-color: rgba(255,255,255,0.1) !important;
-  border-radius: 6px !important;
-  height: 28px !important;
+@keyframes savedEnter {
+  from { opacity: 0; transform: translateY(-5px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
 }
 
-.mdi-dark .ant-select-selection-item,
-.mdi-dark .ant-select-selection-placeholder,
-.mdi-dark .ant-picker-input input {
-  color: #E8EDF5 !important;
-  font-size: 12px !important;
-  line-height: 26px !important;
+@keyframes immatEmptyPulse {
+  0%,100% { border-color: rgba(245,158,11,0.3); }
+  50%     { border-color: rgba(245,158,11,0.55); }
 }
-
-.mdi-dark .ant-select:hover .ant-select-selector,
-.mdi-dark .ant-picker:hover {
-  border-color: rgba(79,156,249,0.5) !important;
-}
-
-.mdi-dark .ant-select-focused .ant-select-selector,
-.mdi-dark .ant-picker-focused {
-  border-color: #4F9CF9 !important;
-  box-shadow: 0 0 0 3px rgba(79,156,249,0.15) !important;
-}
-
-.mdi-dark .ant-select-arrow,
-.mdi-dark .ant-picker-suffix { color: rgba(255,255,255,0.3) !important; }
-
-.mdi-dark .ant-select-dropdown {
-  background: #0D1B30 !important;
-  border: 1px solid rgba(79,156,249,0.2) !important;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.6) !important;
-}
-
-.mdi-dark .ant-select-item { color: #C8D8EA !important; }
-.mdi-dark .ant-select-item-option-active { background: rgba(79,156,249,0.12) !important; }
-.mdi-dark .ant-select-item-option-selected { background: rgba(79,156,249,0.2) !important; color: #fff !important; }
-
-.mdi-dark .ant-picker-panel-container {
-  background: #0D1B30 !important;
-  border: 1px solid rgba(79,156,249,0.2) !important;
-}
-.mdi-dark .ant-picker-cell-inner { color: #C8D8EA !important; }
-.mdi-dark .ant-picker-cell-in-view .ant-picker-cell-inner { color: #E8EDF5 !important; }
-.mdi-dark .ant-picker-cell-selected .ant-picker-cell-inner { background: #4F9CF9 !important; }
-
-.mdi-dark .ant-modal-content {
-  background: #0D1B30 !important;
-  border: 1px solid rgba(79,156,249,0.2) !important;
-  box-shadow: 0 32px 80px rgba(0,0,0,0.7) !important;
-}
-.mdi-dark .ant-modal-header { background: transparent !important; border-bottom: 1px solid rgba(255,255,255,0.07) !important; }
-.mdi-dark .ant-modal-title { color: #E8EDF5 !important; }
-.mdi-dark .ant-modal-close-x { color: rgba(255,255,255,0.5) !important; }
-.mdi-dark .ant-input {
-  background: rgba(255,255,255,0.06) !important;
-  border-color: rgba(255,255,255,0.1) !important;
-  color: #E8EDF5 !important;
-}
-
-/* Dark checkbox & radio */
-.mdi-dark .ant-checkbox-inner { background: rgba(255,255,255,0.06) !important; border-color: rgba(255,255,255,0.2) !important; }
-.mdi-dark .ant-checkbox-checked .ant-checkbox-inner { background: #4F9CF9 !important; border-color: #4F9CF9 !important; }
-.mdi-dark .ant-radio-inner { background: rgba(255,255,255,0.06) !important; border-color: rgba(255,255,255,0.2) !important; }
-.mdi-dark .ant-radio-checked .ant-radio-inner { border-color: #4F9CF9 !important; }
-.mdi-dark .ant-radio-inner::after { background: #4F9CF9 !important; }
-.mdi-dark .ant-checkbox-wrapper span,
-.mdi-dark .ant-radio-wrapper span { color: #C8D8EA !important; font-size: 11px !important; }
-
-/* Disabled state */
-.mdi-dark .ant-select-disabled .ant-select-selector { opacity: 0.4 !important; }
 
 /* ── Light native input fields (cohérent MainScreen) ── */
 input.light-input {
@@ -176,49 +186,11 @@ input.light-input--filled:focus {
   box-shadow: 0 0 0 3px rgba(22,163,74,0.12) !important;
 }
 
-/* ── Submit button pulse when form is ready ─────────────── */
-@keyframes btnPulse {
-  0%, 100% { box-shadow: 0 3px 12px rgba(37,99,235,0.4); transform: translateY(0); }
-  50%       { box-shadow: 0 5px 22px rgba(37,99,235,0.65), 0 0 0 4px rgba(37,99,235,0.12); transform: translateY(-1px); }
+/* ── Mouvement réduit : on respecte la préférence OS ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
-
-@keyframes savedEnter {
-  from { opacity: 0; transform: translateY(-5px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0)    scale(1); }
-}
-
-@keyframes immatEmptyPulse {
-  0%,100% { border-color: rgba(245,158,11,0.3); }
-  50%     { border-color: rgba(245,158,11,0.55); }
-}
-
-/* ── Dark native input fields ──────────────────────── */
-.mdi-dark input.dark-input {
-  width: 100%; height: 28px; font-size: 12px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.09);
-  border-radius: 6px; padding: 0 8px;
-  color: #E8EDF5; outline: none;
-  transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
-  font-family: 'Segoe UI', sans-serif;
-  box-sizing: border-box;
-}
-.mdi-dark input.dark-input:focus {
-  border-color: rgba(79,156,249,0.55);
-  box-shadow: 0 0 0 3px rgba(79,156,249,0.12);
-  background: rgba(255,255,255,0.07);
-}
-.mdi-dark input.dark-input::placeholder { color: #243348; }
-.mdi-dark input.dark-input[disabled]    { opacity: 0.28; cursor: default; }
-.mdi-dark input.dark-input--clickable   { cursor: pointer; }
-.mdi-dark input.dark-input--clickable:hover {
-  border-color: rgba(79,156,249,0.3);
-  background: rgba(255,255,255,0.065);
-}
-.mdi-dark input.dark-input--chassis {
-  font-family: 'Courier New', monospace;
-  letter-spacing: 1.5px; color: #7EC8E3;
-}
-.mdi-dark input.dark-input--amount { color: #10B981; font-weight: 700; }
-.mdi-dark input.dark-input--ref    { color: #4F9CF9; font-weight: 700; letter-spacing: 2px; }
-.mdi-dark input.dark-input--warm   { border-color: rgba(245,166,35,0.18) !important; }

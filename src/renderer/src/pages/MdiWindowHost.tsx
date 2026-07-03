@@ -108,8 +108,8 @@ export default function MdiWindowHost(): JSX.Element {
           </div>
         </div>
 
-        {/* ── Content ──────────────────────────────────────────────── */}
-        <div style={{ flex: 1, overflow: 'auto', background: '#FFFFFF', padding: 8 }}>
+        {/* ── Content — entrée animée douce ─────────────────────────── */}
+        <div style={{ flex: 1, overflow: 'auto', background: '#FFFFFF', padding: 8, animation: 'winEnter 0.24s ease' }}>
           {renderWindowContent(id)}
         </div>
       </div>

@@ -238,8 +238,8 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
       position: 'fixed', inset: 0, zIndex: 800,
       pointerEvents: 'none',
     }}>
-    {/* Fond sombre cliquable pour fermer */}
-    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', pointerEvents: 'auto' }} onClick={closeWindow} />
+    {/* Fond sombre cliquable pour fermer — apparition en fondu */}
+    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', pointerEvents: 'auto', animation: 'overlayFade 0.18s ease' }} onClick={closeWindow} />
 
     <div style={{
       position: 'absolute',
@@ -250,6 +250,7 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
       boxShadow: '0 20px 60px rgba(0,0,0,0.25), 0 4px 12px rgba(0,0,0,0.15)',
       border: maximized ? 'none' : '1px solid rgba(0,0,0,0.12)',
       pointerEvents: 'auto',
+      animation: 'winEnter 0.22s ease',
     }}>
 
       {/* ── Title bar — draggable ───────────────────────────────────── */}
