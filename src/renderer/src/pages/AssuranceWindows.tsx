@@ -2,6 +2,8 @@ import { useState, useMemo, useRef, useCallback } from 'react'
 import { notification } from 'antd'
 import dayjs from 'dayjs'
 import { useVehicules } from '@mock/vehiculesStore'
+import { electronApi } from '@api/electron'
+import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 
 const DEST_COLORS: Record<string, string> = {
   AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
@@ -38,11 +40,28 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
   const todayISO = dayjs().format('YYYY-MM-DD')
   const [authed, setAuthed] = useState(false)
   const [password, setPassword] = useState('')
-  const [from, setFrom] = useState('2023-06-01')
+  // Dates du jour par défaut — la recherche ne se lance qu'au CLIC sur
+  // Rechercher (appliedFrom/To), comme le vrai STCA (pas d'autochargement)
+  const [from, setFrom] = useState(todayISO)
   const [to, setTo] = useState(todayISO)
+  const [appliedFrom, setAppliedFrom] = useState('')
+  const [appliedTo, setAppliedTo] = useState('')
+  const [active, setActive] = useState(false)
   const [assurFilter, setAssurFilter] = useState('')
   const [printDialog, setPrintDialog] = useState(false)
-  const [printMode, setPrintMode] = useState<'minimum' | 'detail' | null>(null)
+
+  const doSearch = (): void => {
+    setAppliedFrom(from)
+    setAppliedTo(to)
+    setActive(true)
+  }
+
+  // Aperçu (Minimum/Détaillé) dans sa propre BrowserWindow — Règle 10
+  const openApercu = (mode: 'minimum' | 'detail'): void => {
+    localStorage.setItem('tcit_apercu_montantRestituer', JSON.stringify({ from: appliedFrom, to: appliedTo, mode, ts: Date.now() }))
+    const cfg = WINDOW_REGISTRY['apercu.montantRestituer']
+    if (cfg) electronApi.mdiOpen({ id: 'apercu.montantRestituer', x: cfg.defaultX, y: cfg.defaultY, width: cfg.width, height: cfg.height })
+  }
 
   // ── Window drag + resize + maximize state ────────────────────────────────
   const [winPos, setWinPos] = useState({ x: -1, y: -1 })
@@ -101,11 +120,12 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
   }
 
   const filtered = useMemo(() => {
+    if (!active) return []
     return vehicules.filter(v => {
       const d = v.date.slice(0, 10) // date seule (les mocks contiennent HH:mm)
-      return d >= from && d <= to
+      return d >= appliedFrom && d <= appliedTo
     })
-  }, [vehicules, from, to])
+  }, [vehicules, active, appliedFrom, appliedTo])
 
   const totalRestituer = filtered.reduce((s, v) => s + Math.round(v.montant * 0.78), 0)
   const sorties = filtered.filter(v => v.recyclerPlaque).length
@@ -293,12 +313,18 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
           style={{ padding: '4px 6px', fontSize: 12, width: 132, height: 28 }} />
         <input type="date" className="light-input" value={to} onChange={e => setTo(e.target.value)}
           style={{ padding: '4px 6px', fontSize: 12, width: 132, height: 28 }} />
-        <button style={{
+        <button onClick={doSearch} style={{
           padding: '6px 18px', background: '#2563EB', color: '#fff',
           border: 'none', borderRadius: 5, fontSize: 12, fontWeight: 700, cursor: 'pointer',
           display: 'flex', alignItems: 'center', gap: 6,
         }}>🔍 Rechercher</button>
-        <button onClick={() => setPrintDialog(true)} style={{
+        <button onClick={() => {
+          if (!active || filtered.length === 0) {
+            notification.warning({ message: 'Aucune donnée à imprimer.', description: 'Sélectionnez une période puis cliquez sur Rechercher.', placement: 'bottomRight' })
+            return
+          }
+          setPrintDialog(true)
+        }} style={{
           padding: '6px 18px', background: '#EFF6FF', color: '#1D4ED8',
           border: '1px solid #BFDBFE', borderRadius: 5, fontSize: 12, fontWeight: 700, cursor: 'pointer',
           display: 'flex', alignItems: 'center', gap: 6,
@@ -341,7 +367,7 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
           <tbody>
             {filtered.length === 0 ? (
               <tr><td colSpan={13} style={{ textAlign: 'center', padding: 30, color: '#94A3B8', fontStyle: 'italic' }}>
-                Aucun enregistrement pour cette période
+                {active ? 'Aucun enregistrement pour cette période' : 'Sélectionnez une période puis cliquez sur Rechercher'}
               </td></tr>
             ) : filtered.map(v => {
               const bg = DEST_COLORS[v.destination] ?? '#6B7280'
@@ -435,11 +461,11 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
               <span style={{ fontSize: 12.5, color: '#1E293B' }}>Imprimer le document en mode</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', gap: 10 }}>
-              <button onClick={() => { setPrintDialog(false); setPrintMode('minimum') }} style={{
+              <button onClick={() => { setPrintDialog(false); openApercu('minimum') }} style={{
                 padding: '6px 20px', background: '#fff', color: '#1E293B',
                 border: '2px solid #1E293B', borderRadius: 4, fontSize: 12, fontWeight: 600, cursor: 'pointer',
               }}>Minimum</button>
-              <button onClick={() => { setPrintDialog(false); setPrintMode('detail') }} style={{
+              <button onClick={() => { setPrintDialog(false); openApercu('detail') }} style={{
                 padding: '6px 20px', background: '#fff', color: '#1E293B',
                 border: '1px solid #CBD5E1', borderRadius: 4, fontSize: 12, cursor: 'pointer',
               }}>Détaillé</button>
@@ -453,145 +479,6 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
       </div>
     )}
 
-    {/* Aperçu impression — Minimum ou Détaillé */}
-    {printMode && (
-      <div style={{
-        position: 'fixed', inset: 0, zIndex: 950,
-        display: 'flex', flexDirection: 'column', background: '#fff',
-      }}>
-        {/* Titlebar */}
-        <div style={{
-          background: '#1B3A6B', padding: '6px 14px',
-          display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0,
-        }}>
-          <span style={{ fontSize: 12, color: '#fff' }}>🖨</span>
-          <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', flex: 1 }}>Montant à restituer</span>
-          <button onClick={() => setPrintMode(null)} style={{
-            width: 26, height: 26, background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)',
-            cursor: 'pointer', fontSize: 16, borderRadius: 4,
-          }}>✕</button>
-        </div>
-        {/* Toolbar onglets */}
-        <div style={{
-          display: 'flex', alignItems: 'center', borderBottom: '1px solid #E2E8F0',
-          background: '#F8FAFF', padding: '0 12px', flexShrink: 0,
-        }}>
-          <button style={{ padding: '8px 16px', fontSize: 11.5, fontWeight: 700, color: '#2563EB', border: 'none', borderBottom: '2px solid #2563EB', background: 'none', cursor: 'pointer' }}>👁 Aperçu</button>
-          <button onClick={() => window.print()} style={{ padding: '8px 16px', fontSize: 11.5, color: '#475569', border: 'none', background: 'none', cursor: 'pointer', borderBottom: '2px solid transparent' }}>🖨 Imprimer</button>
-          <button style={{ padding: '8px 16px', fontSize: 11.5, color: '#475569', border: 'none', background: 'none', cursor: 'pointer', borderBottom: '2px solid transparent' }}>📤 Exporter</button>
-          <button style={{ padding: '8px 16px', fontSize: 11.5, color: '#475569', border: 'none', background: 'none', cursor: 'pointer', borderBottom: '2px solid transparent' }}>🔍 Rechercher</button>
-          <button style={{ padding: '8px 16px', fontSize: 11.5, color: '#475569', border: 'none', background: 'none', cursor: 'pointer', borderBottom: '2px solid transparent' }}>✏️ Annoter</button>
-          <span style={{ marginLeft: 'auto', fontSize: 11, color: '#94A3B8', paddingRight: 8 }}>100 %</span>
-        </div>
-        {/* Barre paramètres impression */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 16, padding: '8px 16px',
-          borderBottom: '1px solid #E2E8F0', background: '#fff', fontSize: 11.5, flexShrink: 0,
-        }}>
-          <button onClick={() => window.print()} style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px 16px',
-            background: '#3C7D3C', color: '#fff', border: 'none', borderRadius: 4, fontSize: 11, fontWeight: 700, cursor: 'pointer',
-          }}><span style={{ fontSize: 20 }}>🖨</span>Lancer l&apos;impression</button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 10px', border: '1px solid #CBD5E1', borderRadius: 5 }}>
-            <span style={{ fontSize: 18 }}>🖨</span>
-            <div><div style={{ fontWeight: 600, color: '#1E293B', fontSize: 11 }}>AnyDesk Printer</div><div style={{ color: '#16A34A', fontSize: 10 }}>Prêt</div></div>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}><input type="radio" name="mr-color" defaultChecked style={{ accentColor: '#2563EB' }} /> Couleur</label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}><input type="radio" name="mr-color" style={{ accentColor: '#2563EB' }} /> Noir et blanc</label>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}><input type="radio" name="mr-pages" defaultChecked style={{ accentColor: '#2563EB' }} /> Toutes les pages</label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}><input type="radio" name="mr-pages" style={{ accentColor: '#2563EB' }} /> Page courante</label>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
-            <span style={{ color: '#475569' }}>Copies</span>
-            <input type="number" defaultValue={1} min={1} style={{ width: 50, border: '1px solid #D1D5DB', borderRadius: 4, padding: '3px 6px', fontSize: 12, textAlign: 'center' }} />
-          </div>
-        </div>
-        {/* Corps : miniature + aperçu A4 */}
-        <div style={{ flex: 1, display: 'flex', overflow: 'hidden', background: '#94A3B8', minHeight: 0 }}>
-          <div style={{ width: 110, background: '#64748B', padding: 10, flexShrink: 0, overflowY: 'auto' }}>
-            <div style={{ background: '#fff', border: '1px solid #475569', padding: 4, cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.3)', marginBottom: 6 }}>
-              <div style={{ fontSize: 5, fontWeight: 700, textAlign: 'center', color: '#1E293B', marginBottom: 2 }}>Montant restitué...</div>
-              <div style={{ height: 2, background: '#CBD5E1', marginBottom: 2 }} />
-              <div style={{ height: 30, background: '#F1F5F9', border: '1px solid #E2E8F0' }} />
-              <div style={{ fontSize: 5, color: '#64748B', marginTop: 2, textAlign: 'center' }}>1</div>
-            </div>
-          </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: 24, display: 'flex', justifyContent: 'center' }}>
-            <div style={{
-              width: printMode === 'detail' ? 842 : 595, minHeight: printMode === 'detail' ? 595 : 842,
-              background: '#fff', boxShadow: '0 4px 20px rgba(0,0,0,0.25)', padding: '48px 56px', fontFamily: 'Arial, sans-serif',
-            }}>
-              {printMode === 'minimum' ? (
-                <>
-                  <h2 style={{ fontSize: 14, fontWeight: 700, textAlign: 'center', margin: '0 0 30px', background: '#E8E8E8', padding: '10px 16px' }}>
-                    Montant restitué pour la période du : {dayjs(from).format('DD/MM/YYYY')} au {dayjs(to).format('DD/MM/YYYY')}
-                  </h2>
-                  <p style={{ fontSize: 13, margin: '16px 0' }}><strong>Assurance :</strong> &nbsp; POOL TPV VT - MOTO</p>
-                  <p style={{ fontSize: 13, margin: '12px 0' }}><strong>Nombre de Véhicules :</strong> &nbsp; {filtered.length.toLocaleString('fr-FR')}</p>
-                  <p style={{ fontSize: 13, margin: '12px 0' }}><strong>Nombre de Véhicules sorties :</strong> &nbsp; {sorties.toLocaleString('fr-FR')}</p>
-                  <p style={{ fontSize: 14, margin: '16px 0' }}><strong>Montant Total Restitué :</strong> &nbsp; <span style={{ color: '#DC2626', fontWeight: 800, fontSize: 16 }}>{totalRestituer.toLocaleString('fr-FR')}</span></p>
-                  <p style={{ fontSize: 13, margin: '24px 0 0' }}><strong>Fait le :</strong> &nbsp; {dayjs().locale('fr').format('dddd D MMMM YYYY')}</p>
-                  <div style={{ marginTop: 40, border: '1px solid #1E293B', padding: '12px 16px', minHeight: 100, width: 300 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#1E293B' }}>Cachet et Signature</div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <h2 style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', margin: '0 0 8px', background: '#E8E8E8', padding: '8px 12px' }}>
-                    Montant restitué pour la période du : {dayjs(from).format('DD/MM/YYYY')} au {dayjs(to).format('DD/MM/YYYY')}
-                  </h2>
-                  <p style={{ fontSize: 11, margin: '0 0 12px' }}><strong>Assurance :</strong> &nbsp; POOL TPV VT - MOTO</p>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 9.5 }}>
-                    <thead><tr style={{ background: '#F1F5F9' }}>
-                      {['Ref', 'Nom et prénom', 'Adresse', 'Type', 'Marque et modèle', 'N° Chassis', 'Immatriculation', 'Destination', 'N° de Tri', 'Enregistré le', 'Montant', 'Sortie le'].map(h => (
-                        <th key={h} style={{ border: '1px solid #CBD5E1', padding: '3px 4px', textAlign: 'left', fontSize: 8.5, fontWeight: 600 }}>{h}</th>
-                      ))}
-                    </tr></thead>
-                    <tbody>
-                      {filtered.slice(0, 50).map(v => (
-                        <tr key={v.id}>
-                          <td style={{ border: '1px solid #E2E8F0', padding: '2px 4px' }}>{v.ref}</td>
-                          <td style={{ border: '1px solid #E2E8F0', padding: '2px 4px' }}>{v.nomAcheteur}</td>
-                          <td style={{ border: '1px solid #E2E8F0', padding: '2px 4px' }}>{v.paysResidence}/{v.paysDestination || v.paysResidence}</td>
-                          <td style={{ border: '1px solid #E2E8F0', padding: '2px 4px' }}>{v.typeVehicule}</td>
-                          <td style={{ border: '1px solid #E2E8F0', padding: '2px 4px' }}>{v.marqueModele}</td>
-                          <td style={{ border: '1px solid #E2E8F0', padding: '2px 4px', fontFamily: 'monospace', fontSize: 8 }}>{v.chassis}</td>
-                          <td style={{ border: '1px solid #E2E8F0', padding: '2px 4px' }}>{v.immat}</td>
-                          <td style={{ border: '1px solid #E2E8F0', padding: '2px 4px', textAlign: 'center' }}>{v.destination}</td>
-                          <td style={{ border: '1px solid #E2E8F0', padding: '2px 4px', textAlign: 'center' }}>{String(10000 + v.id).padStart(6, '0')}</td>
-                          <td style={{ border: '1px solid #E2E8F0', padding: '2px 4px' }}>{dayjs(v.date).format('DD/MM/YYYY')}</td>
-                          <td style={{ border: '1px solid #E2E8F0', padding: '2px 4px', textAlign: 'right' }}>{Math.round(v.montant * 0.78).toLocaleString('fr-FR')}</td>
-                          <td style={{ border: '1px solid #E2E8F0', padding: '2px 4px' }}>{v.recyclerPlaque ? dayjs(v.date).add(1, 'day').format('DD/MM/YYYY') : ''}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  <div style={{ textAlign: 'right', fontSize: 9, color: '#64748B', marginTop: 4 }}>1 / ...</div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-        {/* Footer */}
-        <div style={{
-          padding: '12px 20px', borderTop: '1px solid #E2E8F0',
-          display: 'flex', justifyContent: 'space-between', background: '#F8FAFF', flexShrink: 0,
-        }}>
-          <button onClick={() => setPrintMode(null)} style={{
-            height: 34, padding: '0 16px', background: '#fff', color: '#374151',
-            border: '1px solid #D1D5DB', borderRadius: 5, fontSize: 12, cursor: 'pointer',
-          }}>✕ Fermer</button>
-          <button onClick={() => window.print()} style={{
-            display: 'flex', alignItems: 'center', gap: 8, padding: '7px 20px',
-            background: '#2563EB', color: '#fff', border: 'none', borderRadius: 5,
-            fontSize: 12, fontWeight: 700, cursor: 'pointer',
-          }}><span style={{ fontSize: 18 }}>🖨</span> Lancer l&apos;impression</button>
-        </div>
-      </div>
-    )}
 
     </>
   )
