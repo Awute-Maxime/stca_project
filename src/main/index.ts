@@ -7,6 +7,20 @@ const isDev = process.env['NODE_ENV'] === 'development' || !app.isPackaged
 const mdiWindows = new Map<string, BrowserWindow>()
 let mainWin: BrowserWindow | null = null
 
+// ── Instance unique ───────────────────────────────────────────────────────────
+// Une seule instance de TCIT à la fois : un second lancement se ferme
+// immédiatement et ramène la fenêtre de l'instance existante au premier plan.
+const gotLock = app.requestSingleInstanceLock()
+if (!gotLock) {
+  app.quit()
+}
+app.on('second-instance', () => {
+  if (mainWin && !mainWin.isDestroyed()) {
+    if (mainWin.isMinimized()) mainWin.restore()
+    mainWin.focus()
+  }
+})
+
 // IPC handlers for MDI child windows (set up once, before any window is created)
 function setupMdiIPC(): void {
   ipcMain.on('mdi:open', (_, payload: { id: string; x: number; y: number; width: number; height: number }) => {
