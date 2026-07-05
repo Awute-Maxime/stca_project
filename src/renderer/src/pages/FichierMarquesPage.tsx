@@ -1,28 +1,9 @@
 import { useState } from 'react'
 import { notification } from 'antd'
-
-const INITIAL_MARQUES = [
-  {id:1,nom:'140 H'},{id:2,nom:'3256 33'},{id:3,nom:'A.C.M. VQ-2485SA3/ ALLOY TIPPER'},
-  {id:4,nom:'ABG DD74'},{id:5,nom:'ABI E.B.G 1200'},{id:6,nom:'ACAM M 2770 G'},
-  {id:7,nom:'ACERBI 03G'},{id:8,nom:'ACERBI 08R'},{id:9,nom:'ACERBI 0L8451-BT0'},
-  {id:10,nom:'ACERBI 0L 88308T0/ ALLOY TIPPER'},{id:11,nom:'ACERBI 11L537'},{id:12,nom:'ACERBI 125 MG'},
-  {id:13,nom:'ACERBI 125 PS'},{id:14,nom:'ACERBI 135MG'},{id:15,nom:'ACERBI 135MHS'},
-  {id:16,nom:'ACERBI 135 MSH'},{id:17,nom:'ACERBI 135PG'},{id:18,nom:'ACERBI 135 PS'},
-  {id:19,nom:'ACERBI 135PS00'},{id:20,nom:'ACERBI 135 PSA'},{id:21,nom:'ACERBI 135PSF'},
-  {id:22,nom:'ACERBI 135 PSR'},{id:23,nom:'ACTM'},{id:24,nom:'ACTM 55315'},
-  {id:25,nom:'ACTM A24320C'},{id:26,nom:'ACTM ORIGINAL'},{id:27,nom:'ACTM R3232'},
-  {id:28,nom:'ACTM R 35315'},{id:29,nom:'A.C.T.M R44315'},{id:30,nom:'ACTM S070415'},
-  {id:31,nom:'ACTM S 322'},{id:32,nom:'ACTM S32215C'},{id:33,nom:'ACTM S32215E'},
-  {id:34,nom:'ACTM S32215H'},{id:35,nom:'ACTM S3322/ ALLOY TIPPER'},{id:36,nom:'ACTM S34320'},
-  {id:37,nom:'ACTM S34320A'},{id:38,nom:'ACTM S 443'},{id:39,nom:'ACTM S 44315'},
-  {id:40,nom:'FOTON BJ1069'},{id:41,nom:'HOWO A7'},{id:42,nom:'ISUZU NQR 75P'},
-  {id:43,nom:'MAN TGX 18.440'},{id:44,nom:'MERCEDES ACTROS 1844'},{id:45,nom:'NISSAN PATROL'},
-  {id:46,nom:'RENAULT TRUCKS T 480'},{id:47,nom:'SCANIA R500'},{id:48,nom:'TOYOTA HILUX'},
-  {id:49,nom:'TOYOTA LAND CRUISER 79'},{id:50,nom:'VOLVO FH16 750'},
-]
+import { useMarques, addMarque, renameMarque, removeMarque } from '@mock/marquesStore'
 
 export default function FichierMarquesPage(): JSX.Element {
-  const [marques, setMarques] = useState(INITIAL_MARQUES)
+  const marques = useMarques() // store partagé — même liste que le modal Marque de l'Enregistrement
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogValue, setDialogValue] = useState('')
@@ -51,20 +32,22 @@ export default function FichierMarquesPage(): JSX.Element {
     const item = marques.find(m => m.id === selectedId)
     if (!item) return
     if (!confirm(`Supprimer "${item.nom}" ?`)) return
-    setMarques(prev => prev.filter(m => m.id !== selectedId))
+    removeMarque(item.id) // suppression réelle — synchro modal Enregistrement inclus
     setSelectedId(null)
     notification.success({ message: '✅ Supprimé', placement: 'bottomRight' })
   }
   const dialogValidate = (): void => {
     const val = dialogValue.trim()
     if (!val) return
-    if (dialogMode === 'add') {
-      setMarques(prev => [...prev, { id: Date.now(), nom: val }])
-      notification.success({ message: '✅ Marque/modèle ajouté', placement: 'bottomRight' })
-    } else {
-      setMarques(prev => prev.map(m => m.id === selectedId ? { ...m, nom: val } : m))
-      notification.success({ message: '✅ Modifié', placement: 'bottomRight' })
+    const err = dialogMode === 'add' ? addMarque(val) : renameMarque(selectedId!, val)
+    if (err) {
+      notification.warning({ message: err, placement: 'bottomRight' })
+      return
     }
+    notification.success({
+      message: dialogMode === 'add' ? '✅ Marque/modèle ajouté' : '✅ Modifié',
+      placement: 'bottomRight',
+    })
     setDialogOpen(false)
   }
   const doPrint = (): void => {

@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Table, Checkbox, Modal, Input, Switch, Button, Tag, Popconfirm, Tooltip } from 'antd'
+import { Table, Checkbox, Modal, Input, Switch, Button, Tag, Popconfirm, Tooltip, notification } from 'antd'
 import {
   UserAddOutlined, DeleteOutlined, EyeOutlined, EyeInvisibleOutlined,
-  TeamOutlined, LockOutlined, CheckCircleOutlined, StopOutlined,
+  TeamOutlined, LockOutlined, CheckCircleOutlined, StopOutlined, EditOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
-import { mockUtilisateurs, type MockUtilisateur } from '@mock/utilisateurs'
+import { type MockUtilisateur } from '@mock/utilisateurs'
+import { useUtilisateurs, addUtilisateur, updateUtilisateur, removeUtilisateur } from '@mock/utilisateursStore'
 
 // ── Palette ────────────────────────────────────────────────────────────────────
 const C = {
@@ -38,7 +39,7 @@ function PageHeader(): JSX.Element {
 }
 
 // ── Types locaux ───────────────────────────────────────────────────────────────
-type UserRow = MockUtilisateur & { _showPass?: boolean }
+type UserRow = MockUtilisateur
 
 interface AddModalState {
   login: string
@@ -54,43 +55,66 @@ const EMPTY_FORM: AddModalState = {
 
 // ── Composant principal ────────────────────────────────────────────────────────
 export default function UserManagementWindow(): JSX.Element {
-  const [rows, setRows]           = useState<UserRow[]>(() => mockUtilisateurs.map(u => ({ ...u })))
+  const rows = useUtilisateurs() // store partagé — persisté, utilisable au login, synchro toutes fenêtres
   const [addOpen, setAddOpen]     = useState(false)
   const [form, setForm]           = useState<AddModalState>(EMPTY_FORM)
   const [formErr, setFormErr]     = useState<string | null>(null)
   const [showAllPass, setShowAllPass] = useState(false)
+  const [showPassIds, setShowPassIds] = useState<Set<number>>(new Set())
+  // Édition du mot de passe d'un utilisateur existant
+  const [pwdEdit, setPwdEdit] = useState<{ id: number; login: string } | null>(null)
+  const [pwdValue, setPwdValue] = useState('')
 
-  // ── Mutations ────────────────────────────────────────────────────────────────
+  // Affiche l'erreur de protection (dernier admin actif) le cas échéant
+  const guard = (err: string | null): void => {
+    if (err) notification.warning({ message: '🔒 Action refusée', description: err, placement: 'bottomRight' })
+  }
+
+  // ── Mutations — écrites dans le store partagé ───────────────────────────────
   const toggleAdmin = (id: number, val: boolean): void =>
-    setRows(r => r.map(u => u.id === id ? { ...u, administrateur: val } : u))
+    guard(updateUtilisateur(id, { administrateur: val }))
 
   const toggleActif = (id: number, val: boolean): void =>
-    setRows(r => r.map(u => u.id === id ? { ...u, compteActif: val } : u))
+    guard(updateUtilisateur(id, { compteActif: val }))
 
   const toggleShowPass = (id: number): void =>
-    setRows(r => r.map(u => u.id === id ? { ...u, _showPass: !u._showPass } : u))
+    setShowPassIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
 
   const deleteUser = (id: number): void =>
-    setRows(r => r.filter(u => u.id !== id))
+    guard(removeUtilisateur(id))
 
   const handleAdd = (): void => {
     if (!form.login.trim()) { setFormErr("Le nom d'utilisateur est requis"); return }
     if (rows.some(u => u.login.toLowerCase() === form.login.toLowerCase())) {
       setFormErr("Ce nom d'utilisateur existe déjà"); return
     }
-    const newUser: UserRow = {
-      id: Math.max(0, ...rows.map(u => u.id)) + 1,
+    addUtilisateur({
       login: form.login.trim(),
       motDePasse: form.motDePasse,
       motDePasseMasque: '•'.repeat(form.motDePasse.length),
       nom: form.nom.trim() || form.login.trim(),
       administrateur: form.administrateur,
       compteActif: form.compteActif,
-    }
-    setRows(r => [...r, newUser])
+    })
     setAddOpen(false)
     setForm(EMPTY_FORM)
     setFormErr(null)
+  }
+
+  const handlePwdSave = (): void => {
+    if (!pwdEdit) return
+    guard(updateUtilisateur(pwdEdit.id, {
+      motDePasse: pwdValue,
+      motDePasseMasque: '•'.repeat(pwdValue.length),
+    }))
+    notification.success({ message: `🔑 Mot de passe de « ${pwdEdit.login} » modifié`, placement: 'bottomRight' })
+    setPwdEdit(null)
+    setPwdValue('')
   }
 
   // ── Colonnes ─────────────────────────────────────────────────────────────────
@@ -124,7 +148,7 @@ export default function UserManagementWindow(): JSX.Element {
     {
       title: 'Mot de passe', dataIndex: 'motDePasse', width: 160,
       render: (v, row) => {
-        const visible = showAllPass || row._showPass
+        const visible = showAllPass || showPassIds.has(row.id)
         return (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{
@@ -144,6 +168,14 @@ export default function UserManagementWindow(): JSX.Element {
                 </button>
               </Tooltip>
             )}
+            <Tooltip title="Modifier le mot de passe">
+              <button
+                onClick={() => { setPwdEdit({ id: row.id, login: row.login }); setPwdValue('') }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.muted, fontSize: 12, padding: 0, display: 'flex' }}
+              >
+                <EditOutlined />
+              </button>
+            </Tooltip>
           </div>
         )
       },
@@ -322,6 +354,35 @@ export default function UserManagementWindow(): JSX.Element {
               <span style={{ fontSize: 12 }}>Compte actif</span>
             </Checkbox>
           </div>
+        </div>
+      </Modal>
+
+      {/* Modal modification mot de passe */}
+      <Modal
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: C.blue, fontSize: 13 }}>
+            <LockOutlined />
+            Mot de passe de « {pwdEdit?.login} »
+          </div>
+        }
+        open={pwdEdit !== null}
+        onOk={handlePwdSave}
+        onCancel={() => { setPwdEdit(null); setPwdValue('') }}
+        okText="Enregistrer"
+        cancelText="Annuler"
+        okButtonProps={{ style: { background: C.accent, borderColor: C.accent } }}
+        width={360}
+      >
+        <div style={{ paddingTop: 8 }}>
+          <label style={{ fontSize: 11, color: C.muted, display: 'block', marginBottom: 4 }}>NOUVEAU MOT DE PASSE</label>
+          <Input.Password
+            value={pwdValue}
+            onChange={e => setPwdValue(e.target.value)}
+            onPressEnter={handlePwdSave}
+            placeholder="Laisser vide = aucun mot de passe"
+            size="small"
+            autoFocus
+          />
         </div>
       </Modal>
 

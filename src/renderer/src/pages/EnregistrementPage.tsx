@@ -10,6 +10,7 @@ import {
 import dayjs from 'dayjs'
 import { mockDestinations } from '@mock/destinations'
 import { addVehicule, updateVehicule, nextRef, nextId, countAddedForDest } from '@mock/vehiculesStore'
+import { useMarques } from '@mock/marquesStore'
 import { CarteGrisePrintDirect, type CarteGriseData } from '@components/documents/CarteGrise'
 import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
@@ -596,7 +597,8 @@ export default function EnregistrementPage(): JSX.Element {
             <span style={LBL}>Marque - Modèle :</span>
             <HistoryInput fieldKey="marqueModele" history={marqueHist.history} value={marqueModele}
               onChange={setMarqueModele} className="light-input" style={{ flex: 1, height: 26 }} disabled={saved} />
-            <button type="button" style={QBTN} title="Aide">?</button>
+            <button type="button" style={QBTN} title="Choisir dans la liste des marques" disabled={saved}
+              onClick={() => setMarqueModalOpen(true)}>?</button>
             <span style={{ fontSize: 11, color: '#475569', whiteSpace: 'nowrap', marginLeft: 12 }}>N° de Tri :</span>
             <HistoryInput fieldKey="numTri" history={triHist.history} value={numTri} onChange={setNumTri}
               className="light-input" style={{ width: 140, height: 26 }} disabled={saved} />
@@ -606,7 +608,8 @@ export default function EnregistrementPage(): JSX.Element {
             <span style={LBL}>Transit (maison) :</span>
             <HistoryInput fieldKey="maisonTransit" history={transitHist.history} value={maisonTransit}
               onChange={setMaisonTransit} className="light-input" style={{ flex: 1, height: 26 }} disabled={saved} />
-            <button type="button" style={QBTN} title="Aide">?</button>
+            <button type="button" style={QBTN} title="Choisir dans la liste des parcs" disabled={saved}
+              onClick={() => setParcModalOpen(true)}>?</button>
             <span style={{ fontSize: 11, color: '#475569', whiteSpace: 'nowrap', marginLeft: 12 }}>Date N° Tri :</span>
             <input className="light-input" type="date" value={dateTri.format('YYYY-MM-DD')}
               onChange={e => setDateTri(dayjs(e.target.value))}
@@ -933,21 +936,13 @@ function EditionDocumentsModal({ open, reference, data, onClose }: {
   )
 }
 
-// ── Modal Marque / Modèle ─────────────────────────────────────────────────────
-const MARQUES = [
-  'ACERBI 125 PS', 'DAF XF 105', 'FIAT DUCATO', 'HONDA ACCORD',
-  'HONDA CB 125', 'ISUZU D-MAX', 'MAN TGX 18.480', 'MERCEDES ACTROS',
-  'MERCEDES SPRINTER', 'MITSUBISHI L200', 'NISSAN NAVARA', 'NISSAN PATROL',
-  'OPEL ASTRA', 'PEUGEOT 306', 'PEUGEOT BOXER', 'RENAULT MASTER',
-  'RENAULT TRAFIC', 'TOYOTA COROLLA', 'TOYOTA HILUX', 'TOYOTA HIACE',
-  'TOYOTA LAND CRUISER', 'VOLKSWAGEN GOLF', 'VOLKSWAGEN TRANSPORTER', 'YAMAHA FZ 150',
-]
-
+// ── Modal Marque / Modèle — lit le store partagé (source unique : Fichier Marques)
 function MarqueModeleModal({ open, onSelect, onCancel }: {
   open: boolean; onSelect: (v: string) => void; onCancel: () => void
 }): JSX.Element {
+  const marques = useMarques()
   const [search, setSearch] = useState('')
-  const filtered = MARQUES.filter(m => m.toLowerCase().includes(search.toLowerCase()))
+  const filtered = marques.map(m => m.nom).filter(m => m.toLowerCase().includes(search.toLowerCase()))
   return (
     <Modal
       title={<><CarOutlined style={{ color: C.blue, marginRight: 6 }} />Sélectionner Marque / Modèle</>}

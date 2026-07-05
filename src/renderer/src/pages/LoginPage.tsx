@@ -3,7 +3,7 @@ import { LockOutlined, UserOutlined, EyeOutlined, EyeInvisibleOutlined, TeamOutl
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@store/authStore'
 import { electronApi } from '@api/electron'
-import { mockUtilisateurs } from '@mock/utilisateurs'
+import { getAllUtilisateurs } from '@mock/utilisateursStore'
 
 type DragCSS = React.CSSProperties & { WebkitAppRegion?: 'drag' | 'no-drag' }
 
@@ -18,7 +18,7 @@ export default function LoginPage(): JSX.Element {
   const login    = useAuthStore(s => s.login)
   const navigate = useNavigate()
 
-  const isAdminUsername = mockUtilisateurs.some(
+  const isAdminUsername = getAllUtilisateurs().some(
     u => u.login.toLowerCase() === username.toLowerCase() && u.administrateur && u.compteActif
   )
 
@@ -36,7 +36,7 @@ export default function LoginPage(): JSX.Element {
     setError(null)
     try {
       await new Promise(r => setTimeout(r, 380))
-      const found = mockUtilisateurs.find(
+      const found = getAllUtilisateurs().find(
         u => u.login.toLowerCase() === username.toLowerCase() && u.motDePasse === password && u.compteActif
       )
       if (found) {
@@ -59,7 +59,7 @@ export default function LoginPage(): JSX.Element {
     setError(null)
     try {
       await new Promise(r => setTimeout(r, 380))
-      const found = mockUtilisateurs.find(
+      const found = getAllUtilisateurs().find(
         u => u.login.toLowerCase() === username.toLowerCase() && u.motDePasse === password && u.administrateur && u.compteActif
       )
       if (found) {
