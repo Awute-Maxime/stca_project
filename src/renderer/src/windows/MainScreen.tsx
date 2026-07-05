@@ -7,6 +7,7 @@ import NavSidebar, { type SidebarItem } from '@components/shell/NavSidebar'
 import DashboardHome from '@pages/DashboardHome'
 import AnalysePage from '@pages/AnalysePage'
 import { MontantRestituerWindow } from '@pages/AssuranceWindows'
+import ClefAdminFlow from '@pages/ClefAdminFlow'
 import { WinConfirm } from '@components/WinDialogs'
 import { WINDOW_REGISTRY } from './WINDOW_REGISTRY'
 import { useVehicules } from '@mock/vehiculesStore'
@@ -48,6 +49,7 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
   const logout = useAuthStore(s => s.logout)
   const [analyseOpen, setAnalyseOpen] = useState(false)
   const [assuranceOpen, setAssuranceOpen] = useState(false)
+  const [clefAdminOpen, setClefAdminOpen] = useState(false)
   // Confirmation de bascule entre fenêtres principales
   const [switchConfirm, setSwitchConfirm] = useState<{ msg: ReactNode; cb: () => void; nonCb: () => void } | null>(null)
 
@@ -70,6 +72,11 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
     }
     if (id === 'assurances.montantRestituer') {
       setAssuranceOpen(true)
+      return
+    }
+    if (id === 'outils.clefAdmin') {
+      // Clef d'administration — flux mot de passe + configuration en overlay (Règle 17)
+      setClefAdminOpen(true)
       return
     }
     const config = WINDOW_REGISTRY[id]
@@ -161,6 +168,7 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
 
       {analyseOpen && <AnalysePage onClose={() => setAnalyseOpen(false)} />}
       {assuranceOpen && <MontantRestituerWindow onClose={() => setAssuranceOpen(false)} />}
+      {clefAdminOpen && <ClefAdminFlow onClose={() => setClefAdminOpen(false)} />}
       {switchConfirm && (
         <WinConfirm message={switchConfirm.msg} onOui={switchConfirm.cb} onNon={switchConfirm.nonCb} />
       )}

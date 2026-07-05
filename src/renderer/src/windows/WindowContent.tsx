@@ -16,7 +16,7 @@ import ArchivagePage from '@pages/ArchivagePage'
 import PointagePage from '@pages/PointagePage'
 import ExportPage from '@pages/ExportPage'
 import { AnalyseAssuranceWindow, MontantRestituerWindow } from '@pages/AssuranceWindows'
-import { ClefAdminWindow, FixerRefWindow, PosteImmatWindow } from '@pages/OutilsSimpleWindows'
+import { FixerRefWindow, PosteImmatWindow } from '@pages/OutilsSimpleWindows'
 import {
   TypesVehiculeWindow, ParamDestinationsWindow,
   ConfigAssurancesWindow, ConfigImprimantesWindow,
@@ -74,8 +74,7 @@ export function renderWindowContent(id: string): JSX.Element {
     // ── Menu Outils ───────────────────────────────────────────────
     case 'outils.gestionUtilisateurs':
       return <UserManagementWindow />
-    case 'outils.clefAdmin':
-      return <ClefAdminWindow />
+    // case 'outils.clefAdmin' → overlay ClefAdminFlow dans MainScreen (Règle 17)
     case 'outils.archivage':
       return <ArchivagePage />
     case 'outils.fixerRef':
