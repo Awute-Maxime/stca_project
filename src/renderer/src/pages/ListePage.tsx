@@ -206,6 +206,8 @@ export default function ListePage(): JSX.Element {
             ref: v.ref, nom: v.nomAcheteur, resid: v.paysResidence, paydest: v.paysDestination,
             marque: v.marqueModele, chassis: v.chassis, type: v.typeVehicule, dest: v.destination,
             immat: v.immat, montant: v.montant, date: v.date, parc: v.parc, agent: v.agent,
+            // Fenêtre d'origine — rouverte automatiquement après validation de la modification
+            from: decodeURIComponent(location.hash.replace('#/mdi/', '')) || 'listeVehicules',
           }))
           const cfg = WINDOW_REGISTRY['enregistrement']
           if (cfg) electronApi.mdiOpen({ id: 'enregistrement', x: cfg.defaultX, y: cfg.defaultY, width: cfg.width, height: cfg.height })

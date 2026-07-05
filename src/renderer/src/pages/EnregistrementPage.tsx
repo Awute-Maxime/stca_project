@@ -267,6 +267,8 @@ export default function EnregistrementPage(): JSX.Element {
   const [savedRef,      setSavedRef]    = useState<string | null>(null)
   const [showEdition,   setShowEdition] = useState(false)
   const [editMode,      setEditMode]    = useState(false)
+  // Fenêtre d'origine (Liste/Recherche) — rouverte après validation de la modification
+  const [editFrom,      setEditFrom]    = useState<string | null>(null)
 
   // ── Charger un véhicule depuis Liste/Recherche (mode Modification) ───────
   const applyLoadedVehicle = (raw: string | null): void => {
@@ -274,6 +276,7 @@ export default function EnregistrementPage(): JSX.Element {
     localStorage.removeItem('tcit_loadEnreg')
     try {
       const v = JSON.parse(raw)
+      if (v.from) setEditFrom(v.from)
       if (v.ref) setSavedRef(v.ref)
       if (v.nom) setNomAcheteur(v.nom)
       if (v.resid) setPaysResidence(v.resid)
@@ -710,7 +713,10 @@ export default function EnregistrementPage(): JSX.Element {
               })
             }
             notification.success({ message: `✅ Véhicule ${savedRef} modifié`, placement: 'bottomRight' })
-            setEditMode(false); handleReset()
+            // Retour à la fenêtre d'origine (Liste/Recherche) : on la rouvre
+            // puis on ferme cette fenêtre de modification
+            if (editFrom) window.dispatchEvent(new CustomEvent('mdi:open-window', { detail: editFrom }))
+            window.dispatchEvent(new CustomEvent('mdi:close-self'))
           }} style={{
             height: 32, padding: '0 22px', background: '#D97706', color: '#fff',
             border: '1px solid #D97706', borderRadius: 5, fontSize: 12, fontWeight: 700,
