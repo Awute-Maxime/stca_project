@@ -13,6 +13,11 @@ const api = {
   mdiOpen: (data: { id: string; x: number; y: number; width: number; height: number }) =>
     ipcRenderer.send('mdi:open', data),
 
+  // Liste des fenêtres MDI ouvertes / fermeture ciblée (exclusivité des
+  // fenêtres secondaires principales avec confirmation côté renderer)
+  mdiListOpen: (): Promise<string[]> => ipcRenderer.invoke('mdi:list-open'),
+  mdiCloseId:  (id: string) => ipcRenderer.send('mdi:close-id', id),
+
   // Self-control for child MDI windows
   mdiSelfClose:    () => ipcRenderer.send('mdi:self:close'),
   mdiSelfMinimize: () => ipcRenderer.send('mdi:self:minimize'),

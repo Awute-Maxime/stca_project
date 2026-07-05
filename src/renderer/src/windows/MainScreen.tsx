@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@store/authStore'
 import MenuBar from '@components/shell/MenuBar'
@@ -7,6 +7,7 @@ import NavSidebar, { type SidebarItem } from '@components/shell/NavSidebar'
 import DashboardHome from '@pages/DashboardHome'
 import AnalysePage from '@pages/AnalysePage'
 import { MontantRestituerWindow } from '@pages/AssuranceWindows'
+import { WinConfirm } from '@components/WinDialogs'
 import { WINDOW_REGISTRY } from './WINDOW_REGISTRY'
 import { useVehicules } from '@mock/vehiculesStore'
 import { electronApi } from '@api/electron'
@@ -16,6 +17,30 @@ interface MainScreenProps {
   utilisateurLogin: string
 }
 
+// Fenêtres secondaires PRINCIPALES (une seule à la fois) — les fenêtres
+// liées (aperçus avant impression) ne sont pas concernées
+const estFenetrePrincipale = (id: string): boolean => !id.startsWith('apercu.')
+
+// Son d'alerte (carillon bref à deux notes — WebAudio, aucun fichier requis)
+function sonAlerte(): void {
+  try {
+    const ctx = new AudioContext()
+    const jouer = (freq: number, t0: number): void => {
+      const o = ctx.createOscillator()
+      const g = ctx.createGain()
+      o.connect(g); g.connect(ctx.destination)
+      o.type = 'sine'; o.frequency.value = freq
+      g.gain.setValueAtTime(0.0001, ctx.currentTime + t0)
+      g.gain.exponentialRampToValueAtTime(0.16, ctx.currentTime + t0 + 0.02)
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + t0 + 0.30)
+      o.start(ctx.currentTime + t0); o.stop(ctx.currentTime + t0 + 0.32)
+    }
+    jouer(880, 0)
+    jouer(660, 0.13)
+    setTimeout(() => ctx.close(), 700)
+  } catch { /* audio indisponible — silencieux */ }
+}
+
 export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.Element {
   const vehicules = useVehicules() // store partagé — synchro auto (statusbar)
   const location = useLocation()
@@ -23,6 +48,20 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
   const logout = useAuthStore(s => s.logout)
   const [analyseOpen, setAnalyseOpen] = useState(false)
   const [assuranceOpen, setAssuranceOpen] = useState(false)
+  // Confirmation de bascule entre fenêtres principales
+  const [switchConfirm, setSwitchConfirm] = useState<{ msg: ReactNode; cb: () => void } | null>(null)
+
+  const doOpen = (id: string): void => {
+    const config = WINDOW_REGISTRY[id]
+    if (!config) return
+    electronApi.mdiOpen({
+      id,
+      x: config.defaultX,
+      y: config.defaultY,
+      width:  config.width,
+      height: config.height,
+    })
+  }
 
   const openById = (id: string): void => {
     if (id === 'analyse' || id === 'analyse.stca') {
@@ -35,13 +74,33 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
     }
     const config = WINDOW_REGISTRY[id]
     if (!config) return
-    electronApi.mdiOpen({
-      id,
-      x: config.defaultX,
-      y: config.defaultY,
-      width:  config.width,
-      height: config.height,
-    })
+
+    // Une seule fenêtre secondaire PRINCIPALE à la fois : si une autre est
+    // déjà ouverte, on le signale (son + confirmation) avant de la fermer
+    if (estFenetrePrincipale(id)) {
+      void electronApi.mdiListOpen().then(ouvertes => {
+        const autres = ouvertes.filter(wid => estFenetrePrincipale(wid) && wid !== id)
+        if (autres.length === 0) { doOpen(id); return }
+        const noms = autres.map(wid => WINDOW_REGISTRY[wid]?.title ?? wid).join(' », « ')
+        sonAlerte()
+        setSwitchConfirm({
+          msg: (
+            <>
+              La fenêtre « <strong>{noms}</strong> » est actuellement ouverte.
+              <br />Elle sera fermée pour ouvrir « <strong>{config.title}</strong> ».
+              <br />Voulez-vous continuer ?
+            </>
+          ),
+          cb: () => {
+            autres.forEach(wid => electronApi.mdiCloseId(wid))
+            doOpen(id)
+            setSwitchConfirm(null)
+          },
+        })
+      })
+      return
+    }
+    doOpen(id)
   }
 
   useEffect(() => {
@@ -96,6 +155,9 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
 
       {analyseOpen && <AnalysePage onClose={() => setAnalyseOpen(false)} />}
       {assuranceOpen && <MontantRestituerWindow onClose={() => setAssuranceOpen(false)} />}
+      {switchConfirm && (
+        <WinConfirm message={switchConfirm.msg} onOui={switchConfirm.cb} onNon={() => setSwitchConfirm(null)} />
+      )}
     </div>
   )
 }

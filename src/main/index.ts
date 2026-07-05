@@ -74,6 +74,17 @@ function setupMdiIPC(): void {
     }
   })
 
+  // Liste des fenêtres MDI ouvertes (pour l'exclusivité côté renderer)
+  ipcMain.handle('mdi:list-open', () =>
+    [...mdiWindows.entries()].filter(([, w]) => !w.isDestroyed()).map(([id]) => id)
+  )
+
+  // Fermeture ciblée d'une fenêtre MDI par son id
+  ipcMain.on('mdi:close-id', (_, id: string) => {
+    const w = mdiWindows.get(id)
+    if (w && !w.isDestroyed()) w.close()
+  })
+
   // Child window controls itself via these IPC messages
   ipcMain.on('mdi:self:close', (e) => {
     BrowserWindow.fromWebContents(e.sender)?.close()
