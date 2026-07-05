@@ -49,7 +49,7 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
   const [analyseOpen, setAnalyseOpen] = useState(false)
   const [assuranceOpen, setAssuranceOpen] = useState(false)
   // Confirmation de bascule entre fenêtres principales
-  const [switchConfirm, setSwitchConfirm] = useState<{ msg: ReactNode; cb: () => void } | null>(null)
+  const [switchConfirm, setSwitchConfirm] = useState<{ msg: ReactNode; cb: () => void; nonCb: () => void } | null>(null)
 
   const doOpen = (id: string): void => {
     const config = WINDOW_REGISTRY[id]
@@ -94,6 +94,12 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
           cb: () => {
             autres.forEach(wid => electronApi.mdiCloseId(wid))
             doOpen(id)
+            setSwitchConfirm(null)
+          },
+          nonCb: () => {
+            // Annulation : on ramène la fenêtre restée ouverte au premier
+            // plan (mdiOpen sur un id déjà ouvert = restore + focus)
+            autres.forEach(wid => doOpen(wid))
             setSwitchConfirm(null)
           },
         })
@@ -156,7 +162,7 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
       {analyseOpen && <AnalysePage onClose={() => setAnalyseOpen(false)} />}
       {assuranceOpen && <MontantRestituerWindow onClose={() => setAssuranceOpen(false)} />}
       {switchConfirm && (
-        <WinConfirm message={switchConfirm.msg} onOui={switchConfirm.cb} onNon={() => setSwitchConfirm(null)} />
+        <WinConfirm message={switchConfirm.msg} onOui={switchConfirm.cb} onNon={switchConfirm.nonCb} />
       )}
     </div>
   )
