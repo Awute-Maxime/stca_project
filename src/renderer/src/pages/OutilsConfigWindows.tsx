@@ -19,17 +19,18 @@ const C = {
   danger: '#DC2626',
 }
 
+// Sub-header beige (modèle Enregistrement — pas de 2e bandeau bleu sous la barre de titre)
 function PageHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle?: string }): JSX.Element {
   return (
     <div style={{
-      background: `linear-gradient(135deg, ${C.blue} 0%, ${C.accent} 100%)`,
-      padding: '8px 12px', marginBottom: 12, borderRadius: 6,
+      background: '#F5F3EE', borderBottom: '2px solid #E2D9C8',
+      padding: '9px 14px', marginBottom: 12, borderRadius: 6,
       display: 'flex', alignItems: 'center', gap: 10,
     }}>
-      <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: 16 }}>{icon}</span>
+      <span style={{ color: '#1B3A6B', fontSize: 16 }}>{icon}</span>
       <div>
-        <div style={{ color: '#fff', fontSize: 10, fontWeight: 700, letterSpacing: 0.8 }}>{title}</div>
-        {subtitle && <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 9, marginTop: 1 }}>{subtitle}</div>}
+        <div style={{ color: '#1B3A6B', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase' }}>{title}</div>
+        {subtitle && <div style={{ color: '#64748B', fontSize: 9, marginTop: 1 }}>{subtitle}</div>}
       </div>
     </div>
   )

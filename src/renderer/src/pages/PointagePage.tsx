@@ -137,19 +137,19 @@ export default function PointagePage(): JSX.Element {
 
   return (
     <div style={{ animation: 'formEnter 0.3s ease' }}>
-      {/* Header gradient */}
+      {/* Header — sub-header beige (modèle Enregistrement, pas de 2e bandeau bleu) */}
       <div style={{
-        background: `linear-gradient(135deg, ${C.blue} 0%, ${C.accent} 100%)`,
-        padding: '8px 12px', marginBottom: 10, borderRadius: 6,
+        background: '#F5F3EE', borderBottom: '2px solid #E2D9C8',
+        padding: '9px 14px', marginBottom: 10, borderRadius: 6,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <CheckCircleOutlined style={{ color: 'rgba(255,255,255,0.85)', fontSize: 15 }} />
-          <span style={{ color: '#fff', fontSize: 10, fontWeight: 700, letterSpacing: 0.8 }}>
-            POINTAGE / DÉPOINTAGE — SORTIE DES VÉHICULES
+          <CheckCircleOutlined style={{ color: '#1B3A6B', fontSize: 15 }} />
+          <span style={{ color: '#1B3A6B', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase' }}>
+            Pointage / Dépointage — Sortie des Véhicules
           </span>
         </div>
-        <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 10 }}>
+        <span style={{ color: '#64748B', fontSize: 10 }}>
           {dayjs().format('DD/MM/YYYY')}
         </span>
       </div>

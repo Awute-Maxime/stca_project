@@ -79,15 +79,15 @@ export default function ExportPage(): JSX.Element {
 
   return (
     <div style={{ animation: 'formEnter 0.3s ease' }}>
-      {/* Header */}
+      {/* Header — sub-header beige (modèle Enregistrement, pas de 2e bandeau bleu) */}
       <div style={{
-        background: `linear-gradient(135deg, ${C.blue} 0%, ${C.accent} 100%)`,
-        padding: '8px 12px', marginBottom: 12, borderRadius: 6,
+        background: '#F5F3EE', borderBottom: '2px solid #E2D9C8',
+        padding: '9px 14px', marginBottom: 12, borderRadius: 6,
         display: 'flex', alignItems: 'center', gap: 8,
       }}>
-        <DownloadOutlined style={{ color: 'rgba(255,255,255,0.85)', fontSize: 15 }} />
-        <span style={{ color: '#fff', fontSize: 10, fontWeight: 700, letterSpacing: 0.8 }}>
-          EXPORTATION DES ENREGISTREMENTS DE VÉHICULES
+        <DownloadOutlined style={{ color: '#1B3A6B', fontSize: 15 }} />
+        <span style={{ color: '#1B3A6B', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase' }}>
+          Exportation des Enregistrements de Véhicules
         </span>
       </div>
 
