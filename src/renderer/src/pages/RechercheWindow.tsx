@@ -1,7 +1,7 @@
 import { useState, useMemo, type ReactNode } from 'react'
 import { notification } from 'antd'
 import dayjs from 'dayjs'
-import { useVehicules } from '@mock/vehiculesStore'
+import { useVehicules, removeVehicule } from '@mock/vehiculesStore'
 import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 import { WinAlert, WinConfirm, EditionDocsModal } from '@components/WinDialogs'
@@ -211,6 +211,7 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
         <button onClick={() => {
           if (!checkSel()) return
           setConfirm({ msg: 'Voulez-vous supprimer cet enregistrement ?', cb: () => {
+            if (selectedRef) removeVehicule(selectedRef) // suppression réelle — synchro toutes fenêtres
             setSelectedRef(null); setSearched(true); setConfirm(null)
             notification.success({ message: '✅ Enregistrement supprimé', placement: 'bottomRight' })
           }})

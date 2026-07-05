@@ -10,7 +10,9 @@ import { mockVehicules, type MockVehicule } from './vehicules'
 // local (la fenêtre émettrice ne reçoit pas son propre event storage).
 // ─────────────────────────────────────────────────────────────────────────────
 
-const LS_KEY = 'tcit_vehicules_added'
+const LS_KEY     = 'tcit_vehicules_added'
+const LS_UPDATED = 'tcit_vehicules_updated' // Record<ref, MockVehicule> — surcharges (modifs, y compris sur les mocks)
+const LS_REMOVED = 'tcit_vehicules_removed' // refs supprimées (mocks inclus)
 const LOCAL_EVENT = 'tcit:vehicules-changed'
 
 function loadAdded(): MockVehicule[] {
@@ -21,9 +23,37 @@ function loadAdded(): MockVehicule[] {
   }
 }
 
-/** Tous les véhicules : ajouts récents d'abord (comme unshift du prototype), puis les mocks. */
+function loadUpdated(): Record<string, MockVehicule> {
+  try {
+    return JSON.parse(localStorage.getItem(LS_UPDATED) ?? '{}') as Record<string, MockVehicule>
+  } catch {
+    return {}
+  }
+}
+
+function loadRemoved(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(LS_REMOVED) ?? '[]') as string[]
+  } catch {
+    return []
+  }
+}
+
+function notifyChanged(): void {
+  window.dispatchEvent(new CustomEvent(LOCAL_EVENT))
+}
+
+/**
+ * Tous les véhicules : ajouts récents d'abord (comme unshift du prototype),
+ * puis les mocks — avec les modifications (surcharges par réf) appliquées et
+ * les enregistrements supprimés retirés.
+ */
 export function getAllVehicules(): MockVehicule[] {
+  const updated = loadUpdated()
+  const removed = loadRemoved()
   return [...loadAdded(), ...mockVehicules]
+    .filter(v => !removed.includes(v.ref))
+    .map(v => updated[v.ref] ?? v)
 }
 
 /** Ajoute un véhicule et notifie toutes les fenêtres. */
@@ -31,7 +61,41 @@ export function addVehicule(v: MockVehicule): void {
   const added = loadAdded()
   added.unshift(v)
   localStorage.setItem(LS_KEY, JSON.stringify(added))
-  window.dispatchEvent(new CustomEvent(LOCAL_EVENT))
+  notifyChanged()
+}
+
+/** Modifie un véhicule (par réf) et notifie toutes les fenêtres. */
+export function updateVehicule(ref: string, changes: Partial<MockVehicule>): void {
+  const current = getAllVehicules().find(v => v.ref === ref)
+  if (!current) return
+  const updated = loadUpdated()
+  updated[ref] = { ...current, ...changes, ref } // la réf reste la clé stable
+  localStorage.setItem(LS_UPDATED, JSON.stringify(updated))
+  notifyChanged()
+}
+
+/** Supprime un véhicule (par réf) et notifie toutes les fenêtres. */
+export function removeVehicule(ref: string): void {
+  // Ajout récent → on le retire directement de la liste des ajouts
+  const added = loadAdded()
+  const rest = added.filter(v => v.ref !== ref)
+  if (rest.length !== added.length) {
+    localStorage.setItem(LS_KEY, JSON.stringify(rest))
+  } else {
+    // Mock de base → on marque la réf comme supprimée
+    const removed = loadRemoved()
+    if (!removed.includes(ref)) {
+      removed.push(ref)
+      localStorage.setItem(LS_REMOVED, JSON.stringify(removed))
+    }
+  }
+  // Purge la surcharge éventuelle
+  const updated = loadUpdated()
+  if (updated[ref]) {
+    delete updated[ref]
+    localStorage.setItem(LS_UPDATED, JSON.stringify(updated))
+  }
+  notifyChanged()
 }
 
 /** Prochaine référence (max + 1, format 6 chiffres — cohérent avec les mocks). */
@@ -61,7 +125,7 @@ export function useVehicules(): MockVehicule[] {
   useEffect(() => {
     const refresh = (): void => setList(getAllVehicules())
     const onStorage = (e: StorageEvent): void => {
-      if (e.key === LS_KEY) refresh()
+      if (e.key === LS_KEY || e.key === LS_UPDATED || e.key === LS_REMOVED) refresh()
     }
     window.addEventListener('storage', onStorage)
     window.addEventListener(LOCAL_EVENT, refresh)

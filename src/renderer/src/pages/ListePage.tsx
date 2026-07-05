@@ -1,7 +1,7 @@
 import { useState, useMemo, type ReactNode } from 'react'
 import { notification } from 'antd'
 import dayjs from 'dayjs'
-import { useVehicules } from '@mock/vehiculesStore'
+import { useVehicules, updateVehicule, removeVehicule } from '@mock/vehiculesStore'
 import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 import { WinAlert, WinConfirm, EditionDocsModal } from '@components/WinDialogs'
@@ -235,6 +235,7 @@ export default function ListePage(): JSX.Element {
         <button onClick={() => {
           if (!checkSel()) return
           setConfirm({ msg: 'Voulez-vous supprimer cet enregistrement ?', cb: () => {
+            if (selectedRef) removeVehicule(selectedRef) // suppression réelle — synchro toutes fenêtres
             notification.success({ message: '✅ Enregistrement supprimé', placement: 'bottomRight' })
             setSelectedRef(null); setConfirm(null)
           }})
@@ -281,7 +282,7 @@ export default function ListePage(): JSX.Element {
           if (!v.recyclerPlaque) { notification.info({ message: "Ce véhicule n'est pas encore pointé comme sorti.", placement: 'bottomRight' }); return }
           setConfirm({
             msg: <>Décocher le pointage de sortie de ce véhicule ?<br /><small style={{ color: '#64748B' }}>Il sera considéré comme non sorti.</small></>,
-            cb: () => { v.recyclerPlaque = false; setSelectedRef(null); setConfirm(null); notification.success({ message: '✅ Véhicule remis en NON Sortie', placement: 'bottomRight' }) }
+            cb: () => { updateVehicule(v.ref, { recyclerPlaque: false }); setSelectedRef(null); setConfirm(null); notification.success({ message: '✅ Véhicule remis en NON Sortie', placement: 'bottomRight' }) }
           })
         }} style={{
           width: '100%', padding: '5px 6px', fontSize: 11, borderRadius: 4, cursor: 'pointer',

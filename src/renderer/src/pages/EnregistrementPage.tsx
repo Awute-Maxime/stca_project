@@ -9,7 +9,7 @@ import {
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { mockDestinations } from '@mock/destinations'
-import { addVehicule, nextRef, nextId, countAddedForDest } from '@mock/vehiculesStore'
+import { addVehicule, updateVehicule, nextRef, nextId, countAddedForDest } from '@mock/vehiculesStore'
 import { CarteGrisePrintDirect, type CarteGriseData } from '@components/documents/CarteGrise'
 import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
@@ -693,6 +693,19 @@ export default function EnregistrementPage(): JSX.Element {
             border: '1px solid #DC2626', borderRadius: 5, fontSize: 12, cursor: 'pointer',
           }}>✕ Fermer</button>
           <button onClick={() => {
+            // Sauvegarde réelle : surcharge par réf dans le store partagé →
+            // Liste, Dashboard, Recherche, etc. se synchronisent automatiquement
+            if (savedRef) {
+              updateVehicule(savedRef, {
+                nomAcheteur, paysResidence, paysDestination,
+                marqueModele, chassis,
+                typeVehicule: typeVehicule ?? '',
+                destination: destination ?? '',
+                immat: immatGenere ?? '',
+                montant: montant ?? MONTANT_FIXE,
+                parc: maisonTransit,
+              })
+            }
             notification.success({ message: `✅ Véhicule ${savedRef} modifié`, placement: 'bottomRight' })
             setEditMode(false); handleReset()
           }} style={{

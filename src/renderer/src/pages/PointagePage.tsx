@@ -3,7 +3,8 @@ import { Table, Input, Select, DatePicker, Button, Tag, TimePicker, Tooltip } fr
 import { SearchOutlined, ReloadOutlined, CheckCircleOutlined, ClockCircleOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
-import { mockVehicules, type MockVehicule } from '@mock/vehicules'
+import { type MockVehicule } from '@mock/vehicules'
+import { useVehicules, updateVehicule } from '@mock/vehiculesStore'
 import { mockDestinations } from '@mock/destinations'
 
 const C = {
@@ -28,47 +29,41 @@ function destTxt(bg: string): string {
 }
 const destLabel = (code: string): string => mockDestinations.find(d => d.code === code)?.nom ?? code
 
-interface PointageState {
-  pointe: boolean
-  heureSortie: string | null
-}
-
-// Prépointer les 8 premiers
-const INITIAL_POINTAGE: Record<number, PointageState> = Object.fromEntries(
-  mockVehicules.slice(0, 8).map(v => [v.id, { pointe: true, heureSortie: '08:30' }])
-)
-
 export default function PointagePage(): JSX.Element {
+  const vehicules = useVehicules() // store partagé — pointage = recyclerPlaque (synchro toutes fenêtres)
   const [search,     setSearch]     = useState('')
   const [destFilter, setDestFilter] = useState<string | null>(null)
   const [dateFilter, setDateFilter] = useState<dayjs.Dayjs | null>(null)
-  const [pointage,   setPointage]   = useState<Record<number, PointageState>>(INITIAL_POINTAGE)
+  // Heures de sortie affichées (l'état "sorti" lui-même vit dans le store)
+  const [heures, setHeures] = useState<Record<number, string | null>>({})
 
-  const point = (id: number): PointageState => pointage[id] ?? { pointe: false, heureSortie: null }
+  const point = (row: MockVehicule): { pointe: boolean; heureSortie: string | null } => ({
+    pointe: row.recyclerPlaque,
+    heureSortie: row.recyclerPlaque ? (heures[row.id] ?? '08:30') : null,
+  })
 
   const filtered = useMemo(() => {
-    return mockVehicules.filter(v => {
+    return vehicules.filter(v => {
       if (search && !v.immat.toLowerCase().includes(search.toLowerCase()) &&
           !v.nomAcheteur.toLowerCase().includes(search.toLowerCase())) return false
       if (destFilter && v.destination !== destFilter) return false
       if (dateFilter && !dayjs(v.date).isSame(dateFilter, 'day')) return false
       return true
     })
-  }, [search, destFilter, dateFilter])
+  }, [vehicules, search, destFilter, dateFilter])
 
-  const nbPointe   = filtered.filter(v => point(v.id).pointe).length
+  const nbPointe   = filtered.filter(v => point(v).pointe).length
   const nbRestant  = filtered.length - nbPointe
   const tauxSortie = filtered.length > 0 ? Math.round((nbPointe / filtered.length) * 100) : 0
 
-  const handlePointer = (id: number): void => {
-    setPointage(prev => ({
-      ...prev,
-      [id]: { pointe: !prev[id]?.pointe, heureSortie: !prev[id]?.pointe ? dayjs().format('HH:mm') : null },
-    }))
+  const handlePointer = (row: MockVehicule): void => {
+    const sortant = !row.recyclerPlaque
+    updateVehicule(row.ref, { recyclerPlaque: sortant }) // écriture réelle — synchro toutes fenêtres
+    setHeures(prev => ({ ...prev, [row.id]: sortant ? dayjs().format('HH:mm') : null }))
   }
 
   const handleHeure = (id: number, heure: string | null): void => {
-    setPointage(prev => ({ ...prev, [id]: { ...prev[id] ?? { pointe: false }, heureSortie: heure } }))
+    setHeures(prev => ({ ...prev, [id]: heure }))
   }
 
   const reset = (): void => { setSearch(''); setDestFilter(null); setDateFilter(null) }
@@ -98,7 +93,7 @@ export default function PointagePage(): JSX.Element {
     {
       title: 'Heure sortie', width: 110, align: 'center' as const,
       render: (_, row) => {
-        const p = point(row.id)
+        const p = point(row)
         return p.pointe ? (
           <TimePicker
             size="small"
@@ -116,13 +111,13 @@ export default function PointagePage(): JSX.Element {
     {
       title: 'Statut / Action', width: 110, align: 'center' as const,
       render: (_, row) => {
-        const p = point(row.id)
+        const p = point(row)
         return p.pointe ? (
           <Tooltip title="Dépointer">
             <Button size="small"
               style={{ background: '#F0FDF4', borderColor: '#86EFAC', color: C.green, fontWeight: 600, fontSize: 10 }}
               icon={<CheckCircleOutlined />}
-              onClick={() => handlePointer(row.id)}>
+              onClick={() => handlePointer(row)}>
               Pointé
             </Button>
           </Tooltip>
@@ -131,7 +126,7 @@ export default function PointagePage(): JSX.Element {
             <Button size="small" type="primary"
               style={{ background: C.accent, borderColor: C.accent, fontSize: 10 }}
               icon={<ClockCircleOutlined />}
-              onClick={() => handlePointer(row.id)}>
+              onClick={() => handlePointer(row)}>
               Pointer
             </Button>
           </Tooltip>
@@ -195,7 +190,7 @@ export default function PointagePage(): JSX.Element {
         columns={columns} dataSource={filtered} rowKey="id" size="small"
         pagination={{ pageSize: 12, showSizeChanger: false }}
         style={{ border: `1px solid ${C.border}`, borderRadius: 6 }}
-        rowClassName={(row) => point(row.id).pointe ? '' : 'table-row-alt'}
+        rowClassName={(row) => point(row).pointe ? '' : 'table-row-alt'}
       />
     </div>
   )
