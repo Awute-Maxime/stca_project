@@ -292,6 +292,8 @@ export default function EnregistrementPage(): JSX.Element {
       if (v.montant) setMontant(v.montant)
       if (v.immat) setImmatGenere(v.immat)
       if (v.date) setDate(dayjs(v.date))
+      if (v.numTri) setNumTri(v.numTri)
+      if (v.dateTri) setDateTri(dayjs(v.dateTri))
       setEditMode(true)
     } catch { /* ignore */ }
   }
@@ -382,6 +384,8 @@ export default function EnregistrementPage(): JSX.Element {
       parc: maisonTransit, // colonne « Sortant du parc » = maison de transit (cf. STCA II réel)
       agent: 'awute',
       recyclerPlaque: false, // nouveau véhicule = pas encore sorti
+      numTri,
+      dateTri: dateTri.format('YYYY-MM-DD'),
     })
     setSavedRef(ref)
 
@@ -710,6 +714,8 @@ export default function EnregistrementPage(): JSX.Element {
                 immat: immatGenere ?? '',
                 montant: montant ?? MONTANT_FIXE,
                 parc: maisonTransit,
+                numTri,
+                dateTri: dateTri.format('YYYY-MM-DD'),
               })
             }
             notification.success({ message: `✅ Véhicule ${savedRef} modifié`, placement: 'bottomRight' })

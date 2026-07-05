@@ -141,7 +141,7 @@ export default function ListePrintPreview(): JSX.Element {
                     <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0', fontWeight: 700 }}>{v.immat}</td>
                     <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0' }}>{v.marqueModele}</td>
                     <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0', fontFamily: "'Courier New', monospace", fontSize: 9.5 }}>{v.chassis}</td>
-                    <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0', textAlign: 'center' }}>{String(10000 + v.id).padStart(6, '0')}</td>
+                    <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0', textAlign: 'center' }}>{v.numTri || String(10000 + v.id).padStart(6, '0')}</td>
                     <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0', fontSize: 9.5 }}>{v.parc || ''}</td>
                     <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0', textAlign: 'center' }}>{dayjs(v.date).format('DD/MM/YYYY')}</td>
                     <td style={{ padding: '4px 6px', border: '1px solid #E2E8F0', textAlign: 'center', color: '#94A3B8' }}>

@@ -146,7 +146,7 @@ export default function MontantRestituerPrintPreview(): JSX.Element {
                         <td style={{ border: '1px solid #E2E8F0', padding: '2px 4px', fontFamily: 'monospace', fontSize: 8 }}>{v.chassis}</td>
                         <td style={{ border: '1px solid #E2E8F0', padding: '2px 4px' }}>{v.immat}</td>
                         <td style={{ border: '1px solid #E2E8F0', padding: '2px 4px', textAlign: 'center' }}>{v.destination}</td>
-                        <td style={{ border: '1px solid #E2E8F0', padding: '2px 4px', textAlign: 'center' }}>{String(10000 + v.id).padStart(6, '0')}</td>
+                        <td style={{ border: '1px solid #E2E8F0', padding: '2px 4px', textAlign: 'center' }}>{v.numTri || String(10000 + v.id).padStart(6, '0')}</td>
                         <td style={{ border: '1px solid #E2E8F0', padding: '2px 4px' }}>{dayjs(v.date).format('DD/MM/YYYY')}</td>
                         <td style={{ border: '1px solid #E2E8F0', padding: '2px 4px', textAlign: 'right' }}>{Math.round(v.montant * 0.78).toLocaleString('fr-FR')}</td>
                         <td style={{ border: '1px solid #E2E8F0', padding: '2px 4px' }}>{v.recyclerPlaque ? dayjs(v.date).add(1, 'day').format('DD/MM/YYYY') : ''}</td>

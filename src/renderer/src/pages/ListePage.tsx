@@ -151,11 +151,11 @@ export default function ListePage(): JSX.Element {
                     <td style={{ ...tdStyle, color: '#1E293B', borderBottomColor: bbc, textTransform: 'uppercase' }}>{v.marqueModele}</td>
                     <td style={{ ...tdStyle, fontFamily: "'Courier New', monospace", fontSize: 10, color: '#2563EB', borderBottomColor: bbc }}>{v.chassis}</td>
                     <td style={{ ...tdStyle, textAlign: 'center', color: '#7C3AED', fontWeight: 600, borderBottomColor: bbc }}>
-                      {String(10000 + v.id).padStart(6, '0')}
+                      {v.numTri || String(10000 + v.id).padStart(6, '0')}
                     </td>
                     <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>{v.parc || '—'}</td>
                     <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>{dayjs(v.date).format('DD/MM/YYYY')}</td>
-                    <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>{dayjs(v.date).format('DD/MM/YYYY')}</td>
+                    <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>{dayjs(v.dateTri || v.date).format('DD/MM/YYYY')}</td>
                     <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>{v.agent}</td>
                     <td style={{ ...tdStyle, textAlign: 'center', borderBottomColor: bbc }}>
                       {v.recyclerPlaque
@@ -206,6 +206,7 @@ export default function ListePage(): JSX.Element {
             ref: v.ref, nom: v.nomAcheteur, resid: v.paysResidence, paydest: v.paysDestination,
             marque: v.marqueModele, chassis: v.chassis, type: v.typeVehicule, dest: v.destination,
             immat: v.immat, montant: v.montant, date: v.date, parc: v.parc, agent: v.agent,
+            numTri: v.numTri, dateTri: v.dateTri,
             // Fenêtre d'origine — rouverte automatiquement après validation de la modification
             from: decodeURIComponent(location.hash.replace('#/mdi/', '')) || 'listeVehicules',
           }))

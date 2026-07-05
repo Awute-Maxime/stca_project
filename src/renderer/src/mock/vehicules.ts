@@ -16,6 +16,8 @@ export interface MockVehicule {
   parc: string
   agent: string
   recyclerPlaque: boolean
+  numTri: string
+  dateTri: string // YYYY-MM-DD
 }
 
 const AGENTS = ['awute', 'aminou', 'akilou', 'jeanlin', 'celestine', 'victor']
@@ -92,5 +94,8 @@ export const mockVehicules: MockVehicule[] = Array.from({ length: 52 }, (_, i) =
     parc: PARCS[i % PARCS.length],
     agent: AGENTS[i % AGENTS.length],
     recyclerPlaque: i % 7 === 0,
+    // N° de Tri : même valeur que l'ancien dérivé affiché (10000 + id)
+    numTri: String(10000 + i + 1).padStart(6, '0'),
+    dateTri: dayjs().subtract(daysAgo, 'day').format('YYYY-MM-DD'),
   }
 })

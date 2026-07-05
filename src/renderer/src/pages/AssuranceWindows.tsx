@@ -390,7 +390,7 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
                     <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 3, color: destTxt(bg), background: bg }}>{v.destination}</span>
                   </td>
                   <td style={{ ...tdStyle, textAlign: 'center', color: '#7C3AED', fontWeight: 600 }}>
-                    {String(10000 + v.id).padStart(6, '0')}
+                    {v.numTri || String(10000 + v.id).padStart(6, '0')}
                   </td>
                   <td style={{ ...tdStyle, color: '#475569' }}>{dayjs(v.date).format('DD/MM/YYYY')}</td>
                   <td style={{ ...tdStyle, textAlign: 'right', color: '#DC2626', fontWeight: 700 }}>
