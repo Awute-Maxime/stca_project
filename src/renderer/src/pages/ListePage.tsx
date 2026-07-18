@@ -7,7 +7,8 @@ import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 import { WinAlert, WinConfirm, EditionDocsModal } from '@components/WinDialogs'
 import { CarteGrisePrintDirect, type CarteGriseData } from '@components/documents/CarteGrise'
 import { FacturePrintDirect, type FactureData } from '@components/documents/Facture'
-import { docsPourChoix, cgDataDe, factureDataDe, ouvrirApercuDoc, type DocImp } from '@components/documents/editionHelpers'
+import { FicheIdPrintDirect, type FicheIdData } from '@components/documents/FicheId'
+import { docsPourChoix, cgDataDe, factureDataDe, ficheIdDataDe, ouvrirApercuDoc, type DocImp } from '@components/documents/editionHelpers'
 
 const DEST_COLORS: Record<string, string> = {
   AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
@@ -39,6 +40,7 @@ export default function ListePage(): JSX.Element {
   const [directQueue, setDirectQueue] = useState<DocImp[]>([])
   const [directCg, setDirectCg] = useState<CarteGriseData | null>(null)
   const [directFacture, setDirectFacture] = useState<FactureData | null>(null)
+  const [directFicheId, setDirectFicheId] = useState<FicheIdData | null>(null)
 
   const avancerDirect = (): void => {
     setDirectQueue(q => {
@@ -350,6 +352,7 @@ export default function ListePage(): JSX.Element {
                 // Impression directe séquentielle sans aperçu
                 setDirectCg(docs.includes('cg') ? cgDataDe(v) : null)
                 setDirectFacture(docs.includes('facture') ? factureDataDe(v) : null)
+                setDirectFicheId(docs.includes('ficheId') ? ficheIdDataDe(v) : null)
                 setDirectQueue(docs)
               }
               return
@@ -357,12 +360,15 @@ export default function ListePage(): JSX.Element {
             notification.info({ message: `🖨 ${prev ? 'Prévisualisation' : 'Impression'} : ${doc}`, placement: 'bottomRight' })
           }} />
       )}
-      {/* Impression directe séquentielle (facture puis carte grise) */}
+      {/* Impression directe séquentielle (facture, carte grise, puis fiche ID) */}
       {directQueue[0] === 'facture' && directFacture && (
         <FacturePrintDirect data={directFacture} onDone={avancerDirect} />
       )}
       {directQueue[0] === 'cg' && directCg && (
         <CarteGrisePrintDirect data={directCg} onDone={avancerDirect} />
+      )}
+      {directQueue[0] === 'ficheId' && directFicheId && (
+        <FicheIdPrintDirect data={directFicheId} onDone={avancerDirect} />
       )}
 
     </div>

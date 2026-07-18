@@ -13,6 +13,7 @@ import { addVehicule, updateVehicule, nextRef, nextId, countAddedForDest } from 
 import { useMarques } from '@mock/marquesStore'
 import { CarteGrisePrintDirect, type CarteGriseData } from '@components/documents/CarteGrise'
 import { FacturePrintDirect, type FactureData, MONTANT_ASSURANCE_FACTURE } from '@components/documents/Facture'
+import { FicheIdPrintDirect, type FicheIdData } from '@components/documents/FicheId'
 import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 
@@ -761,6 +762,17 @@ export default function EnregistrementPage(): JSX.Element {
           montantStca: montant ?? MONTANT_FIXE,
           montantAssurance: MONTANT_ASSURANCE_FACTURE,
         }}
+        ficheId={{
+          nom: nomAcheteur,
+          pays: paysDestination,
+          chassis,
+          marque: marqueModele,
+          parc: maisonTransit,
+          destCode: destination ?? '',
+          immat: immatGenere ?? '',
+          numTri,
+          dateTri: dateTri.format('DD/MM/YYYY'),
+        }}
         onClose={() => setShowEdition(false)}
       />
 
@@ -796,22 +808,25 @@ const EDITION_OPTIONS = [
 // Indices des options d'édition qui incluent chaque document
 const OPTIONS_AVEC_CG      = [0, 1, 2, 5]
 const OPTIONS_AVEC_FACTURE = [0, 1, 4]
+const OPTIONS_AVEC_FICHEID = [0, 2, 6]
 
-type DocImp = 'facture' | 'cg'
+type DocImp = 'facture' | 'cg' | 'ficheId'
 
-// Documents imprimables pour un choix d'édition (facture d'abord, comme le vrai STCA)
+// Documents imprimables pour un choix d'édition (facture, carte grise, puis fiche ID)
 function docsPourSelection(sel: number): DocImp[] {
   const docs: DocImp[] = []
   if (OPTIONS_AVEC_FACTURE.includes(sel)) docs.push('facture')
   if (OPTIONS_AVEC_CG.includes(sel)) docs.push('cg')
+  if (OPTIONS_AVEC_FICHEID.includes(sel)) docs.push('ficheId')
   return docs
 }
 
-function EditionDocumentsModal({ open, reference, data, facture, onClose }: {
+function EditionDocumentsModal({ open, reference, data, facture, ficheId, onClose }: {
   open: boolean
   reference: string | null
   data: CarteGriseData
   facture: FactureData
+  ficheId: FicheIdData
   onClose: () => void
 }): JSX.Element {
   const [selected,      setSelected]     = useState(0)
@@ -834,9 +849,10 @@ function EditionDocumentsModal({ open, reference, data, facture, onClose }: {
 
   // Ouvre la fenêtre d'aperçu d'un document (BrowserWindow propre — Règle 10)
   const openDocWindow = (doc: DocImp, autoPrint: boolean, ts: number): void => {
-    const id = doc === 'cg' ? 'apercu.carteGrise' : 'apercu.facture'
-    const cle = doc === 'cg' ? 'tcit_apercu_carteGrise' : 'tcit_apercu_facture'
-    const payload = doc === 'cg' ? { data, autoPrint, ts } : { data: facture, autoPrint, ts }
+    const id  = doc === 'cg' ? 'apercu.carteGrise' : doc === 'facture' ? 'apercu.facture' : 'apercu.ficheId'
+    const cle = doc === 'cg' ? 'tcit_apercu_carteGrise' : doc === 'facture' ? 'tcit_apercu_facture' : 'tcit_apercu_ficheId'
+    const contenu = doc === 'cg' ? data : doc === 'facture' ? facture : ficheId
+    const payload = { data: contenu, autoPrint, ts }
     localStorage.setItem(cle, JSON.stringify(payload))
     const cfg = WINDOW_REGISTRY[id]
     if (cfg) electronApi.mdiOpen({ id, x: cfg.defaultX, y: cfg.defaultY, width: cfg.width, height: cfg.height })
@@ -902,6 +918,7 @@ function EditionDocumentsModal({ open, reference, data, facture, onClose }: {
       const doc: DocImp | null =
         e.key === 'tcit_cg_printed' ? 'cg'
         : e.key === 'tcit_facture_printed' ? 'facture'
+        : e.key === 'tcit_ficheid_printed' ? 'ficheId'
         : null
       if (!doc || e.newValue !== String(pendingTs)) return
       setPendingDocs(prev => {
@@ -1001,6 +1018,9 @@ function EditionDocumentsModal({ open, reference, data, facture, onClose }: {
     )}
     {printQueue[0] === 'cg' && (
       <CarteGrisePrintDirect data={data} onDone={avancerQueue} />
+    )}
+    {printQueue[0] === 'ficheId' && (
+      <FicheIdPrintDirect data={ficheId} onDone={avancerQueue} />
     )}
     </>
   )
