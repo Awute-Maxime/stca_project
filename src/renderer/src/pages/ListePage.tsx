@@ -8,7 +8,8 @@ import { WinAlert, WinConfirm, EditionDocsModal } from '@components/WinDialogs'
 import { CarteGrisePrintDirect, type CarteGriseData } from '@components/documents/CarteGrise'
 import { FacturePrintDirect, type FactureData } from '@components/documents/Facture'
 import { FicheIdPrintDirect, type FicheIdData } from '@components/documents/FicheId'
-import { docsPourChoix, cgDataDe, factureDataDe, ficheIdDataDe, ouvrirApercuDoc, type DocImp } from '@components/documents/editionHelpers'
+import { Feuillet3PrintDirect, type Feuillet3Data } from '@components/documents/Feuillet3'
+import { docsPourChoix, cgDataDe, factureDataDe, ficheIdDataDe, feuillet3DataDe, ouvrirApercuDoc, type DocImp } from '@components/documents/editionHelpers'
 
 const DEST_COLORS: Record<string, string> = {
   AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
@@ -41,6 +42,7 @@ export default function ListePage(): JSX.Element {
   const [directCg, setDirectCg] = useState<CarteGriseData | null>(null)
   const [directFacture, setDirectFacture] = useState<FactureData | null>(null)
   const [directFicheId, setDirectFicheId] = useState<FicheIdData | null>(null)
+  const [directFeuillet3, setDirectFeuillet3] = useState<Feuillet3Data | null>(null)
 
   const avancerDirect = (): void => {
     setDirectQueue(q => {
@@ -337,7 +339,7 @@ export default function ListePage(): JSX.Element {
               return
             }
             const ts = Date.now()
-            docs.forEach(d => ouvrirApercuDoc(d, v, false, ts))
+            docs.forEach(d => ouvrirApercuDoc(d, v, false, ts, 'DUPLICATA'))
           }}
           onPrint={(doc, prev) => {
             setEditionType(null)
@@ -347,12 +349,13 @@ export default function ListePage(): JSX.Element {
               if (prev) {
                 // Prévisualiser : aperçus rapides + impressions lancées (auto)
                 const ts = Date.now()
-                docs.forEach(d => ouvrirApercuDoc(d, v, true, ts))
+                docs.forEach(d => ouvrirApercuDoc(d, v, true, ts, 'DUPLICATA'))
               } else {
                 // Impression directe séquentielle sans aperçu
                 setDirectCg(docs.includes('cg') ? cgDataDe(v) : null)
                 setDirectFacture(docs.includes('facture') ? factureDataDe(v) : null)
                 setDirectFicheId(docs.includes('ficheId') ? ficheIdDataDe(v) : null)
+                setDirectFeuillet3(docs.includes('feuillet3') ? feuillet3DataDe(v, 'DUPLICATA') : null)
                 setDirectQueue(docs)
               }
               return
@@ -369,6 +372,9 @@ export default function ListePage(): JSX.Element {
       )}
       {directQueue[0] === 'ficheId' && directFicheId && (
         <FicheIdPrintDirect data={directFicheId} onDone={avancerDirect} />
+      )}
+      {directQueue[0] === 'feuillet3' && directFeuillet3 && (
+        <Feuillet3PrintDirect data={directFeuillet3} onDone={avancerDirect} />
       )}
 
     </div>

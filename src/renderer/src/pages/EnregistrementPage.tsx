@@ -14,6 +14,7 @@ import { useMarques } from '@mock/marquesStore'
 import { CarteGrisePrintDirect, type CarteGriseData } from '@components/documents/CarteGrise'
 import { FacturePrintDirect, type FactureData, MONTANT_ASSURANCE_FACTURE } from '@components/documents/Facture'
 import { FicheIdPrintDirect, type FicheIdData } from '@components/documents/FicheId'
+import { Feuillet3PrintDirect, type Feuillet3Data } from '@components/documents/Feuillet3'
 import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 
@@ -773,6 +774,20 @@ export default function EnregistrementPage(): JSX.Element {
           numTri,
           dateTri: dateTri.format('DD/MM/YYYY'),
         }}
+        feuillet3={{
+          numPolice: '1 - ' + (savedRef ? String(parseInt(savedRef, 10)).padStart(6, '0') : '') + ' / ' + date.format('YYYYMMDD'),
+          dateEffet: date.format('DD/MM/YYYY'),
+          dateEcheance: date.add(14, 'day').format('DD/MM/YYYY'),
+          parc: maisonTransit,
+          nom: nomAcheteur,
+          paysResidence,
+          paysDestination,
+          categorieUsage: typeVehicule ?? '',
+          marque: marqueModele,
+          chassis,
+          immatStac: immatGenere ? 'TG WZ ' + immatGenere[0] + ' ' + immatGenere.slice(1) + ' ' + (destination ?? '') : '',
+          mention: '',
+        }}
         onClose={() => setShowEdition(false)}
       />
 
@@ -809,8 +824,9 @@ const EDITION_OPTIONS = [
 const OPTIONS_AVEC_CG      = [0, 1, 2, 5]
 const OPTIONS_AVEC_FACTURE = [0, 1, 4]
 const OPTIONS_AVEC_FICHEID = [0, 2, 6]
+const OPTIONS_AVEC_FEUILLET3 = [0, 3, 9]
 
-type DocImp = 'facture' | 'cg' | 'ficheId'
+type DocImp = 'facture' | 'cg' | 'ficheId' | 'feuillet3'
 
 // Documents imprimables pour un choix d'édition (facture, carte grise, puis fiche ID)
 function docsPourSelection(sel: number): DocImp[] {
@@ -818,15 +834,17 @@ function docsPourSelection(sel: number): DocImp[] {
   if (OPTIONS_AVEC_FACTURE.includes(sel)) docs.push('facture')
   if (OPTIONS_AVEC_CG.includes(sel)) docs.push('cg')
   if (OPTIONS_AVEC_FICHEID.includes(sel)) docs.push('ficheId')
+  if (OPTIONS_AVEC_FEUILLET3.includes(sel)) docs.push('feuillet3')
   return docs
 }
 
-function EditionDocumentsModal({ open, reference, data, facture, ficheId, onClose }: {
+function EditionDocumentsModal({ open, reference, data, facture, ficheId, feuillet3, onClose }: {
   open: boolean
   reference: string | null
   data: CarteGriseData
   facture: FactureData
   ficheId: FicheIdData
+  feuillet3: Feuillet3Data
   onClose: () => void
 }): JSX.Element {
   const [selected,      setSelected]     = useState(0)
@@ -849,9 +867,9 @@ function EditionDocumentsModal({ open, reference, data, facture, ficheId, onClos
 
   // Ouvre la fenêtre d'aperçu d'un document (BrowserWindow propre — Règle 10)
   const openDocWindow = (doc: DocImp, autoPrint: boolean, ts: number): void => {
-    const id  = doc === 'cg' ? 'apercu.carteGrise' : doc === 'facture' ? 'apercu.facture' : 'apercu.ficheId'
-    const cle = doc === 'cg' ? 'tcit_apercu_carteGrise' : doc === 'facture' ? 'tcit_apercu_facture' : 'tcit_apercu_ficheId'
-    const contenu = doc === 'cg' ? data : doc === 'facture' ? facture : ficheId
+    const id  = doc === 'cg' ? 'apercu.carteGrise' : doc === 'facture' ? 'apercu.facture' : doc === 'ficheId' ? 'apercu.ficheId' : 'apercu.feuillet3'
+    const cle = doc === 'cg' ? 'tcit_apercu_carteGrise' : doc === 'facture' ? 'tcit_apercu_facture' : doc === 'ficheId' ? 'tcit_apercu_ficheId' : 'tcit_apercu_feuillet3'
+    const contenu = doc === 'cg' ? data : doc === 'facture' ? facture : doc === 'ficheId' ? ficheId : feuillet3
     const payload = { data: contenu, autoPrint, ts }
     localStorage.setItem(cle, JSON.stringify(payload))
     const cfg = WINDOW_REGISTRY[id]
@@ -919,6 +937,7 @@ function EditionDocumentsModal({ open, reference, data, facture, ficheId, onClos
         e.key === 'tcit_cg_printed' ? 'cg'
         : e.key === 'tcit_facture_printed' ? 'facture'
         : e.key === 'tcit_ficheid_printed' ? 'ficheId'
+        : e.key === 'tcit_feuillet3_printed' ? 'feuillet3'
         : null
       if (!doc || e.newValue !== String(pendingTs)) return
       setPendingDocs(prev => {
@@ -1021,6 +1040,9 @@ function EditionDocumentsModal({ open, reference, data, facture, ficheId, onClos
     )}
     {printQueue[0] === 'ficheId' && (
       <FicheIdPrintDirect data={ficheId} onDone={avancerQueue} />
+    )}
+    {printQueue[0] === 'feuillet3' && (
+      <Feuillet3PrintDirect data={feuillet3} onDone={avancerQueue} />
     )}
     </>
   )

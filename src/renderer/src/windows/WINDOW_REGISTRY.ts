@@ -50,6 +50,7 @@ export const WINDOW_REGISTRY: Record<string, WindowConfig> = {
   'apercu.montantRestituer':        { title: 'Montant à restituer',                              defaultX: 160, defaultY:  50, width: 960, height: 740 },
   'apercu.facture':                 { title: 'Aperçu — Facture (A4)',                            defaultX: 200, defaultY:  30, width: 880, height: 900 },
   'apercu.ficheId':                 { title: 'Aperçu — Fiche ID (papier jaune 10,5 × 21,2 cm)',  defaultX: 260, defaultY:  30, width: 560, height: 900 },
+  'apercu.feuillet3':               { title: 'Aperçu — Feuillet N°3 Cond. Part. (pré-imprimé A4)', defaultX: 200, defaultY: 30, width: 880, height: 900 },
 
   // ── Menu Aide ─────────────────────────────────────────────────
   'aide.copyright':                 { title: 'Copyright',  defaultX: 400, defaultY: 244, width: 500, height: 280 },
