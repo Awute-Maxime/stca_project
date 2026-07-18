@@ -6,9 +6,11 @@ import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 import { WinAlert, WinConfirm, EditionDocsModal } from '@components/WinDialogs'
 import { CarteGrisePrintDirect, type CarteGriseData } from '@components/documents/CarteGrise'
+import { FacturePrintDirect, type FactureData, MONTANT_ASSURANCE_FACTURE } from '@components/documents/Facture'
 
-// Choix d'édition qui incluent la Carte Grise (mêmes valeurs que WinDialogs.DOC_OPTIONS)
-const DOCS_AVEC_CG = ['tous', 'facture_cg', 'cg_fiche_id', 'uniq_cg']
+// Choix d'édition qui incluent chaque document (mêmes valeurs que WinDialogs.DOC_OPTIONS)
+const DOCS_AVEC_CG      = ['tous', 'facture_cg', 'cg_fiche_id', 'uniq_cg']
+const DOCS_AVEC_FACTURE = ['tous', 'facture_cg', 'uniq_facture']
 
 const DEST_COLORS: Record<string, string> = {
   AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
@@ -33,7 +35,23 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
   const [alert, setAlert] = useState<ReactNode | null>(null)
   const [confirm, setConfirm] = useState<{ msg: ReactNode; cb: () => void } | null>(null)
   const [editionType, setEditionType] = useState<'duplicata' | 'renouvel' | null>(null)
-  const [cgDirect, setCgDirect] = useState<CarteGriseData | null>(null)
+  // Impression directe séquentielle (sans aperçu) — un document à la fois
+  const [directQueue, setDirectQueue] = useState<Array<'facture' | 'cg'>>([])
+  const [directCg, setDirectCg] = useState<CarteGriseData | null>(null)
+  const [directFacture, setDirectFacture] = useState<FactureData | null>(null)
+
+  const avancerDirect = (): void => {
+    setDirectQueue(q => {
+      const reste = q.slice(1)
+      if (reste.length === 0) {
+        notification.success({
+          message: '🖨 Document(s) envoyé(s) à l\'impression',
+          placement: 'bottomRight',
+        })
+      }
+      return reste
+    })
+  }
 
   const checkSel = (): boolean => {
     if (selectedRef) return true
@@ -256,38 +274,56 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
           onPrint={(doc, prev) => {
             setEditionType(null)
             const v = filtered.find(x => x.ref === selectedRef)
-            if (v && DOCS_AVEC_CG.includes(doc)) {
-              // Réédition Carte Grise — mêmes chemins que l'Enregistrement :
-              // Prévisualiser coché → aperçu rapide + impression auto (BrowserWindow
-              // apercu.carteGrise) ; décoché → impression directe sans aperçu.
-              const data: CarteGriseData = {
+            const docs: Array<'facture' | 'cg'> = []
+            if (DOCS_AVEC_FACTURE.includes(doc)) docs.push('facture')
+            if (DOCS_AVEC_CG.includes(doc)) docs.push('cg')
+            if (v && docs.length > 0) {
+              // Réédition — mêmes chemins que l'Enregistrement :
+              // Prévisualiser coché → aperçus rapides + impressions auto (BrowserWindows) ;
+              // décoché → impression directe séquentielle sans aperçu.
+              const cgData: CarteGriseData = {
                 immat: v.immat, destCode: v.destination, nom: v.nomAcheteur,
                 adresse: v.paysResidence, numTri: v.numTri || '',
                 dateTri: v.dateTri ? dayjs(v.dateTri).format('DD/MM/YYYY') : '',
                 marque: v.marqueModele, chassis: v.chassis, parc: v.parc,
                 dateDelivrance: dayjs(v.date).format('DD/MM/YYYY'),
               }
+              const factureData: FactureData = {
+                factureNum: parseInt(v.ref, 10).toLocaleString('fr-FR'),
+                dateEnreg: dayjs(v.date).format('DD/MM/YYYY'),
+                nom: v.nomAcheteur, pays: v.paysDestination || v.paysResidence,
+                destCode: v.destination, immat: v.immat, chassis: v.chassis,
+                marque: v.marqueModele, natureVeh: v.typeVehicule,
+                montantStca: v.montant, montantAssurance: MONTANT_ASSURANCE_FACTURE,
+              }
               if (prev) {
-                localStorage.setItem('tcit_apercu_carteGrise', JSON.stringify({ data, autoPrint: true, ts: Date.now() }))
-                const cfg = WINDOW_REGISTRY['apercu.carteGrise']
-                if (cfg) electronApi.mdiOpen({ id: 'apercu.carteGrise', x: cfg.defaultX, y: cfg.defaultY, width: cfg.width, height: cfg.height })
+                const ts = Date.now()
+                if (docs.includes('facture')) {
+                  localStorage.setItem('tcit_apercu_facture', JSON.stringify({ data: factureData, autoPrint: true, ts }))
+                  const cfg = WINDOW_REGISTRY['apercu.facture']
+                  if (cfg) electronApi.mdiOpen({ id: 'apercu.facture', x: cfg.defaultX, y: cfg.defaultY, width: cfg.width, height: cfg.height })
+                }
+                if (docs.includes('cg')) {
+                  localStorage.setItem('tcit_apercu_carteGrise', JSON.stringify({ data: cgData, autoPrint: true, ts }))
+                  const cfg = WINDOW_REGISTRY['apercu.carteGrise']
+                  if (cfg) electronApi.mdiOpen({ id: 'apercu.carteGrise', x: cfg.defaultX, y: cfg.defaultY, width: cfg.width, height: cfg.height })
+                }
               } else {
-                setCgDirect(data)
+                setDirectCg(docs.includes('cg') ? cgData : null)
+                setDirectFacture(docs.includes('facture') ? factureData : null)
+                setDirectQueue(docs)
               }
               return
             }
             notification.info({ message: `🖨 ${prev ? 'Prévisualisation' : 'Impression'} : ${doc}`, placement: 'bottomRight' })
           }} />
       )}
-      {cgDirect && (
-        <CarteGrisePrintDirect data={cgDirect} onDone={() => {
-          setCgDirect(null)
-          notification.success({
-            message: '🖨 Carte grise envoyée à l\'impression',
-            description: 'Fiche pré-imprimée 10,5 × 21,2 cm',
-            placement: 'bottomRight',
-          })
-        }} />
+      {/* Impression directe séquentielle (facture puis carte grise) */}
+      {directQueue[0] === 'facture' && directFacture && (
+        <FacturePrintDirect data={directFacture} onDone={avancerDirect} />
+      )}
+      {directQueue[0] === 'cg' && directCg && (
+        <CarteGrisePrintDirect data={directCg} onDone={avancerDirect} />
       )}
     </div>
   )

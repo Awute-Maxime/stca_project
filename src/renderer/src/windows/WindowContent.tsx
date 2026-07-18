@@ -8,6 +8,7 @@ import DestinationPrintPreview from '@pages/DestinationPrintPreview'
 import CarteGriseApercuWindow from '@pages/CarteGriseApercuWindow'
 import AnalysePrintPreview from '@pages/AnalysePrintPreview'
 import MontantRestituerPrintPreview from '@pages/MontantRestituerPrintPreview'
+import FactureApercuWindow from '@pages/FactureApercuWindow'
 import OpsParticulieresPage from '@pages/OpsParticulieresPage'
 import RechercheWindow from '@pages/RechercheWindow'
 import { CopyrightWindow, VersionWindow, IdReseauWindow } from '@pages/InfoWindows'
@@ -62,6 +63,8 @@ export function renderWindowContent(id: string): JSX.Element {
       return <AnalysePrintPreview />
     case 'apercu.montantRestituer':
       return <MontantRestituerPrintPreview />
+    case 'apercu.facture':
+      return <FactureApercuWindow />
 
     // ── Menu Analyse — géré comme overlay modal dans MainScreen, pas en MDI
     // case 'analyse': / case 'analyse.stca': → MainScreen.tsx

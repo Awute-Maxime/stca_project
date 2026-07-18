@@ -12,6 +12,7 @@ import { mockDestinations } from '@mock/destinations'
 import { addVehicule, updateVehicule, nextRef, nextId, countAddedForDest } from '@mock/vehiculesStore'
 import { useMarques } from '@mock/marquesStore'
 import { CarteGrisePrintDirect, type CarteGriseData } from '@components/documents/CarteGrise'
+import { FacturePrintDirect, type FactureData, MONTANT_ASSURANCE_FACTURE } from '@components/documents/Facture'
 import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 
@@ -747,6 +748,19 @@ export default function EnregistrementPage(): JSX.Element {
           parc: maisonTransit,
           dateDelivrance: dayjs().format('DD/MM/YYYY'),
         }}
+        facture={{
+          factureNum: savedRef ? parseInt(savedRef, 10).toLocaleString('fr-FR') : '',
+          dateEnreg: date.format('DD/MM/YYYY'),
+          nom: nomAcheteur,
+          pays: paysDestination,
+          destCode: destination ?? '',
+          immat: immatGenere ?? '',
+          chassis,
+          marque: marqueModele,
+          natureVeh: typeVehicule ?? '',
+          montantStca: montant ?? MONTANT_FIXE,
+          montantAssurance: MONTANT_ASSURANCE_FACTURE,
+        }}
         onClose={() => setShowEdition(false)}
       />
 
@@ -779,23 +793,35 @@ const EDITION_OPTIONS = [
   'Feuillet N°3 Cond. Part. (Blanc A4)',
 ]
 
-// Indices des options d'édition qui incluent la Carte Grise
-const OPTIONS_AVEC_CG = [0, 1, 2, 5]
+// Indices des options d'édition qui incluent chaque document
+const OPTIONS_AVEC_CG      = [0, 1, 2, 5]
+const OPTIONS_AVEC_FACTURE = [0, 1, 4]
 
-function EditionDocumentsModal({ open, reference, data, onClose }: {
+type DocImp = 'facture' | 'cg'
+
+// Documents imprimables pour un choix d'édition (facture d'abord, comme le vrai STCA)
+function docsPourSelection(sel: number): DocImp[] {
+  const docs: DocImp[] = []
+  if (OPTIONS_AVEC_FACTURE.includes(sel)) docs.push('facture')
+  if (OPTIONS_AVEC_CG.includes(sel)) docs.push('cg')
+  return docs
+}
+
+function EditionDocumentsModal({ open, reference, data, facture, onClose }: {
   open: boolean
   reference: string | null
   data: CarteGriseData
+  facture: FactureData
   onClose: () => void
 }): JSX.Element {
   const [selected,      setSelected]     = useState(0)
   const [previsualiser, setPrevisualiser]= useState(false)
   const [printing,      setPrinting]     = useState(false)
-  // 'direct' = impression sans aperçu (les aperçus s'ouvrent dans leur propre
-  // BrowserWindow apercu.carteGrise — Règle 10)
-  const [cgView,        setCgView]       = useState<'direct' | null>(null)
-  // ts de la demande d'impression en cours (pour reconnaître le signal retour)
+  // File d'impression directe (sans aperçu) — un document à la fois
+  const [printQueue,    setPrintQueue]   = useState<DocImp[]>([])
+  // Impressions autoPrint en attente de signal retour des fenêtres d'aperçu
   const [pendingTs,     setPendingTs]    = useState<number | null>(null)
+  const [pendingDocs,   setPendingDocs]  = useState<DocImp[]>([])
 
   const notImplemented = (): void => {
     notification.info({
@@ -806,28 +832,38 @@ function EditionDocumentsModal({ open, reference, data, onClose }: {
     })
   }
 
-  // Ouvre la fenêtre d'aperçu Carte Grise (BrowserWindow propre)
-  const openCgWindow = (autoPrint: boolean): number => {
-    const ts = Date.now()
-    localStorage.setItem('tcit_apercu_carteGrise', JSON.stringify({ data, autoPrint, ts }))
-    const cfg = WINDOW_REGISTRY['apercu.carteGrise']
-    if (cfg) electronApi.mdiOpen({ id: 'apercu.carteGrise', x: cfg.defaultX, y: cfg.defaultY, width: cfg.width, height: cfg.height })
-    return ts
+  // Ouvre la fenêtre d'aperçu d'un document (BrowserWindow propre — Règle 10)
+  const openDocWindow = (doc: DocImp, autoPrint: boolean, ts: number): void => {
+    const id = doc === 'cg' ? 'apercu.carteGrise' : 'apercu.facture'
+    const cle = doc === 'cg' ? 'tcit_apercu_carteGrise' : 'tcit_apercu_facture'
+    const payload = doc === 'cg' ? { data, autoPrint, ts } : { data: facture, autoPrint, ts }
+    localStorage.setItem(cle, JSON.stringify(payload))
+    const cfg = WINDOW_REGISTRY[id]
+    if (cfg) electronApi.mdiOpen({ id, x: cfg.defaultX, y: cfg.defaultY, width: cfg.width, height: cfg.height })
   }
 
-  // Bouton Aperçu : consultation seule (impression manuelle depuis l'aperçu)
+  // Bouton Aperçu : consultation seule (impression manuelle depuis les aperçus)
   const handleApercu = (): void => {
-    if (OPTIONS_AVEC_CG.includes(selected)) openCgWindow(false)
-    else notImplemented()
+    const docs = docsPourSelection(selected)
+    if (docs.length === 0) { notImplemented(); return }
+    const ts = Date.now()
+    docs.forEach(d => openDocWindow(d, false, ts))
   }
 
   // Bouton Imprimer :
-  // - Prévisualiser coché → aperçu rapide + impression lancée en même temps (sans validation)
-  // - Prévisualiser décoché → impression directe, aucun aperçu
+  // - Prévisualiser coché → aperçus rapides + impressions lancées (sans validation)
+  // - Prévisualiser décoché → impression directe séquentielle, aucun aperçu
   const handleImprimer = async (): Promise<void> => {
-    if (OPTIONS_AVEC_CG.includes(selected)) {
-      if (previsualiser) setPendingTs(openCgWindow(true))
-      else setCgView('direct')
+    const docs = docsPourSelection(selected)
+    if (docs.length > 0) {
+      if (previsualiser) {
+        const ts = Date.now()
+        setPendingTs(ts)
+        setPendingDocs(docs)
+        docs.forEach(d => openDocWindow(d, true, ts))
+      } else {
+        setPrintQueue(docs)
+      }
       return
     }
     // Autres documents — pas encore implémentés (simulation)
@@ -839,21 +875,40 @@ function EditionDocumentsModal({ open, reference, data, onClose }: {
   }
 
   const finishPrint = (): void => {
-    setCgView(null)
+    setPrintQueue([])
     setPendingTs(null)
+    setPendingDocs([])
     notification.success({
-      message: '🖨 Carte grise envoyée à l\'impression',
-      description: 'Fiche pré-imprimée 10,5 × 21,2 cm',
+      message: '🖨 Document(s) envoyé(s) à l\'impression',
+      description: EDITION_OPTIONS[selected],
       placement: 'bottomRight',
     })
     onClose()
   }
 
-  // Signal retour de la fenêtre d'aperçu autoPrint : impression lancée
+  // File directe : passe au document suivant, termine quand la file est vide
+  const avancerQueue = (): void => {
+    setPrintQueue(q => {
+      const reste = q.slice(1)
+      if (reste.length === 0) setTimeout(finishPrint, 0)
+      return reste
+    })
+  }
+
+  // Signaux retour des fenêtres d'aperçu autoPrint (un par document)
   useEffect(() => {
     if (pendingTs == null) return
     const onStorage = (e: StorageEvent): void => {
-      if (e.key === 'tcit_cg_printed' && e.newValue === String(pendingTs)) finishPrint()
+      const doc: DocImp | null =
+        e.key === 'tcit_cg_printed' ? 'cg'
+        : e.key === 'tcit_facture_printed' ? 'facture'
+        : null
+      if (!doc || e.newValue !== String(pendingTs)) return
+      setPendingDocs(prev => {
+        const reste = prev.filter(d => d !== doc)
+        if (reste.length === 0) setTimeout(finishPrint, 0)
+        return reste
+      })
     }
     window.addEventListener('storage', onStorage)
     return () => window.removeEventListener('storage', onStorage)
@@ -940,9 +995,12 @@ function EditionDocumentsModal({ open, reference, data, onClose }: {
       </div>
     </Modal>
 
-    {/* ── Imprimer + Prévisualiser décoché : impression directe sans aperçu ── */}
-    {cgView === 'direct' && (
-      <CarteGrisePrintDirect data={data} onDone={finishPrint} />
+    {/* ── Impression directe séquentielle (Prévisualiser décoché) ── */}
+    {printQueue[0] === 'facture' && (
+      <FacturePrintDirect data={facture} onDone={avancerQueue} />
+    )}
+    {printQueue[0] === 'cg' && (
+      <CarteGrisePrintDirect data={data} onDone={avancerQueue} />
     )}
     </>
   )
