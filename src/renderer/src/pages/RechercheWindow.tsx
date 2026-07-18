@@ -281,7 +281,7 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
               return
             }
             const ts = Date.now()
-            docs.forEach(d => ouvrirApercuDoc(d, v, false, ts, 'DUPLICATA'))
+            docs.forEach(d => ouvrirApercuDoc(d, v, false, ts, editionType === 'duplicata' ? 'DUPLICATA' : ''))
           }}
           onPrint={(doc, prev) => {
             setEditionType(null)
@@ -293,12 +293,12 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
               // décoché → impression directe séquentielle sans aperçu.
               if (prev) {
                 const ts = Date.now()
-                docs.forEach(d => ouvrirApercuDoc(d, v, true, ts, 'DUPLICATA'))
+                docs.forEach(d => ouvrirApercuDoc(d, v, true, ts, editionType === 'duplicata' ? 'DUPLICATA' : ''))
               } else {
                 setDirectCg(docs.includes('cg') ? cgDataDe(v) : null)
                 setDirectFacture(docs.includes('facture') ? factureDataDe(v) : null)
                 setDirectFicheId(docs.includes('ficheId') ? ficheIdDataDe(v) : null)
-                setDirectFeuillet3(docs.includes('feuillet3') ? feuillet3DataDe(v, 'DUPLICATA') : null)
+                setDirectFeuillet3(docs.includes('feuillet3') ? feuillet3DataDe(v, editionType === 'duplicata' ? 'DUPLICATA' : '') : null)
                 setDirectQueue(docs)
               }
               return
