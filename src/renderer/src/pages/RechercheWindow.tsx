@@ -6,11 +6,8 @@ import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 import { WinAlert, WinConfirm, EditionDocsModal } from '@components/WinDialogs'
 import { CarteGrisePrintDirect, type CarteGriseData } from '@components/documents/CarteGrise'
-import { FacturePrintDirect, type FactureData, MONTANT_ASSURANCE_FACTURE } from '@components/documents/Facture'
-
-// Choix d'édition qui incluent chaque document (mêmes valeurs que WinDialogs.DOC_OPTIONS)
-const DOCS_AVEC_CG      = ['tous', 'facture_cg', 'cg_fiche_id', 'uniq_cg']
-const DOCS_AVEC_FACTURE = ['tous', 'facture_cg', 'uniq_facture']
+import { FacturePrintDirect, type FactureData } from '@components/documents/Facture'
+import { docsPourChoix, cgDataDe, factureDataDe, ouvrirApercuDoc } from '@components/documents/editionHelpers'
 
 const DEST_COLORS: Record<string, string> = {
   AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
@@ -271,46 +268,31 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
       {confirm && <WinConfirm message={confirm.msg} onOui={confirm.cb} onNon={() => setConfirm(null)} />}
       {editionType && (
         <EditionDocsModal type={editionType} onClose={() => setEditionType(null)}
+          onApercu={(doc) => {
+            // Consultation : ouvre chaque document dans sa fenêtre (modal reste ouvert)
+            const v = filtered.find(x => x.ref === selectedRef)
+            const docs = docsPourChoix(doc)
+            if (!v || docs.length === 0) {
+              notification.info({ message: 'Document non encore implémenté', placement: 'bottomRight' })
+              return
+            }
+            const ts = Date.now()
+            docs.forEach(d => ouvrirApercuDoc(d, v, false, ts))
+          }}
           onPrint={(doc, prev) => {
             setEditionType(null)
             const v = filtered.find(x => x.ref === selectedRef)
-            const docs: Array<'facture' | 'cg'> = []
-            if (DOCS_AVEC_FACTURE.includes(doc)) docs.push('facture')
-            if (DOCS_AVEC_CG.includes(doc)) docs.push('cg')
+            const docs = docsPourChoix(doc)
             if (v && docs.length > 0) {
               // Réédition — mêmes chemins que l'Enregistrement :
               // Prévisualiser coché → aperçus rapides + impressions auto (BrowserWindows) ;
               // décoché → impression directe séquentielle sans aperçu.
-              const cgData: CarteGriseData = {
-                immat: v.immat, destCode: v.destination, nom: v.nomAcheteur,
-                adresse: v.paysResidence, numTri: v.numTri || '',
-                dateTri: v.dateTri ? dayjs(v.dateTri).format('DD/MM/YYYY') : '',
-                marque: v.marqueModele, chassis: v.chassis, parc: v.parc,
-                dateDelivrance: dayjs(v.date).format('DD/MM/YYYY'),
-              }
-              const factureData: FactureData = {
-                factureNum: parseInt(v.ref, 10).toLocaleString('fr-FR'),
-                dateEnreg: dayjs(v.date).format('DD/MM/YYYY'),
-                nom: v.nomAcheteur, pays: v.paysDestination || v.paysResidence,
-                destCode: v.destination, immat: v.immat, chassis: v.chassis,
-                marque: v.marqueModele, natureVeh: v.typeVehicule,
-                montantStca: v.montant, montantAssurance: MONTANT_ASSURANCE_FACTURE,
-              }
               if (prev) {
                 const ts = Date.now()
-                if (docs.includes('facture')) {
-                  localStorage.setItem('tcit_apercu_facture', JSON.stringify({ data: factureData, autoPrint: true, ts }))
-                  const cfg = WINDOW_REGISTRY['apercu.facture']
-                  if (cfg) electronApi.mdiOpen({ id: 'apercu.facture', x: cfg.defaultX, y: cfg.defaultY, width: cfg.width, height: cfg.height })
-                }
-                if (docs.includes('cg')) {
-                  localStorage.setItem('tcit_apercu_carteGrise', JSON.stringify({ data: cgData, autoPrint: true, ts }))
-                  const cfg = WINDOW_REGISTRY['apercu.carteGrise']
-                  if (cfg) electronApi.mdiOpen({ id: 'apercu.carteGrise', x: cfg.defaultX, y: cfg.defaultY, width: cfg.width, height: cfg.height })
-                }
+                docs.forEach(d => ouvrirApercuDoc(d, v, true, ts))
               } else {
-                setDirectCg(docs.includes('cg') ? cgData : null)
-                setDirectFacture(docs.includes('facture') ? factureData : null)
+                setDirectCg(docs.includes('cg') ? cgDataDe(v) : null)
+                setDirectFacture(docs.includes('facture') ? factureDataDe(v) : null)
                 setDirectQueue(docs)
               }
               return

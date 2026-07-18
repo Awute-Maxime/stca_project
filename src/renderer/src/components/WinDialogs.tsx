@@ -74,10 +74,11 @@ const DOC_OPTIONS = [
   { value: 'feuillet3', label: 'Feuillet N° 3 Cond. Part. (Blanc A4)' },
 ]
 
-export function EditionDocsModal({ type, onClose, onPrint }: {
+export function EditionDocsModal({ type, onClose, onPrint, onApercu }: {
   type: 'duplicata' | 'renouvel'
   onClose: () => void
   onPrint: (docType: string, preview: boolean) => void
+  onApercu?: (docType: string) => void
 }): JSX.Element {
   const [selected, setSelected] = useState('tous')
   const [preview, setPreview] = useState(false)
@@ -134,17 +135,26 @@ export function EditionDocsModal({ type, onClose, onPrint }: {
             </div>
           </fieldset>
 
-          {/* Bas : Prévisualiser + Imprimer */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
+          {/* Bas : Prévisualiser + Aperçu + Imprimer */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, gap: 8 }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: '#475569', cursor: 'pointer' }}>
               <input type="checkbox" checked={preview} onChange={e => setPreview(e.target.checked)}
                 style={{ accentColor: '#2563EB' }} /> Prévisualiser
             </label>
-            <button onClick={() => onPrint(selected, preview)} style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '6px 18px',
-              background: '#2563EB', color: '#fff', border: 'none', borderRadius: 5,
-              fontSize: 12, fontWeight: 700, cursor: 'pointer',
-            }}>🖨 Imprimer</button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {onApercu && (
+                <button onClick={() => onApercu(selected)} style={{
+                  display: 'flex', alignItems: 'center', gap: 5, padding: '6px 14px',
+                  background: '#EFF6FF', color: '#2563EB', border: '1px solid #2563EB',
+                  borderRadius: 5, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                }}>👁 Aperçu</button>
+              )}
+              <button onClick={() => onPrint(selected, preview)} style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '6px 18px',
+                background: '#2563EB', color: '#fff', border: 'none', borderRadius: 5,
+                fontSize: 12, fontWeight: 700, cursor: 'pointer',
+              }}>🖨 Imprimer</button>
+            </div>
           </div>
         </div>
       </div>

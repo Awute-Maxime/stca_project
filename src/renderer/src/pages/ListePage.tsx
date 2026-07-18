@@ -5,6 +5,9 @@ import { useVehicules, updateVehicule, removeVehicule } from '@mock/vehiculesSto
 import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 import { WinAlert, WinConfirm, EditionDocsModal } from '@components/WinDialogs'
+import { CarteGrisePrintDirect, type CarteGriseData } from '@components/documents/CarteGrise'
+import { FacturePrintDirect, type FactureData } from '@components/documents/Facture'
+import { docsPourChoix, cgDataDe, factureDataDe, ouvrirApercuDoc, type DocImp } from '@components/documents/editionHelpers'
 
 const DEST_COLORS: Record<string, string> = {
   AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
@@ -32,6 +35,23 @@ export default function ListePage(): JSX.Element {
   const [alert, setAlert] = useState<ReactNode | null>(null)
   const [confirm, setConfirm] = useState<{ msg: ReactNode; cb: () => void } | null>(null)
   const [editionType, setEditionType] = useState<'duplicata' | 'renouvel' | null>(null)
+  // Impression directe séquentielle (sans aperçu) — un document à la fois
+  const [directQueue, setDirectQueue] = useState<DocImp[]>([])
+  const [directCg, setDirectCg] = useState<CarteGriseData | null>(null)
+  const [directFacture, setDirectFacture] = useState<FactureData | null>(null)
+
+  const avancerDirect = (): void => {
+    setDirectQueue(q => {
+      const reste = q.slice(1)
+      if (reste.length === 0) {
+        notification.success({
+          message: '🖨 Document(s) envoyé(s) à l\'impression',
+          placement: 'bottomRight',
+        })
+      }
+      return reste
+    })
+  }
 
   // Rechercher : applique les dates saisies (comme doSearchListe du prototype)
   const doSearch = (): void => {
@@ -306,10 +326,43 @@ export default function ListePage(): JSX.Element {
       {confirm && <WinConfirm message={confirm.msg} onOui={confirm.cb} onNon={() => setConfirm(null)} />}
       {editionType && (
         <EditionDocsModal type={editionType} onClose={() => setEditionType(null)}
+          onApercu={(doc) => {
+            // Consultation : ouvre chaque document dans sa fenêtre (modal reste ouvert)
+            const v = filtered.find(x => x.ref === selectedRef)
+            const docs = docsPourChoix(doc)
+            if (!v || docs.length === 0) {
+              notification.info({ message: 'Document non encore implémenté', placement: 'bottomRight' })
+              return
+            }
+            const ts = Date.now()
+            docs.forEach(d => ouvrirApercuDoc(d, v, false, ts))
+          }}
           onPrint={(doc, prev) => {
             setEditionType(null)
+            const v = filtered.find(x => x.ref === selectedRef)
+            const docs = docsPourChoix(doc)
+            if (v && docs.length > 0) {
+              if (prev) {
+                // Prévisualiser : aperçus rapides + impressions lancées (auto)
+                const ts = Date.now()
+                docs.forEach(d => ouvrirApercuDoc(d, v, true, ts))
+              } else {
+                // Impression directe séquentielle sans aperçu
+                setDirectCg(docs.includes('cg') ? cgDataDe(v) : null)
+                setDirectFacture(docs.includes('facture') ? factureDataDe(v) : null)
+                setDirectQueue(docs)
+              }
+              return
+            }
             notification.info({ message: `🖨 ${prev ? 'Prévisualisation' : 'Impression'} : ${doc}`, placement: 'bottomRight' })
           }} />
+      )}
+      {/* Impression directe séquentielle (facture puis carte grise) */}
+      {directQueue[0] === 'facture' && directFacture && (
+        <FacturePrintDirect data={directFacture} onDone={avancerDirect} />
+      )}
+      {directQueue[0] === 'cg' && directCg && (
+        <CarteGrisePrintDirect data={directCg} onDone={avancerDirect} />
       )}
 
     </div>
