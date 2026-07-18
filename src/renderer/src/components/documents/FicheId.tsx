@@ -11,13 +11,14 @@ import Code128 from './Code128'
 // Modèle : photo de la fiche réelle STCA II fournie le 18/07/2026.
 //
 // Codes-barres = VRAI Code 128 scannable. Scan de la fiche réelle : les deux
-// codes-barres contiennent « Y9209CK » (immat + code frontière). Choix validé
-// par l'utilisateur (18/07/2026) :
-// - HAUT : immat + frontière (ex. Y9209CK) — identique au vrai STCA, tout
-//   scanner existant continue de fonctionner.
+// codes-barres contiennent « Y9209CK » (immat + code frontière) — une simple
+// répétition. Choix validé par l'utilisateur (18/07/2026), on fait mieux :
+// - HAUT : N° de CHÂSSIS (VIN) — l'identifiant mondial unique du véhicule.
 // - BAS  : immat+frontière | N° Tri | clé d'authentification (4 caractères
-//   dérivés de l'immat, du châssis et du N° Tri) — permet de retrouver le
-//   N° Tri effacé ET de détecter une fiche falsifiée.
+//   dérivés de l'immat, du châssis et du N° Tri).
+// → À eux deux, les codes-barres permettent de reconstituer TOUTES les
+//   informations essentielles d'une carte grise effacée (châssis, immat,
+//   frontière, N° Tri) et de détecter une fiche falsifiée.
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Clé secrète de dérivation (authentification des fiches émises par TCIT)
@@ -82,9 +83,9 @@ function champ(topMm: number, opts?: { leftMm?: number; size?: number; bold?: bo
 export function FicheIdDoc({ data }: { data: FicheIdData }): JSX.Element {
   const maintenant = dayjs().format('DD/MM/YYYY HH:mm:ss')
   // Codes-barres (cf. commentaire d'entête) :
-  // haut = immat+frontière (conforme STCA) ; bas = enrichi avec N° Tri + clé d'auth.
+  // haut = châssis (VIN) ; bas = immat+frontière | N° Tri | clé d'auth.
   const idComplet = `${data.immat}${data.destCode}`.toUpperCase()
-  const codeHaut = idComplet || 'TCIT'
+  const codeHaut = data.chassis.toUpperCase() || idComplet || 'TCIT'
   const codeBas = idComplet
     ? `${idComplet}|${data.numTri}|${cleAuthentification(data.immat, data.destCode, data.chassis, data.numTri)}`
     : 'TCIT'
