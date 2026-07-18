@@ -74,7 +74,8 @@ export default function Feuillet3ApercuWindow(): JSX.Element {
         flex: 1, overflow: 'auto', background: '#94A3B8',
         display: 'flex', justifyContent: 'center', padding: 24, minHeight: 0,
       }}>
-        <div style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.35)', height: 'fit-content' }}>
+        {/* Chaque exemplaire porte sa propre ombre (2 pages) */}
+        <div style={{ height: 'fit-content' }}>
           <Feuillet3Doc data={params.data} />
         </div>
       </div>

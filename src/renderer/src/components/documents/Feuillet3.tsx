@@ -94,13 +94,13 @@ function pose(topMm: number, leftMm: number, opts?: { size?: number; bold?: bool
   }
 }
 
-// ── Le document : feuille blanche + données positionnées ────────────────────
-export function Feuillet3Doc({ data }: { data: Feuillet3Data }): JSX.Element {
+// ── Une page du feuillet : feuille blanche + données positionnées ───────────
+function Feuillet3Page({ data, derniere }: { data: Feuillet3Data; derniere: boolean }): JSX.Element {
   const maintenant = dayjs().format('DD/MM/YYYY')
 
   return (
     <div
-      id="feuillet3-print-root"
+      className="f3-page"
       style={{
         position: 'relative',
         width: '210mm',
@@ -108,6 +108,8 @@ export function Feuillet3Doc({ data }: { data: Feuillet3Data }): JSX.Element {
         background: '#fff',
         overflow: 'hidden',
         flexShrink: 0,
+        marginBottom: derniere ? 0 : 24,
+        boxShadow: '0 4px 20px rgba(0,0,0,0.35)',
       }}
     >
       {/* Ligne d'entête imprimée sur le bord haut du pré-imprimé */}
@@ -151,6 +153,16 @@ export function Feuillet3Doc({ data }: { data: Feuillet3Data }): JSX.Element {
   )
 }
 
+// ── Le document : DEUX exemplaires identiques (comme le vrai STCA II) ───────
+export function Feuillet3Doc({ data }: { data: Feuillet3Data }): JSX.Element {
+  return (
+    <div id="feuillet3-print-root" style={{ display: 'flex', flexDirection: 'column' }}>
+      <Feuillet3Page data={data} derniere={false} />
+      <Feuillet3Page data={data} derniere={true} />
+    </div>
+  )
+}
+
 // ── CSS d'impression : page A4, seules les données du feuillet ──────────────
 export function Feuillet3PrintCss(): JSX.Element {
   return (
@@ -160,11 +172,21 @@ export function Feuillet3PrintCss(): JSX.Element {
         body * { visibility: hidden !important; }
         #feuillet3-print-root, #feuillet3-print-root * { visibility: visible !important; }
         #feuillet3-print-root {
-          position: fixed !important;
+          position: absolute !important;
           left: 0 !important; top: 0 !important;
           margin: 0 !important;
-          box-shadow: none !important;
           transform: none !important;
+        }
+        /* Deux exemplaires = deux pages A4 exactes, sans espace ni ombre */
+        #feuillet3-print-root .f3-page {
+          margin: 0 !important;
+          box-shadow: none !important;
+          break-after: page;
+          page-break-after: always;
+        }
+        #feuillet3-print-root .f3-page:last-child {
+          break-after: auto;
+          page-break-after: auto;
         }
       }
     `}</style>
