@@ -10,11 +10,35 @@ import Code128 from './Code128'
 // grise s'effacent parfois avec le temps — la fiche permet de les retrouver).
 // Modèle : photo de la fiche réelle STCA II fournie le 18/07/2026.
 //
-// Codes-barres = VRAI Code 128 scannable :
-// - HAUT : N° de châssis (VIN)
-// - BAS  : code frontière + immatriculation + N° Tri
-// (contenu PROVISOIRE — à aligner sur le scan des codes-barres réels)
+// Codes-barres = VRAI Code 128 scannable. Scan de la fiche réelle : les deux
+// codes-barres contiennent « Y9209CK » (immat + code frontière). Choix validé
+// par l'utilisateur (18/07/2026) :
+// - HAUT : immat + frontière (ex. Y9209CK) — identique au vrai STCA, tout
+//   scanner existant continue de fonctionner.
+// - BAS  : immat+frontière | N° Tri | clé d'authentification (4 caractères
+//   dérivés de l'immat, du châssis et du N° Tri) — permet de retrouver le
+//   N° Tri effacé ET de détecter une fiche falsifiée.
 // ─────────────────────────────────────────────────────────────────────────────
+
+// Clé secrète de dérivation (authentification des fiches émises par TCIT)
+const SECRET_AUTH = 'TCIT-FICHE-ID-2026'
+
+/**
+ * Clé d'authentification (4 caractères, alphabet sans ambigus) dérivée de
+ * l'immatriculation, du châssis et du N° Tri. Une fiche falsifiée (données
+ * modifiées) produit une clé différente — vérifiable en scannant le
+ * code-barres bas.
+ */
+export function cleAuthentification(immat: string, destCode: string, chassis: string, numTri: string): string {
+  const texte = `${immat}${destCode}|${chassis}|${numTri}|${SECRET_AUTH}`.toUpperCase()
+  let h = 2166136261
+  for (const c of texte) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619) }
+  h = h >>> 0
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  let cle = ''
+  for (let i = 0; i < 4; i++) { cle += alphabet[h % 32]; h = Math.floor(h / 32) }
+  return cle
+}
 
 export interface FicheIdData {
   nom: string
@@ -57,9 +81,13 @@ function champ(topMm: number, opts?: { leftMm?: number; size?: number; bold?: bo
 // ── Le document ─────────────────────────────────────────────────────────────
 export function FicheIdDoc({ data }: { data: FicheIdData }): JSX.Element {
   const maintenant = dayjs().format('DD/MM/YYYY HH:mm:ss')
-  // Contenus des codes-barres (provisoires — cf. commentaire d'entête)
-  const codeHaut = data.chassis || 'TCIT'
-  const codeBas = `${data.destCode}${data.immat} ${data.numTri}`.trim() || 'TCIT'
+  // Codes-barres (cf. commentaire d'entête) :
+  // haut = immat+frontière (conforme STCA) ; bas = enrichi avec N° Tri + clé d'auth.
+  const idComplet = `${data.immat}${data.destCode}`.toUpperCase()
+  const codeHaut = idComplet || 'TCIT'
+  const codeBas = idComplet
+    ? `${idComplet}|${data.numTri}|${cleAuthentification(data.immat, data.destCode, data.chassis, data.numTri)}`
+    : 'TCIT'
 
   return (
     <div
