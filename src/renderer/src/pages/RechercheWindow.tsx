@@ -2,6 +2,8 @@ import { useState, useMemo, type ReactNode } from 'react'
 import { notification } from 'antd'
 import dayjs from 'dayjs'
 import { useVehicules, removeVehicule } from '@mock/vehiculesStore'
+import { useArchives } from '@mock/archivesStore'
+import type { MockVehicule } from '@mock/vehicules'
 import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 import { WinAlert, WinConfirm, EditionDocsModal } from '@components/WinDialogs'
@@ -75,13 +77,20 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
     ? "Entrez un numéro d'immatriculation et cliquez sur Rechercher"
     : 'Entrez un numéro de châssis (VIN) et cliquez sur Rechercher'
 
-  const results = useMemo(() => {
-    if (!searched || !query) return []
+  // Recherche en DEUX TEMPS (principe de l'archivage — fluidité) :
+  // 1er temps : seule la base ACTIVE est interrogée (rapide, cas courant) ;
+  // 2e temps : rien trouvé → on interroge alors les ARCHIVES (vieux
+  // enregistrements), qui restent ainsi toujours disponibles.
+  const archives = useArchives()
+  const [results, depuisArchives] = useMemo((): [MockVehicule[], boolean] => {
+    if (!searched || !query) return [[], false]
     const q = query.toUpperCase()
-    return vehicules.filter(v =>
+    const critere = (v: MockVehicule): boolean =>
       isImmat ? v.immat.toUpperCase().includes(q) : v.chassis.toUpperCase().includes(q)
-    )
-  }, [vehicules, searched, query, isImmat])
+    const actifs = vehicules.filter(critere)
+    if (actifs.length > 0) return [actifs, false]
+    return [archives.filter(critere), true]
+  }, [vehicules, archives, searched, query, isImmat])
 
   const filtered = useMemo(() => {
     if (!frFilter) return results
@@ -178,6 +187,13 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
                         fontFamily: "'Courier New', monospace", fontWeight: 700, color: '#D97706', fontSize: 10.5,
                         background: '#FFF7ED', border: '1px solid #FED7AA', padding: '2px 6px', borderRadius: 3,
                       }}>{v.immat}</span>
+                      {depuisArchives && (
+                        <span style={{
+                          marginLeft: 5, fontSize: 8.5, fontWeight: 800, letterSpacing: 0.5,
+                          background: '#FEF3C7', color: '#92400E', border: '1px solid #FDE68A',
+                          padding: '1px 5px', borderRadius: 8, verticalAlign: 'middle',
+                        }}>📦 ARCHIVÉ</span>
+                      )}
                     </td>
                     <td style={{ ...tdStyle, color: '#1E293B', borderBottomColor: bbc, textTransform: 'uppercase' }}>{v.marqueModele}</td>
                     <td style={{ ...tdStyle, fontFamily: "'Courier New', monospace", fontSize: 10, color: '#2563EB', borderBottomColor: bbc }}>{v.chassis}</td>
@@ -197,6 +213,11 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
         {/* Barre statut */}
         <div style={{ padding: '4px 10px', background: '#FFFEF0', borderTop: '1px solid #E2E8F0', fontSize: 11, color: '#475569', flexShrink: 0 }}>
           Nbr de Véhicule(s) : {filtered.length}
+          {depuisArchives && filtered.length > 0 && (
+            <span style={{ marginLeft: 10, color: '#92400E', fontWeight: 700 }}>
+              📦 Introuvable dans la base active — trouvé dans les ARCHIVES
+            </span>
+          )}
         </div>
       </div>
 
@@ -213,6 +234,11 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
 
         <button onClick={() => {
           if (!checkSel()) return
+          if (depuisArchives) {
+            setAlert(<>Cet enregistrement est <strong>ARCHIVÉ</strong> : il ne peut pas être modifié.<br />
+              Rappelez-le d&apos;abord dans la base active via <strong>Outils+Config. → Archivage</strong>.</>)
+            return
+          }
           const v = filtered.find(x => x.ref === selectedRef)
           if (!v) return
           localStorage.setItem('tcit_loadEnreg', JSON.stringify({
@@ -236,6 +262,11 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
 
         <button onClick={() => {
           if (!checkSel()) return
+          if (depuisArchives) {
+            setAlert(<>Cet enregistrement est <strong>ARCHIVÉ</strong> : il ne peut pas être supprimé ici.<br />
+              Gérez-le (rappel ou purge) via <strong>Outils+Config. → Archivage</strong>.</>)
+            return
+          }
           setConfirm({ msg: 'Voulez-vous supprimer cet enregistrement ?', cb: () => {
             if (selectedRef) removeVehicule(selectedRef) // suppression réelle — synchro toutes fenêtres
             setSelectedRef(null); setSearched(true); setConfirm(null)

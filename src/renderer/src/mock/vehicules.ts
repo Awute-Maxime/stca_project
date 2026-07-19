@@ -72,11 +72,10 @@ function randomChassis(): string {
   ).join('')
 }
 
-export const mockVehicules: MockVehicule[] = Array.from({ length: 52 }, (_, i) => {
+function creerVehicule(i: number, daysAgo: number): MockVehicule {
   const destInfo = DEST_DATA[i % DEST_DATA.length]
   const num = destInfo.numBase + i
   const immat = `${destInfo.lettre}${String(num).padStart(4, '0')}`
-  const daysAgo = Math.floor(i * 0.8)
 
   return {
     id: i + 1,
@@ -98,4 +97,11 @@ export const mockVehicules: MockVehicule[] = Array.from({ length: 52 }, (_, i) =
     numTri: String(10000 + i + 1).padStart(6, '0'),
     dateTri: dayjs().subtract(daysAgo, 'day').format('YYYY-MM-DD'),
   }
-})
+}
+
+export const mockVehicules: MockVehicule[] = [
+  ...Array.from({ length: 52 }, (_, i) => creerVehicule(i, Math.floor(i * 0.8))),
+  // Anciens enregistrements (3 à 5,5 ans) — éligibles à l'archivage, comme la
+  // vraie base STCA qui accumule les années (338k enregistrements réels).
+  ...Array.from({ length: 12 }, (_, j) => creerVehicule(52 + j, 1120 + j * 80)),
+]
