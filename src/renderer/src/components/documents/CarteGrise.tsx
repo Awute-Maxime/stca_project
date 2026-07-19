@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import type { CSSProperties } from 'react'
-import { getCalibrage, styleCalibrage } from '@mock/printConfig'
+import { getCalibrage, getDimensionsDoc, styleCalibrage } from '@mock/printConfig'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CARTE GRISE — Certificat d'immatriculation provisoire de véhicule
@@ -84,14 +84,15 @@ function fieldStyle(topMm: number, opts?: { center?: boolean; leftMm?: number; s
 export function CarteGriseDoc({ data }: { data: CarteGriseData }): JSX.Element {
   const numeroComplet = `TG WZ ${data.immat} ${data.destCode}`.replace(/\s+/g, ' ').trim()
   const cal = getCalibrage('cg') // décalage global configurable (Config. Imprimantes)
+  const dim = getDimensionsDoc('cg') // dimensions papier configurables
 
   return (
     <div
       id="cg-print-root"
       style={{
         position: 'relative',
-        width: `${CG_WIDTH_MM}mm`,
-        height: `${CG_HEIGHT_MM}mm`,
+        width: `${dim.largeurMm}mm`,
+        height: `${dim.hauteurMm}mm`,
         background: '#fff',
         overflow: 'hidden',
         flexShrink: 0,
@@ -147,10 +148,11 @@ export function CarteGriseDoc({ data }: { data: CarteGriseData }): JSX.Element {
 
 // ── CSS d'impression : page 105×212mm, seules les données du document ───────
 export function PrintCss(): JSX.Element {
+  const dim = getDimensionsDoc('cg')
   return (
     <style>{`
       @media print {
-        @page { size: ${CG_WIDTH_MM}mm ${CG_HEIGHT_MM}mm; margin: 0; }
+        @page { size: ${dim.largeurMm}mm ${dim.hauteurMm}mm; margin: 0; }
         body * { visibility: hidden !important; }
         #cg-print-root, #cg-print-root * { visibility: visible !important; }
         #cg-print-root {

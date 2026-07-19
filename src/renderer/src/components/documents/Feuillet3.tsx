@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import type { CSSProperties } from 'react'
 import dayjs from 'dayjs'
-import { getCalibrage, styleCalibrage } from '@mock/printConfig'
+import { getCalibrage, getDimensionsDoc, styleCalibrage } from '@mock/printConfig'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FEUILLET N°3 — CONDITIONS PARTICULIÈRES ASSURANCE AUTOMOBILE (Blanc A4)
@@ -99,14 +99,15 @@ function pose(topMm: number, leftMm: number, opts?: { size?: number; bold?: bool
 function Feuillet3Page({ data, derniere }: { data: Feuillet3Data; derniere: boolean }): JSX.Element {
   const maintenant = dayjs().format('DD/MM/YYYY')
   const cal = getCalibrage('feuillet3') // décalage global configurable (Config. Imprimantes)
+  const dim = getDimensionsDoc('feuillet3') // dimensions papier configurables
 
   return (
     <div
       className="f3-page"
       style={{
         position: 'relative',
-        width: '210mm',
-        height: '297mm',
+        width: `${dim.largeurMm}mm`,
+        height: `${dim.hauteurMm}mm`,
         background: '#fff',
         overflow: 'hidden',
         flexShrink: 0,
@@ -169,10 +170,11 @@ export function Feuillet3Doc({ data }: { data: Feuillet3Data }): JSX.Element {
 
 // ── CSS d'impression : page A4, seules les données du feuillet ──────────────
 export function Feuillet3PrintCss(): JSX.Element {
+  const dim = getDimensionsDoc('feuillet3')
   return (
     <style>{`
       @media print {
-        @page { size: A4 portrait; margin: 0; }
+        @page { size: ${dim.largeurMm}mm ${dim.hauteurMm}mm; margin: 0; }
         body * { visibility: hidden !important; }
         #feuillet3-print-root, #feuillet3-print-root * { visibility: visible !important; }
         #feuillet3-print-root {

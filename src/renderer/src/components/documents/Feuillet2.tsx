@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import type { CSSProperties } from 'react'
-import { getCalibrage, styleCalibrage } from '@mock/printConfig'
+import { getCalibrage, getDimensionsDoc, styleCalibrage } from '@mock/printConfig'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FEUILLET N°2 — ASSURANCE (ROSE) : bande PRÉ-IMPRIMÉE de 28,2 × 7,51 cm —
@@ -68,13 +68,14 @@ function ZoneExemplaire({ data, xMm }: { data: Feuillet2Data; xMm: number }): JS
 // ── Le document : bande blanche + données des 4 zones ───────────────────────
 export function Feuillet2Doc({ data }: { data: Feuillet2Data }): JSX.Element {
   const cal = getCalibrage('feuillet2') // décalage global configurable (Config. Imprimantes)
+  const dim = getDimensionsDoc('feuillet2') // dimensions papier configurables
   return (
     <div
       id="feuillet2-print-root"
       style={{
         position: 'relative',
-        width: `${FEUILLET2_WIDTH_MM}mm`,
-        height: `${FEUILLET2_HEIGHT_MM}mm`,
+        width: `${dim.largeurMm}mm`,
+        height: `${dim.hauteurMm}mm`,
         background: '#fff',
         overflow: 'hidden',
         flexShrink: 0,
@@ -116,10 +117,11 @@ export function Feuillet2Doc({ data }: { data: Feuillet2Data }): JSX.Element {
 
 // ── CSS d'impression : page 282×75,1mm, seules les données du feuillet ──────
 export function Feuillet2PrintCss(): JSX.Element {
+  const dim = getDimensionsDoc('feuillet2')
   return (
     <style>{`
       @media print {
-        @page { size: ${FEUILLET2_WIDTH_MM}mm ${FEUILLET2_HEIGHT_MM}mm; margin: 0; }
+        @page { size: ${dim.largeurMm}mm ${dim.hauteurMm}mm; margin: 0; }
         body * { visibility: hidden !important; }
         #feuillet2-print-root, #feuillet2-print-root * { visibility: visible !important; }
         #feuillet2-print-root {

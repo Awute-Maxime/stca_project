@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import type { CSSProperties } from 'react'
 import dayjs from 'dayjs'
 import Code128 from './Code128'
-import { getCalibrage, styleCalibrage } from '@mock/printConfig'
+import { getCalibrage, getDimensionsDoc, styleCalibrage } from '@mock/printConfig'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FICHE ID JAUNE — 10,5 × 21,2 cm, ENTIÈREMENT imprimée (contrairement à la
@@ -84,6 +84,7 @@ function champ(topMm: number, opts?: { leftMm?: number; size?: number; bold?: bo
 export function FicheIdDoc({ data }: { data: FicheIdData }): JSX.Element {
   const maintenant = dayjs().format('DD/MM/YYYY HH:mm:ss')
   const cal = getCalibrage('ficheId') // décalage global configurable (Config. Imprimantes)
+  const dim = getDimensionsDoc('ficheId') // dimensions papier configurables
   // Codes-barres (cf. commentaire d'entête) :
   // haut = châssis (VIN) ; bas = immat+frontière | N° Tri | clé d'auth.
   const idComplet = `${data.immat}${data.destCode}`.toUpperCase()
@@ -97,8 +98,8 @@ export function FicheIdDoc({ data }: { data: FicheIdData }): JSX.Element {
       id="ficheid-print-root"
       style={{
         position: 'relative',
-        width: `${FICHE_ID_WIDTH_MM}mm`,
-        height: `${FICHE_ID_HEIGHT_MM}mm`,
+        width: `${dim.largeurMm}mm`,
+        height: `${dim.hauteurMm}mm`,
         background: '#fff',
         overflow: 'hidden',
         flexShrink: 0,
@@ -169,10 +170,11 @@ export function FicheIdDoc({ data }: { data: FicheIdData }): JSX.Element {
 
 // ── CSS d'impression : page 105×212mm, seule la fiche sort ──────────────────
 export function FicheIdPrintCss(): JSX.Element {
+  const dim = getDimensionsDoc('ficheId')
   return (
     <style>{`
       @media print {
-        @page { size: ${FICHE_ID_WIDTH_MM}mm ${FICHE_ID_HEIGHT_MM}mm; margin: 0; }
+        @page { size: ${dim.largeurMm}mm ${dim.hauteurMm}mm; margin: 0; }
         body * { visibility: hidden !important; }
         #ficheid-print-root, #ficheid-print-root * { visibility: visible !important; }
         #ficheid-print-root {

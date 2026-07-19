@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { notification } from 'antd'
 import { PrinterOutlined } from '@ant-design/icons'
 import { electronApi } from '@api/electron'
-import { getConfigImpression, setConfigImpression, CALIBRAGE_NEUTRE, type ConfigImpression, type DocCalibrable } from '@mock/printConfig'
+import { getConfigImpression, setConfigImpression, CALIBRAGE_NEUTRE, DIMENSIONS_DEFAUT, type ConfigImpression, type DocCalibrable } from '@mock/printConfig'
 import { ouvrirApercuDoc } from '@components/documents/editionHelpers'
 import { getAllVehicules } from '@mock/vehiculesStore'
 
@@ -42,6 +42,10 @@ const DOCS: DocDef[] = [
 
 const AMPLI_MINIATURE = 3 // 1 mm de calibrage = 3 px dans la miniature (lisible)
 
+/** 105 → « 10,5 », 75.1 → « 7,51 », 210 → « 21 » (cm, format français). */
+const cmTexte = (mm: number): string =>
+  (mm / 10).toFixed(2).replace(/\.?0+$/, '').replace('.', ',')
+
 export function ConfigImprimantesWindow(): JSX.Element {
   const [cfg, setCfg] = useState<ConfigImpression>(getConfigImpression)
   const [imprimantes, setImprimantes] = useState<Array<{ name: string; isDefault: boolean }>>([])
@@ -50,6 +54,7 @@ export function ConfigImprimantesWindow(): JSX.Element {
   const parDefaut = imprimantes.find(p => p.isDefault)?.name ?? ''
   const doc = DOCS.find(d => d.cle === actif) as DocDef
   const cal = doc.cal ? cfg.calibrage[doc.cal] : { ...CALIBRAGE_NEUTRE }
+  const dims = doc.cal ? cfg.dimensions[doc.cal] : null
 
   // Vraies imprimantes du système ; le défaut système remplit les champs vides
   useEffect(() => {
@@ -99,6 +104,25 @@ export function ConfigImprimantesWindow(): JSX.Element {
     }))
   }
 
+  const majDimension = (axe: 'largeurMm' | 'hauteurMm', cm: number): void => {
+    if (!doc.cal || Number.isNaN(cm)) return
+    const cible = doc.cal
+    const mm = Math.min(450, Math.max(30, Math.round(cm * 100) / 10)) // borné 3–45 cm, précision 0,1 mm
+    setCfg(prev => ({
+      ...prev,
+      dimensions: {
+        ...prev.dimensions,
+        [cible]: { ...prev.dimensions[cible], [axe]: mm },
+      },
+    }))
+  }
+
+  const resetDimensions = (): void => {
+    if (!doc.cal) return
+    const cible = doc.cal
+    setCfg(prev => ({ ...prev, dimensions: { ...prev.dimensions, [cible]: { ...DIMENSIONS_DEFAUT[cible] } } }))
+  }
+
   const resetCalibrage = (): void => {
     if (!doc.cal) return
     const cible = doc.cal
@@ -130,10 +154,12 @@ export function ConfigImprimantesWindow(): JSX.Element {
     })
   }
 
-  // ── Miniature : échelle pour tenir dans la zone d'aperçu ──────────────────
-  const scale = Math.min(216 / doc.miniaWMm, 168 / doc.miniaHMm)
-  const miniaW = Math.round(doc.miniaWMm * scale)
-  const miniaH = Math.round(doc.miniaHMm * scale)
+  // ── Miniature : dimensions configurées, à l'échelle de la zone d'aperçu ───
+  const miniaWMm = dims ? dims.largeurMm : doc.miniaWMm
+  const miniaHMm = dims ? dims.hauteurMm : doc.miniaHMm
+  const scale = Math.min(216 / miniaWMm, 168 / miniaHMm)
+  const miniaW = Math.round(miniaWMm * scale)
+  const miniaH = Math.round(miniaHMm * scale)
 
   // ── Styles réutilisés ─────────────────────────────────────────────────────
   const LBL: React.CSSProperties = {
@@ -185,6 +211,13 @@ export function ConfigImprimantesWindow(): JSX.Element {
           transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
         .cfgimp-select:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); outline: none; }
+        .cfgimp-dim {
+          width: 66px; height: 28px; border: 1px solid #CBD5E1; border-radius: 7px;
+          padding: 0 6px; font-size: 12.5px; font-weight: 700; color: #1D4ED8;
+          text-align: center; background: #fff;
+          transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .cfgimp-dim:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); outline: none; }
       `}</style>
 
       {/* ── Bandeau beige (modèle Enregistrement) ─────────────────────────── */}
@@ -233,7 +266,9 @@ export function ConfigImprimantesWindow(): JSX.Element {
             }}>{doc.ico}</div>
             <div>
               <div style={{ fontSize: 15, fontWeight: 700, color: '#1B3A6B' }}>{doc.nom}</div>
-              <div style={{ fontSize: 11, color: '#64748B' }}>{doc.dims}</div>
+              <div style={{ fontSize: 11, color: '#64748B' }}>
+                {dims ? `${cmTexte(dims.largeurMm)} × ${cmTexte(dims.hauteurMm)} cm — pré-imprimé` : doc.dims}
+              </div>
             </div>
           </div>
 
@@ -255,6 +290,33 @@ export function ConfigImprimantesWindow(): JSX.Element {
               </span>
             )}
           </div>
+
+          {/* Dimensions physiques du papier — modifiables si le stock de
+              pré-imprimés change de format un jour */}
+          {dims && doc.cal && (
+            <div style={{ marginTop: 14, maxWidth: 430 }}>
+              <span style={LBL}>Dimensions du papier (cm)</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 11.5, color: '#374151' }}>Largeur :</span>
+                <input type="number" className="cfgimp-dim" step={0.1} min={3} max={45}
+                  value={Number((dims.largeurMm / 10).toFixed(2))}
+                  onChange={e => majDimension('largeurMm', parseFloat(e.target.value))} />
+                <span style={{ color: '#94A3B8', fontSize: 13, fontWeight: 700 }}>×</span>
+                <span style={{ fontSize: 11.5, color: '#374151' }}>Hauteur :</span>
+                <input type="number" className="cfgimp-dim" step={0.1} min={3} max={45}
+                  value={Number((dims.hauteurMm / 10).toFixed(2))}
+                  onChange={e => majDimension('hauteurMm', parseFloat(e.target.value))} />
+                <button onClick={resetDimensions}
+                  title="Revenir au format d'origine du document"
+                  style={{
+                    height: 28, padding: '0 10px', fontSize: 10.5, borderRadius: 7, cursor: 'pointer',
+                    border: '1px solid #CBD5E1', background: '#fff', color: '#475569',
+                  }}>
+                  ↺ {cmTexte(DIMENSIONS_DEFAUT[doc.cal].largeurMm)} × {cmTexte(DIMENSIONS_DEFAUT[doc.cal].hauteurMm)}
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Options propres au document */}
           {doc.cle === 'facture' && (

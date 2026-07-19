@@ -18,6 +18,18 @@ export interface Calibrage { dx: number; dy: number; ex: number; ey: number }
 
 export const CALIBRAGE_NEUTRE: Calibrage = { dx: 0, dy: 0, ex: 100, ey: 100 }
 
+// Dimensions physiques du papier de chaque document (mm) — modifiables dans
+// Config. Imprimantes si le stock de pré-imprimés change de format un jour.
+export interface DimensionsDoc { largeurMm: number; hauteurMm: number }
+
+export const DIMENSIONS_DEFAUT: Record<DocCalibrable, DimensionsDoc> = {
+  cg:        { largeurMm: 105, hauteurMm: 212 },   // Carte Grise 10,5 × 21,2 cm
+  ficheId:   { largeurMm: 105, hauteurMm: 212 },   // Fiche ID jaune, même format
+  feuillet1: { largeurMm: 282, hauteurMm: 75.1 },  // bande bleue 28,2 × 7,51 cm
+  feuillet2: { largeurMm: 282, hauteurMm: 75.1 },  // bande rose, même format
+  feuillet3: { largeurMm: 210, hauteurMm: 297 },   // A4 pré-imprimé
+}
+
 export interface ConfigImpression {
   imprimantes: {
     facture: string
@@ -32,6 +44,7 @@ export interface ConfigImpression {
   nomEtatCondPart: string
   factureAvecCodeBarre: boolean
   calibrage: Record<DocCalibrable, Calibrage>
+  dimensions: Record<DocCalibrable, DimensionsDoc>
 }
 
 const LS_KEY = 'tcit_config_impression'
@@ -50,6 +63,13 @@ const DEFAUT: ConfigImpression = {
     feuillet2: { ...CALIBRAGE_NEUTRE },
     feuillet3: { ...CALIBRAGE_NEUTRE },
   },
+  dimensions: {
+    cg: { ...DIMENSIONS_DEFAUT.cg },
+    ficheId: { ...DIMENSIONS_DEFAUT.ficheId },
+    feuillet1: { ...DIMENSIONS_DEFAUT.feuillet1 },
+    feuillet2: { ...DIMENSIONS_DEFAUT.feuillet2 },
+    feuillet3: { ...DIMENSIONS_DEFAUT.feuillet3 },
+  },
 }
 
 export function getConfigImpression(): ConfigImpression {
@@ -60,14 +80,17 @@ export function getConfigImpression(): ConfigImpression {
       // Fusion par document : les configs enregistrées avant l'échelle
       // d'impression (sans ex/ey) reçoivent les valeurs neutres.
       const calibrage = { ...DEFAUT.calibrage }
+      const dimensions = { ...DEFAUT.dimensions }
       for (const doc of Object.keys(calibrage) as DocCalibrable[]) {
         calibrage[doc] = { ...CALIBRAGE_NEUTRE, ...p.calibrage?.[doc] }
+        dimensions[doc] = { ...DIMENSIONS_DEFAUT[doc], ...p.dimensions?.[doc] }
       }
       return {
         ...DEFAUT,
         ...p,
         imprimantes: { ...DEFAUT.imprimantes, ...p.imprimantes },
         calibrage,
+        dimensions,
       }
     }
   } catch { /* défauts */ }
@@ -82,6 +105,11 @@ export function setConfigImpression(cfg: ConfigImpression): void {
 /** Calibrage d'un document pré-imprimé (décalage mm + échelle %). */
 export function getCalibrage(doc: DocCalibrable): Calibrage {
   return getConfigImpression().calibrage[doc] ?? { ...CALIBRAGE_NEUTRE }
+}
+
+/** Dimensions physiques configurées du papier d'un document (mm). */
+export function getDimensionsDoc(doc: DocCalibrable): DimensionsDoc {
+  return getConfigImpression().dimensions[doc] ?? { ...DIMENSIONS_DEFAUT[doc] }
 }
 
 /** Style CSS du wrapper de calibrage appliqué dans chaque document. */
