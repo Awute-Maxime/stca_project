@@ -10,7 +10,8 @@ import { FacturePrintDirect, type FactureData } from '@components/documents/Fact
 import { FicheIdPrintDirect, type FicheIdData } from '@components/documents/FicheId'
 import { Feuillet3PrintDirect, type Feuillet3Data } from '@components/documents/Feuillet3'
 import { Feuillet1PrintDirect, type Feuillet1Data } from '@components/documents/Feuillet1'
-import { docsPourChoix, cgDataDe, factureDataDe, ficheIdDataDe, feuillet1DataDe, feuillet3DataDe, ouvrirApercuDoc, type DocImp } from '@components/documents/editionHelpers'
+import { Feuillet2PrintDirect, type Feuillet2Data } from '@components/documents/Feuillet2'
+import { docsPourChoix, cgDataDe, factureDataDe, ficheIdDataDe, feuillet1DataDe, feuillet2DataDe, feuillet3DataDe, ouvrirApercuDoc, type DocImp } from '@components/documents/editionHelpers'
 
 const DEST_COLORS: Record<string, string> = {
   AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
@@ -45,6 +46,7 @@ export default function ListePage(): JSX.Element {
   const [directFicheId, setDirectFicheId] = useState<FicheIdData | null>(null)
   const [directFeuillet3, setDirectFeuillet3] = useState<Feuillet3Data | null>(null)
   const [directFeuillet1, setDirectFeuillet1] = useState<Feuillet1Data | null>(null)
+  const [directFeuillet2, setDirectFeuillet2] = useState<Feuillet2Data | null>(null)
 
   const avancerDirect = (): void => {
     setDirectQueue(q => {
@@ -359,6 +361,7 @@ export default function ListePage(): JSX.Element {
                 setDirectFicheId(docs.includes('ficheId') ? ficheIdDataDe(v) : null)
                 setDirectFeuillet3(docs.includes('feuillet3') ? feuillet3DataDe(v, editionType === 'duplicata' ? 'DUPLICATA' : '') : null)
                 setDirectFeuillet1(docs.includes('feuillet1') ? feuillet1DataDe(v) : null)
+                setDirectFeuillet2(docs.includes('feuillet2') ? feuillet2DataDe(v) : null)
                 setDirectQueue(docs)
               }
               return
@@ -381,6 +384,9 @@ export default function ListePage(): JSX.Element {
       )}
       {directQueue[0] === 'feuillet1' && directFeuillet1 && (
         <Feuillet1PrintDirect data={directFeuillet1} onDone={avancerDirect} />
+      )}
+      {directQueue[0] === 'feuillet2' && directFeuillet2 && (
+        <Feuillet2PrintDirect data={directFeuillet2} onDone={avancerDirect} />
       )}
 
     </div>

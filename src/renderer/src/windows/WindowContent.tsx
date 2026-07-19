@@ -12,6 +12,7 @@ import FactureApercuWindow from '@pages/FactureApercuWindow'
 import FicheIdApercuWindow from '@pages/FicheIdApercuWindow'
 import Feuillet3ApercuWindow from '@pages/Feuillet3ApercuWindow'
 import Feuillet1ApercuWindow from '@pages/Feuillet1ApercuWindow'
+import Feuillet2ApercuWindow from '@pages/Feuillet2ApercuWindow'
 import OpsParticulieresPage from '@pages/OpsParticulieresPage'
 import RechercheWindow from '@pages/RechercheWindow'
 import { CopyrightWindow, VersionWindow, IdReseauWindow } from '@pages/InfoWindows'
@@ -74,6 +75,8 @@ export function renderWindowContent(id: string): JSX.Element {
       return <Feuillet3ApercuWindow />
     case 'apercu.feuillet1':
       return <Feuillet1ApercuWindow />
+    case 'apercu.feuillet2':
+      return <Feuillet2ApercuWindow />
 
     // ── Menu Analyse — géré comme overlay modal dans MainScreen, pas en MDI
     // case 'analyse': / case 'analyse.stca': → MainScreen.tsx
