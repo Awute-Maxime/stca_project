@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>TCIT — Config. Imprimantes : 2 propositions</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #E8EDF5;
+    padding: 30px 20px 60px;
+    color: #1E293B;
+  }
+  .intro {
+    max-width: 980px; margin: 0 auto 26px; text-align: center;
+  }
+  .intro h1 { font-size: 22px; color: #1B3A6B; margin-bottom: 6px; }
+  .intro p { font-size: 13px; color: #64748B; }
+  .proposition {
+    max-width: 980px; margin: 0 auto 46px;
+  }
+  .prop-titre {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+  }
+  .prop-badge {
+    background: #2563EB; color: #fff; font-weight: 800; font-size: 15px;
+    width: 34px; height: 34px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 10px rgba(37,99,235,.3);
+  }
+  .prop-titre h2 { font-size: 16px; color: #1B3A6B; }
+  .prop-titre span { font-size: 12px; color: #64748B; }
+  .fenetre {
+    background: #fff; border-radius: 10px; overflow: hidden;
+    box-shadow: 0 18px 50px rgba(15,40,80,.18), 0 4px 12px rgba(15,40,80,.08);
+    border: 1px solid rgba(0,0,0,.08);
+  }
+  .titlebar {
+    height: 34px; background: linear-gradient(180deg, #1E4B8F, #1B3A6B);
+    display: flex; align-items: center; padding: 0 12px; gap: 8px;
+  }
+  .dot { width: 5px; height: 5px; border-radius: 50%; background: #F59E0B; box-shadow: 0 0 5px #F59E0B; }
+  .titlebar b { color: rgba(255,255,255,.92); font-size: 11.5px; font-weight: 600; flex: 1; }
+  .titlebar i { color: rgba(255,255,255,.6); font-style: normal; font-size: 12px; letter-spacing: 3px; }
+  .bandeau {
+    background: #F5F3EE; border-bottom: 2px solid #E2D9C8;
+    padding: 8px 16px; display: flex; align-items: center; gap: 8px; font-size: 11px;
+  }
+  .bandeau b { color: #1B3A6B; letter-spacing: .5px; text-transform: uppercase; font-size: 10.5px; flex: 1; }
+  .bandeau em { font-style: normal; color: #64748B; }
+  .bandeau em strong { color: #16A34A; }
+
+  /* ═══════════ PROPOSITION A — Grille de cartes ═══════════ */
+  .grille {
+    padding: 16px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  }
+  .carte {
+    border: 1.5px solid #DDEAFF; border-radius: 12px; padding: 16px 14px 13px;
+    background: #F8FAFF; cursor: pointer; text-align: center;
+    transition: transform .18s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+    position: relative;
+  }
+  .carte:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(37,99,235,.14);
+    border-color: #93C5FD;
+    background: #fff;
+  }
+  .carte.ouverte {
+    grid-column: 1 / -1; text-align: left; background: #fff;
+    border-color: #2563EB; cursor: default;
+    animation: carteOuvre .28s cubic-bezier(.16,1,.3,1);
+  }
+  @keyframes carteOuvre { from { opacity: .4; transform: scale(.985); } to { opacity: 1; transform: scale(1); } }
+  .carte .ico {
+    width: 52px; height: 52px; margin: 0 auto 8px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center; font-size: 26px;
+    background: #fff; border: 1px solid #E2E8F0;
+    transition: transform .2s ease;
+  }
+  .carte:hover .ico { transform: scale(1.12) rotate(-3deg); }
+  .carte h3 { font-size: 12.5px; color: #1B3A6B; margin-bottom: 3px; }
+  .carte .impr { font-size: 10.5px; color: #64748B; }
+  .carte .badge-cal {
+    position: absolute; top: 8px; right: 8px;
+    background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A;
+    font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 10px;
+  }
+  .carte-detail { display: none; }
+  .carte.ouverte .carte-detail { display: flex; gap: 22px; align-items: flex-start; margin-top: 12px; }
+  .carte.ouverte .entete-ouverte { display: flex; align-items: center; gap: 10px; }
+  .carte.ouverte .ico { margin: 0; }
+  .champ label { font-size: 10px; color: #64748B; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; display: block; margin-bottom: 4px; }
+  .champ select {
+    height: 30px; border: 1px solid #CBD5E1; border-radius: 6px; padding: 0 8px;
+    font-size: 12px; min-width: 250px; background: #fff;
+  }
+  .fermer-carte {
+    margin-left: auto; background: none; border: none; font-size: 16px;
+    color: #94A3B8; cursor: pointer;
+  }
+
+  /* ═══════════ PROPOSITION B — Navigation latérale ═══════════ */
+  .layout-b { display: flex; min-height: 430px; }
+  .nav-b {
+    width: 96px; background: linear-gradient(180deg, #1E4080, #112654);
+    padding: 12px 0; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .nav-item {
+    width: 78px; padding: 10px 4px 8px; border-radius: 10px; border: none;
+    background: none; cursor: pointer; text-align: center;
+    color: rgba(255,255,255,.65); position: relative;
+    transition: background .18s ease, color .18s ease;
+  }
+  .nav-item .nico { font-size: 21px; display: block; margin-bottom: 3px; transition: transform .2s ease; }
+  .nav-item:hover { background: rgba(255,255,255,.08); color: #fff; }
+  .nav-item:hover .nico { transform: scale(1.15); }
+  .nav-item.actif { background: rgba(255,255,255,.14); color: #fff; }
+  .nav-item.actif::before {
+    content: ''; position: absolute; left: -9px; top: 22%; bottom: 22%;
+    width: 3px; border-radius: 0 3px 3px 0; background: #60A5FA;
+  }
+  .nav-item span { font-size: 8.5px; font-weight: 600; line-height: 1.15; display: block; }
+  .nav-sep { width: 60%; height: 1px; background: rgba(255,255,255,.14); margin: 6px 0; }
+  .panneau {
+    flex: 1; padding: 20px 24px; animation: panEntre .25s ease;
+  }
+  @keyframes panEntre { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: translateX(0); } }
+  .pan-entete { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .pan-ico {
+    width: 46px; height: 46px; border-radius: 12px; font-size: 24px;
+    display: flex; align-items: center; justify-content: center;
+    background: #EFF6FF; border: 1px solid #BFDBFE;
+  }
+  .pan-entete h3 { font-size: 15px; color: #1B3A6B; }
+  .pan-entete small { font-size: 11px; color: #64748B; display: block; }
+  .pan-corps { display: flex; gap: 26px; }
+  .pan-gauche { flex: 1; min-width: 0; }
+  .bloc { margin-bottom: 16px; }
+  .bloc > label { font-size: 10px; color: #64748B; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; display: block; margin-bottom: 6px; }
+  .bloc select {
+    width: 100%; height: 32px; border: 1px solid #CBD5E1; border-radius: 7px;
+    padding: 0 10px; font-size: 12.5px; background: #fff;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .bloc select:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,.12); outline: none; }
+  .tag-defaut { font-size: 10px; color: #16A34A; font-weight: 600; margin-top: 4px; display: inline-block; }
+  .pave {
+    display: grid; grid-template-columns: 34px 34px 34px; grid-template-rows: 34px 34px 34px;
+    gap: 5px; justify-content: start;
+  }
+  .pave button {
+    border: 1px solid #CBD5E1; border-radius: 8px; background: #F8FAFF;
+    font-size: 14px; color: #1B3A6B; cursor: pointer; font-weight: 700;
+    transition: background .12s ease, transform .1s ease;
+  }
+  .pave button:hover { background: #EFF6FF; }
+  .pave button:active { transform: scale(.92); background: #DBEAFE; }
+  .pave .centre {
+    font-size: 9px; font-weight: 700; color: #1D4ED8; display: flex;
+    align-items: center; justify-content: center; border: 1px dashed #BFDBFE;
+    border-radius: 8px; background: #fff; cursor: pointer; line-height: 1.2;
+  }
+  .cal-valeurs { font-size: 12px; color: #1D4ED8; font-weight: 700; margin-top: 8px; }
+  .btn-test {
+    margin-top: 14px; height: 34px; padding: 0 18px; border-radius: 8px; cursor: pointer;
+    border: 1px solid #BFDBFE; background: #EFF6FF; color: #1D4ED8;
+    font-size: 12px; font-weight: 700;
+    transition: transform .12s ease, box-shadow .15s ease;
+  }
+  .btn-test:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(37,99,235,.18); }
+  /* Miniature animée */
+  .minia-zone {
+    width: 235px; flex-shrink: 0; background: #64748B; border-radius: 10px;
+    padding: 18px; display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  .minia-zone::after {
+    content: 'APERÇU LIVE'; position: absolute; top: 7px; right: 9px;
+    font-size: 8px; font-weight: 800; letter-spacing: 1px; color: rgba(255,255,255,.5);
+  }
+  .minia-cadre {
+    width: 120px; height: 200px; background: rgba(255,255,255,.14);
+    border: 1.5px dashed rgba(255,255,255,.45); border-radius: 4px; position: relative;
+  }
+  .minia-doc {
+    position: absolute; inset: 0; background: #fff; border-radius: 3px;
+    box-shadow: 0 6px 18px rgba(0,0,0,.35);
+    transition: transform .25s cubic-bezier(.16,1,.3,1);
+    padding: 12px 10px;
+  }
+  .minia-doc .l { height: 5px; border-radius: 2px; background: #CBD5E1; margin-bottom: 7px; }
+  .minia-doc .l.b { background: #1B3A6B; width: 70%; }
+  .minia-doc .l.m { width: 55%; }
+  .minia-doc .l.s { width: 40%; }
+  .pied {
+    display: flex; justify-content: center; gap: 12px; padding: 14px;
+    border-top: 1px solid #E2E8F0; background: #F8FAFF;
+  }
+  .btn-valider {
+    height: 33px; padding: 0 26px; background: #16A34A; color: #fff; border: none;
+    border-radius: 7px; font-size: 12.5px; font-weight: 700; cursor: pointer;
+    transition: transform .12s ease, box-shadow .15s ease;
+  }
+  .btn-valider:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(22,163,74,.3); }
+  .btn-fermer {
+    height: 33px; padding: 0 20px; background: #fff; color: #DC2626;
+    border: 1px solid #FECACA; border-radius: 7px; font-size: 12.5px; font-weight: 700; cursor: pointer;
+  }
+  .note-choix {
+    max-width: 980px; margin: 0 auto; text-align: center; font-size: 13px;
+    color: #1B3A6B; background: #EFF6FF; border: 1px solid #BFDBFE;
+    border-radius: 10px; padding: 12px;
+  }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>Configuration des éditions et imprimantes — deux propositions</h1>
+  <p>Les deux maquettes sont <strong>interactives</strong> : survole, clique, teste le calibrage. Choisis celle que tu préfères.</p>
+</div>
+
+<!-- ═══════════════ PROPOSITION A ═══════════════ -->
+<div class="proposition">
+  <div class="prop-titre">
+    <div class="prop-badge">A</div>
+    <div>
+      <h2>Grille de cartes documents</h2>
+      <span>Tous les documents visibles d'un coup d'œil — cliquer une carte l'ouvre avec ses réglages (accordéon animé)</span>
+    </div>
+  </div>
+  <div class="fenetre">
+    <div class="titlebar"><div class="dot"></div><b>Configuration des éditions et imprimantes</b><i>— □ ✕</i></div>
+    <div class="bandeau">🖨 <b>Configuration des éditions et imprimantes</b><em>Imprimante par défaut : <strong>Microsoft Print to PDF</strong></em></div>
+    <div class="grille" id="grilleA"></div>
+    <div class="pied"><button class="btn-valider">Valider ✔</button><button class="btn-fermer">Fermer ✕</button></div>
+  </div>
+</div>
+
+<!-- ═══════════════ PROPOSITION B ═══════════════ -->
+<div class="proposition">
+  <div class="prop-titre">
+    <div class="prop-badge">B</div>
+    <div>
+      <h2>Navigation latérale + panneau de détail <em style="font-size:11px;color:#16A34A;font-style:normal">(recommandée)</em></h2>
+      <span>Un document à la fois, zéro confusion — avec <strong>miniature animée</strong> : le document se décale en direct pendant le calibrage</span>
+    </div>
+  </div>
+  <div class="fenetre">
+    <div class="titlebar"><div class="dot"></div><b>Configuration des éditions et imprimantes</b><i>— □ ✕</i></div>
+    <div class="bandeau">🖨 <b>Configuration des éditions et imprimantes</b><em>Imprimante par défaut : <strong>Microsoft Print to PDF</strong></em></div>
+    <div class="layout-b">
+      <div class="nav-b" id="navB"></div>
+      <div class="panneau" id="panneauB"></div>
+    </div>
+    <div class="pied"><button class="btn-valider">Valider ✔</button><button class="btn-fermer">Fermer ✕</button></div>
+  </div>
+</div>
+
+<div class="note-choix">
+  👉 <strong>Dis-moi : proposition A ou proposition B ?</strong> (ou un mélange des deux — par exemple la grille A avec la miniature animée de B)
+</div>
+
+<script>
+const DOCS = [
+  { id: 'facture',  ico: '🧾', nom: 'Facture',          dim: 'A4 complet' },
+  { id: 'cg',       ico: '📇', nom: 'Carte Grise',      dim: '10,5 × 21,2 cm', cal: '+2,0 / −1,5' },
+  { id: 'f1',       ico: '🔵', nom: 'Feuillet N°1 Bleu', dim: '28,2 × 7,51 cm' },
+  { id: 'f2',       ico: '🌸', nom: 'Feuillet N°2 Rose', dim: '28,2 × 7,51 cm' },
+  { id: 'f3',       ico: '📄', nom: 'Feuillet N°3 C.P.', dim: 'A4 pré-imprimé' },
+  { id: 'ficheid',  ico: '🟡', nom: 'Fiche ID Jaune',   dim: '10,5 × 21,2 cm' },
+  { id: 'opts',     ico: '⚙️', nom: 'Options',           dim: 'Rouleau/Laser, code-barres…' },
+]
+const IMPRIMANTES = ['Microsoft Print to PDF   (par défaut du système)', 'Adobe PDF', 'AnyDesk Printer', 'Microsoft XPS Document Writer']
+
+// ── Proposition A : grille de cartes ──────────────────────────────────
+const grille = document.getElementById('grilleA')
+function renduA(ouverteId) {
+  grille.innerHTML = ''
+  DOCS.forEach(d => {
+    const c = document.createElement('div')
+    c.className = 'carte' + (d.id === ouverteId ? ' ouverte' : '')
+    if (d.id !== ouverteId) {
+      c.innerHTML = `
+        ${d.cal ? `<span class="badge-cal">⌖ ${d.cal}</span>` : ''}
+        <div class="ico">${d.ico}</div>
+        <h3>${d.nom}</h3>
+        <div class="impr">🖨 MS Print to PDF</div>`
+      c.onclick = () => renduA(d.id)
+    } else {
+      c.innerHTML = `
+        <div class="entete-ouverte">
+          <div class="ico">${d.ico}</div>
+          <div><h3>${d.nom}</h3><div class="impr">${d.dim}</div></div>
+          <button class="fermer-carte" title="Réduire">▴</button>
+        </div>
+        <div class="carte-detail">
+          <div class="champ">
+            <label>Imprimante</label>
+            <select>${IMPRIMANTES.map(p => `<option>${p}</option>`).join('')}</select>
+          </div>
+          <div class="champ">
+            <label>Calibrage (mm)</label>
+            <div style="display:flex;gap:6px;align-items:center;font-size:12px">
+              ◀ <b style="color:#1D4ED8">+2,0</b> ▶ &nbsp; ▲ <b style="color:#1D4ED8">−1,5</b> ▼
+              <button class="btn-test" style="margin:0 0 0 12px;height:30px">🖨 Page de test</button>
+            </div>
+          </div>
+        </div>`
+      c.querySelector('.fermer-carte').onclick = (e) => { e.stopPropagation(); renduA(null) }
+    }
+    grille.appendChild(c)
+  })
+}
+renduA(null)
+
+// ── Proposition B : navigation latérale + panneau ─────────────────────
+const nav = document.getElementById('navB')
+const panneau = document.getElementById('panneauB')
+let calB = { dx: 0, dy: 0 }
+let actifB = 'cg'
+
+function renduNavB() {
+  nav.innerHTML = ''
+  DOCS.forEach((d, i) => {
+    if (d.id === 'opts') { const s = document.createElement('div'); s.className = 'nav-sep'; nav.appendChild(s) }
+    const b = document.createElement('button')
+    b.className = 'nav-item' + (d.id === actifB ? ' actif' : '')
+    b.innerHTML = `<span class="nico">${d.ico}</span><span>${d.nom}</span>`
+    b.onclick = () => { actifB = d.id; calB = { dx: d.id === 'cg' ? 2 : 0, dy: d.id === 'cg' ? -1.5 : 0 }; renduNavB(); renduPanneauB() }
+    nav.appendChild(b)
+  })
+}
+function renduPanneauB() {
+  const d = DOCS.find(x => x.id === actifB)
+  if (d.id === 'opts') {
+    panneau.innerHTML = `
+      <div class="pan-entete"><div class="pan-ico">⚙️</div>
+        <div><h3>Options générales</h3><small>Réglages communs aux éditions</small></div></div>
+      <div class="bloc"><label>Type imprimante Feuillets 1/2</label>
+        <label style="font-size:12px;margin-right:18px"><input type="radio" name="tf"> Rouleau</label>
+        <label style="font-size:12px"><input type="radio" name="tf" checked> Laser</label></div>
+      <div class="bloc"><label style="margin-bottom:2px">Édition</label>
+        <label style="font-size:12px;display:block;margin:6px 0"><input type="checkbox" checked> Imprimer Fiche ID Véhicule</label>
+        <label style="font-size:12px;display:block"><input type="checkbox" checked> Facture avec code-barres</label></div>
+      <div class="bloc"><label>Nom état Cond. Part.</label>
+        <input style="height:30px;border:1px solid #CBD5E1;border-radius:7px;padding:0 10px;font-size:12px;width:280px" value="ETAT_AssuranceCondPartLaserA4"></div>`
+    return
+  }
+  panneau.innerHTML = `
+    <div class="pan-entete">
+      <div class="pan-ico">${d.ico}</div>
+      <div><h3>${d.nom}</h3><small>${d.dim}</small></div>
+    </div>
+    <div class="pan-corps">
+      <div class="pan-gauche">
+        <div class="bloc">
+          <label>Imprimante pour ce document</label>
+          <select>${IMPRIMANTES.map(p => `<option>${p}</option>`).join('')}</select>
+          <span class="tag-defaut">✓ Imprimante par défaut du système</span>
+        </div>
+        <div class="bloc">
+          <label>Calibrage de la position (mm)</label>
+          <div class="pave">
+            <span></span><button onclick="bougeB(0,-0.5)">▲</button><span></span>
+            <button onclick="bougeB(-0.5,0)">◀</button><div class="centre" onclick="resetB()" title="Réinitialiser">0,0<br>↺</div><button onclick="bougeB(0.5,0)">▶</button>
+            <span></span><button onclick="bougeB(0,0.5)">▼</button><span></span>
+          </div>
+          <div class="cal-valeurs" id="calValB"></div>
+          <button class="btn-test">🖨 Imprimer une page de test</button>
+        </div>
+      </div>
+      <div class="minia-zone">
+        <div class="minia-cadre">
+          <div class="minia-doc" id="miniaB">
+            <div class="l b"></div><div class="l m"></div><div class="l"></div>
+            <div class="l s"></div><div class="l m"></div><div class="l s"></div>
+          </div>
+        </div>
+      </div>
+    </div>`
+  majMiniaB()
+}
+function bougeB(dx, dy) { calB.dx = Math.round((calB.dx + dx) * 2) / 2; calB.dy = Math.round((calB.dy + dy) * 2) / 2; majMiniaB() }
+function resetB() { calB = { dx: 0, dy: 0 }; majMiniaB() }
+function majMiniaB() {
+  const m = document.getElementById('miniaB')
+  if (m) m.style.transform = `translate(${calB.dx * 4}px, ${calB.dy * 4}px)`
+  const v = document.getElementById('calValB')
+  if (v) v.textContent = `Horizontal : ${calB.dx > 0 ? '+' : ''}${calB.dx.toFixed(1)} mm · Vertical : ${calB.dy > 0 ? '+' : ''}${calB.dy.toFixed(1)} mm`
+}
+renduNavB(); renduPanneauB()
+</script>
+</body>
+</html>
