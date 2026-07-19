@@ -31,7 +31,7 @@ export const WINDOW_REGISTRY: Record<string, WindowConfig> = {
   // ── Menu Outils ───────────────────────────────────────────────
   'outils.gestionUtilisateurs':      { title: 'Gestion des utilisateurs',                          defaultX: 260, defaultY: 154, width: 720, height: 520 },
   'outils.clefAdmin':               { title: 'Clef d\'administration',                           defaultX: 260, defaultY: 154, width: 640, height: 480 },
-  'outils.archivage':               { title: 'Enregistrements archivés',                         defaultX: 200, defaultY: 124, width: 980, height: 660 },
+  'outils.archivage':               { title: 'Archivage des enregistrements',                    defaultX: 130, defaultY: 100, width: 1180, height: 690 },
   'outils.fixerRef':                { title: 'Fixer N° Référence',                               defaultX: 340, defaultY: 204, width: 580, height: 340 },
   'outils.posteImmat':              { title: 'Activation du mode assurance',                     defaultX: 260, defaultY: 154, width: 640, height: 480 },
   'outils.configAssurances':        { title: 'Configuration Assurances',                         defaultX: 240, defaultY: 144, width: 720, height: 520 },

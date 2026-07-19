@@ -8,6 +8,7 @@ import DashboardHome from '@pages/DashboardHome'
 import AnalysePage from '@pages/AnalysePage'
 import { MontantRestituerWindow } from '@pages/AssuranceWindows'
 import ClefAdminFlow from '@pages/ClefAdminFlow'
+import MdpAdminGate from '@pages/MdpAdminGate'
 import { WinConfirm } from '@components/WinDialogs'
 import { WINDOW_REGISTRY } from './WINDOW_REGISTRY'
 import { useVehicules } from '@mock/vehiculesStore'
@@ -50,6 +51,7 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
   const [analyseOpen, setAnalyseOpen] = useState(false)
   const [assuranceOpen, setAssuranceOpen] = useState(false)
   const [clefAdminOpen, setClefAdminOpen] = useState(false)
+  const [archivageGate, setArchivageGate] = useState(false)
   // Confirmation de bascule entre fenêtres principales
   const [switchConfirm, setSwitchConfirm] = useState<{ msg: ReactNode; cb: () => void; nonCb: () => void } | null>(null)
 
@@ -79,6 +81,15 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
       setClefAdminOpen(true)
       return
     }
+    if (id === 'outils.archivage') {
+      // Archivage — réservé à l'Administrateur : mot de passe requis (Règle 17)
+      setArchivageGate(true)
+      return
+    }
+    ouvrirAvecExclusivite(id)
+  }
+
+  const ouvrirAvecExclusivite = (id: string): void => {
     const config = WINDOW_REGISTRY[id]
     if (!config) return
 
@@ -169,6 +180,14 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
       {analyseOpen && <AnalysePage onClose={() => setAnalyseOpen(false)} />}
       {assuranceOpen && <MontantRestituerWindow onClose={() => setAssuranceOpen(false)} />}
       {clefAdminOpen && <ClefAdminFlow onClose={() => setClefAdminOpen(false)} />}
+      {archivageGate && (
+        <MdpAdminGate
+          titre="Saisie 'Mot de passe' de Configuration"
+          message="L'archivage des enregistrements est réservé à l'Administrateur de TCIT. Donnez le mot de passe de forçage pour continuer."
+          onOk={() => { setArchivageGate(false); ouvrirAvecExclusivite('outils.archivage') }}
+          onClose={() => setArchivageGate(false)}
+        />
+      )}
       {switchConfirm && (
         <WinConfirm message={switchConfirm.msg} onOui={switchConfirm.cb} onNon={switchConfirm.nonCb} />
       )}

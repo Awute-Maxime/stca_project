@@ -74,6 +74,25 @@ export function updateVehicule(ref: string, changes: Partial<MockVehicule>): voi
   notifyChanged()
 }
 
+/**
+ * Restaure un véhicule précédemment supprimé/archivé (retour à l'identique).
+ * - réf marquée supprimée (mock de base) → on la démarque et on pose les
+ *   données restaurées en surcharge (les modifs d'avant sont conservées) ;
+ * - sinon → simple ajout.
+ */
+export function restaurerVehicule(v: MockVehicule): void {
+  const removed = loadRemoved()
+  if (removed.includes(v.ref)) {
+    localStorage.setItem(LS_REMOVED, JSON.stringify(removed.filter(r => r !== v.ref)))
+    const updated = loadUpdated()
+    updated[v.ref] = v
+    localStorage.setItem(LS_UPDATED, JSON.stringify(updated))
+    notifyChanged()
+  } else {
+    addVehicule(v)
+  }
+}
+
 /** Supprime un véhicule (par réf) et notifie toutes les fenêtres. */
 export function removeVehicule(ref: string): void {
   // Ajout récent → on le retire directement de la liste des ajouts

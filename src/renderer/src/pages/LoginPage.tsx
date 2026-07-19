@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@store/authStore'
 import { electronApi } from '@api/electron'
 import { getAllUtilisateurs } from '@mock/utilisateursStore'
+import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 
 type DragCSS = React.CSSProperties & { WebkitAppRegion?: 'drag' | 'no-drag' }
 
@@ -40,6 +41,8 @@ export default function LoginPage(): JSX.Element {
         u => u.login.toLowerCase() === username.toLowerCase() && u.motDePasse === password && u.compteActif
       )
       if (found) {
+        // Login de session partagé avec les fenêtres MDI (ex. « Archivé par »)
+        localStorage.setItem('tcit_session_login', found.login)
         electronApi.resizeForMain()
         login({ id: found.id, login: found.login, nom: found.nom, role: found.administrateur ? 'admin' : 'agent' }, 'mock-token')
         navigate('/')
@@ -63,9 +66,11 @@ export default function LoginPage(): JSX.Element {
         u => u.login.toLowerCase() === username.toLowerCase() && u.motDePasse === password && u.administrateur && u.compteActif
       )
       if (found) {
-        electronApi.resizeForMain()
-        login({ id: found.id, login: found.login, nom: found.nom, role: 'admin' }, 'mock-token')
-        navigate('/', { state: { autoOpen: 'outils.gestionUtilisateurs' }, replace: true })
+        // Ouvre UNIQUEMENT la fenêtre de gestion des utilisateurs — PAS
+        // d'entrée dans l'application. La fenêtre de connexion reste ouverte
+        // derrière : en fermant la gestion, on revient dessus naturellement.
+        const cfg = WINDOW_REGISTRY['outils.gestionUtilisateurs']
+        if (cfg) electronApi.mdiOpen({ id: 'outils.gestionUtilisateurs', x: cfg.defaultX, y: cfg.defaultY, width: cfg.width, height: cfg.height })
       } else {
         setError("Identifiants incorrects ou droits administrateur requis")
         setShaking(true)

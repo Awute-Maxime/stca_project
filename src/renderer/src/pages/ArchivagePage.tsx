@@ -1,106 +1,154 @@
 import { useState, useMemo } from 'react'
-import { Table, Input, Select, DatePicker, Button, Tag, Space, Modal, Alert } from 'antd'
+import { Table, Input, DatePicker, Button, Modal, Alert, notification } from 'antd'
 import {
-  SearchOutlined, ReloadOutlined, InboxOutlined,
-  RollbackOutlined, DeleteOutlined, WarningOutlined,
+  SearchOutlined, InboxOutlined, RollbackOutlined,
+  DeleteOutlined, WarningOutlined, HistoryOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
-import { mockVehicules, type MockVehicule } from '@mock/vehicules'
-import { mockDestinations } from '@mock/destinations'
+import { useVehicules } from '@mock/vehiculesStore'
+import {
+  useArchives, vehiculesArchivables, archiverJusquAu,
+  rappelerArchives, purgerArchives, type VehiculeArchive,
+} from '@mock/archivesStore'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ARCHIVAGE (menu Outils+Config.) — fidèle à l'esprit du vrai STCA II
+// (capture du 19/07/2026 : bandeau date + « Lancer l'archivage » 🔑, table
+// verte « Enregistrements archivés », Quitter) :
+// - allège la base active en déplaçant les enregistrements jusqu'à une date
+//   limite (choisie par l'Administrateur — l'accès est déjà protégé par le
+//   mot de passe de forçage via MdpAdminGate),
+// - les archives restent consultables ici et RAPPELABLES à tout moment
+//   (retour dans la base active), avec purge définitive en option.
+// ─────────────────────────────────────────────────────────────────────────────
 
 const C = {
   blue:   '#1B3A6B',
   accent: '#2563EB',
   green:  '#16A34A',
-  gold:   '#F59E0B',
   muted:  '#6B7280',
   border: '#E2E8F0',
-  bg:     '#F8FAFF',
   danger: '#DC2626',
 }
-const { RangePicker } = DatePicker
 
-// Palette exacte du prototype (identique aux autres fenêtres)
-const DEST_COLORS: Record<string, string> = {
-  AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
-  KP: '#16A34A', KW: '#16A34A', NO: '#16A34A',
-  'S/C': '#FFD700', POL: '#94A3B8',
-}
-function destTxt(bg: string): string {
-  return (bg === '#FFD700' || bg === '#94A3B8') ? '#1E293B' : '#fff'
-}
-const destLabel = (code: string): string => mockDestinations.find(d => d.code === code)?.nom ?? code
-
-// Les 20 plus anciens records sont "archivés"
-const ARCHIVED_IDS = new Set(mockVehicules.slice(32).map(v => v.id))
+const fmtMontant = (n: number): string => `${n.toLocaleString('fr-FR')} F`
 
 export default function ArchivagePage(): JSX.Element {
-  const [search,     setSearch]     = useState('')
-  const [destFilter, setDestFilter] = useState<string | null>(null)
-  const [dateRange,  setDateRange]  = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(null)
-  const [selected,   setSelected]   = useState<number[]>([])
-  const [purgeOpen,  setPurgeOpen]  = useState(false)
-  const [restored,   setRestored]   = useState<number[]>([])
+  const actifs = useVehicules()   // base active — synchro toutes fenêtres
+  const archives = useArchives()  // archives — synchro toutes fenêtres
 
-  const archived = useMemo(() => mockVehicules.filter(v => ARCHIVED_IDS.has(v.id)), [])
+  const [dateLimite, setDateLimite] = useState<dayjs.Dayjs>(() => dayjs().subtract(3, 'year'))
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [search, setSearch] = useState('')
+  const [selected, setSelected] = useState<string[]>([])
+  const [purgeOpen, setPurgeOpen] = useState(false)
 
-  const filtered = useMemo(() => {
-    return archived.filter(v => {
-      if (restored.includes(v.id)) return false
-      if (search && !v.immat.toLowerCase().includes(search.toLowerCase()) &&
-          !v.marqueModele.toLowerCase().includes(search.toLowerCase())) return false
-      if (destFilter && v.destination !== destFilter) return false
-      if (dateRange) {
-        const d = dayjs(v.date)
-        if (d.isBefore(dateRange[0], 'day') || d.isAfter(dateRange[1], 'day')) return false
-      }
-      return true
+  const sessionLogin = localStorage.getItem('tcit_session_login') ?? 'Administrateur'
+
+  // Aperçu en direct de ce que l'archivage déplacerait (réagit à la date ET à la base)
+  const archivables = useMemo(
+    () => vehiculesArchivables(dateLimite.format('YYYY-MM-DD')),
+    [dateLimite, actifs] // eslint-disable-line react-hooks/exhaustive-deps
+  )
+
+  const filtrees = useMemo(() => {
+    if (!search) return archives
+    const q = search.toLowerCase()
+    return archives.filter(a =>
+      a.ref.toLowerCase().includes(q) ||
+      a.nomAcheteur.toLowerCase().includes(q) ||
+      a.immat.toLowerCase().includes(q) ||
+      a.chassis.toLowerCase().includes(q) ||
+      a.marqueModele.toLowerCase().includes(q)
+    )
+  }, [archives, search])
+
+  const montantArchive = useMemo(() => archives.reduce((s, a) => s + a.montant, 0), [archives])
+
+  const lancerArchivage = (): void => {
+    const nb = archiverJusquAu(dateLimite.format('YYYY-MM-DD'), sessionLogin)
+    setConfirmOpen(false)
+    notification.success({
+      message: `📦 Archivage terminé — ${nb} enregistrement(s)`,
+      description: `La base active est allégée. Les archives restent consultables et rappelables à tout moment.`,
+      placement: 'bottomRight',
     })
-  }, [archived, search, destFilter, dateRange, restored])
-
-  const handleRestore = (id: number): void => {
-    setRestored(prev => [...prev, id])
-    setSelected(prev => prev.filter(s => s !== id))
   }
 
-  const handlePurge = (): void => {
-    // mock: nothing to actually delete
-    setPurgeOpen(false)
+  const rappeler = (refs: string[]): void => {
+    const nb = rappelerArchives(refs)
+    setSelected(prev => prev.filter(r => !refs.includes(r)))
+    notification.success({
+      message: `↩ ${nb} enregistrement(s) rappelé(s)`,
+      description: 'Ils sont de retour dans la base active (Liste des véhicules).',
+      placement: 'bottomRight',
+    })
+  }
+
+  const purger = (): void => {
+    const nb = purgerArchives(selected)
     setSelected([])
+    setPurgeOpen(false)
+    notification.warning({
+      message: `🗑 ${nb} archive(s) purgée(s) définitivement`,
+      placement: 'bottomRight',
+    })
   }
 
-  const columns: ColumnsType<MockVehicule> = [
+  // ── Colonnes — mêmes informations que la table du vrai STCA ───────────────
+  const columns: ColumnsType<VehiculeArchive> = [
     {
-      title: 'N° IMMAT', dataIndex: 'immat', width: 100,
-      render: v => <span style={{ fontFamily: 'monospace', fontWeight: 700, color: C.blue, fontSize: 12 }}>{v}</span>,
+      title: 'Ref', dataIndex: 'ref', width: 70,
+      render: v => <span style={{ fontFamily: 'monospace', fontSize: 11, color: C.muted }}>{v}</span>,
     },
     {
-      title: 'Type', dataIndex: 'typeVehicule', width: 90,
+      title: 'Nom et prénom', dataIndex: 'nomAcheteur', ellipsis: true,
+      render: v => <span style={{ fontSize: 11.5, fontWeight: 600, color: '#1E293B' }}>{v}</span>,
+    },
+    {
+      title: 'Code', dataIndex: 'destination', width: 58, align: 'center' as const,
+      render: v => <span style={{ fontSize: 11, fontWeight: 700, color: C.blue }}>{v}</span>,
+    },
+    { title: 'Marque et modèle', dataIndex: 'marqueModele', ellipsis: true, render: v => <span style={{ fontSize: 11.5 }}>{v}</span> },
+    {
+      title: 'N° Chassis', dataIndex: 'chassis', width: 150, ellipsis: true,
+      render: v => <span style={{ fontFamily: 'monospace', fontSize: 10.5 }}>{v}</span>,
+    },
+    {
+      title: 'Immatriculation', dataIndex: 'immat', width: 105,
+      render: v => <span style={{ fontFamily: 'monospace', fontWeight: 700, color: C.blue, fontSize: 11.5 }}>{v}</span>,
+    },
+    {
+      title: 'N° de Tri', dataIndex: 'numTri', width: 70, align: 'center' as const,
+      render: v => <span style={{ fontFamily: 'monospace', fontSize: 11 }}>{v}</span>,
+    },
+    {
+      title: 'Montant', dataIndex: 'montant', width: 85, align: 'right' as const,
+      render: v => <span style={{ fontWeight: 600, color: C.green, fontSize: 11 }}>{fmtMontant(v)}</span>,
+    },
+    {
+      title: 'Enregistré le', dataIndex: 'date', width: 95,
+      render: v => <span style={{ fontSize: 11, color: C.muted }}>{dayjs(v).format('DD/MM/YYYY')}</span>,
+    },
+    {
+      title: 'Saisie par', dataIndex: 'agent', width: 85,
       render: v => <span style={{ fontSize: 11, color: C.muted }}>{v}</span>,
     },
-    { title: 'Marque / Modèle', dataIndex: 'marqueModele', render: v => <span style={{ fontSize: 12 }}>{v}</span> },
     {
-      title: 'Destination', dataIndex: 'destination', width: 130,
-      render: v => {
-        const bg = DEST_COLORS[v] ?? '#6B7280'
-        return <Tag style={{ fontWeight: 600, fontSize: 10, background: bg, color: destTxt(bg), borderColor: bg }}>{v} — {destLabel(v)}</Tag>
-      },
+      title: "Archivé le", dataIndex: 'dateArchivage', width: 95,
+      render: (v, row) => (
+        <span style={{ fontSize: 11, color: C.blue, fontWeight: 600 }} title={`Archivé par ${row.archivePar}`}>
+          {dayjs(v).format('DD/MM/YYYY')}
+        </span>
+      ),
     },
     {
-      title: 'Date archivage', dataIndex: 'date', width: 120,
-      render: v => <span style={{ fontSize: 11, color: C.muted }}>{dayjs(v).format('DD/MM/YY')}</span>,
-    },
-    {
-      title: 'Montant', dataIndex: 'montant', width: 100, align: 'right' as const,
-      render: v => <span style={{ fontWeight: 600, color: C.green, fontSize: 11 }}>{v.toLocaleString('fr-FR')} F</span>,
-    },
-    {
-      title: '', width: 90, align: 'center' as const,
+      title: '', width: 92, align: 'center' as const,
       render: (_, row) => (
-        <Button size="small" icon={<RollbackOutlined />} onClick={() => handleRestore(row.id)}
+        <Button size="small" icon={<RollbackOutlined />} onClick={() => rappeler([row.ref])}
           style={{ fontSize: 10, color: C.accent, borderColor: C.accent }}>
-          Restaurer
+          Rappeler
         </Button>
       ),
     },
@@ -108,76 +156,137 @@ export default function ArchivagePage(): JSX.Element {
 
   return (
     <div style={{ animation: 'formEnter 0.3s ease' }}>
-      {/* Header — sub-header beige (modèle Enregistrement, pas de 2e bandeau bleu) */}
+      {/* Lignes vertes alternées — clin d'œil à la table du vrai STCA */}
+      <style>{`
+        .archives-table .table-row-verte td { background: #F3F9EC !important; }
+        .archives-table .ant-table-thead > tr > th {
+          background: #EEF3FB !important; color: #1B3A6B !important;
+          font-size: 10.5px !important; font-weight: 700 !important;
+        }
+      `}</style>
+
+      {/* Sub-header beige (modèle validé) + Quitter comme le vrai STCA */}
       <div style={{
         background: '#F5F3EE', borderBottom: '2px solid #E2D9C8',
         padding: '9px 14px', marginBottom: 10, borderRadius: 6,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        display: 'flex', alignItems: 'center', gap: 8,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <InboxOutlined style={{ color: '#1B3A6B', fontSize: 15 }} />
-          <span style={{ color: '#1B3A6B', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase' }}>
-            Enregistrements Archivés
-          </span>
-        </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <span style={{ color: '#64748B', fontSize: 10 }}>
-            {filtered.length} enregistrements archivés
-          </span>
-          {restored.length > 0 && (
-            <span style={{ color: '#16A34A', fontSize: 10, fontWeight: 600 }}>
-              ✓ {restored.length} restauré(s)
-            </span>
-          )}
-        </div>
+        <InboxOutlined style={{ color: C.blue, fontSize: 15 }} />
+        <span style={{ color: C.blue, fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase', flex: 1 }}>
+          Archivage des enregistrements
+        </span>
+        <span style={{ color: '#64748B', fontSize: 10.5 }}>
+          🚗 <strong>{actifs.length}</strong> actifs · 📦 <strong>{archives.length}</strong> archivés
+          {archives.length > 0 && <> · 💰 <strong>{fmtMontant(montantArchive)}</strong></>}
+        </span>
+        <button onClick={() => window.dispatchEvent(new CustomEvent('mdi:close-self'))} style={{
+          display: 'flex', alignItems: 'center', gap: 5, marginLeft: 10,
+          background: 'none', border: 'none', cursor: 'pointer',
+          color: C.danger, fontSize: 11.5, fontWeight: 700,
+        }}>
+          Quitter <span style={{ fontSize: 14 }}>⊗</span>
+        </button>
+      </div>
+
+      {/* ── Lancer un archivage (bandeau du haut du vrai STCA, modernisé) ──── */}
+      <div style={{
+        border: '1px solid #BFDBFE', background: '#F8FBFF', borderRadius: 8,
+        padding: '12px 16px', marginBottom: 10,
+        display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+      }}>
+        <HistoryOutlined style={{ color: C.accent, fontSize: 17 }} />
+        <span style={{ fontSize: 12, fontWeight: 700, color: C.blue }}>
+          Archiver les enregistrements jusqu&apos;au :
+        </span>
+        <DatePicker
+          value={dateLimite} onChange={d => { if (d) setDateLimite(d) }}
+          format="DD/MM/YYYY" allowClear={false} size="small" style={{ width: 130 }}
+        />
+        <span style={{
+          fontSize: 11.5, fontWeight: 700,
+          color: archivables.length > 0 ? C.accent : C.muted,
+        }}>
+          → {archivables.length} enregistrement(s) concerné(s) sur {actifs.length}
+        </span>
+        <Button
+          type="primary" disabled={archivables.length === 0}
+          onClick={() => setConfirmOpen(true)}
+          style={{ marginLeft: 'auto', fontWeight: 700, fontSize: 12 }}
+        >
+          🔑 Lancer l&apos;archivage
+        </Button>
       </div>
 
       <Alert
         type="info" showIcon
-        message="Les enregistrements archivés sont conservés 3 ans puis purgés automatiquement. Vous pouvez les restaurer à tout moment."
+        message="L'archivage allège la base active. Les enregistrements archivés restent consultables ci-dessous et peuvent être rappelés dans la base active à tout moment."
         style={{ marginBottom: 10, fontSize: 11 }}
       />
 
-      {/* Filtres */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        <Input placeholder="Recherche immat / marque…" prefix={<SearchOutlined style={{ color: '#ccc' }} />}
-          value={search} onChange={e => setSearch(e.target.value)} allowClear size="small" style={{ width: 200 }} />
-        <Select placeholder="Destination" value={destFilter} onChange={setDestFilter} allowClear size="small"
-          options={mockDestinations.map(d => ({ value: d.code, label: `${d.code} — ${d.nom}` }))} style={{ width: 180 }} />
-        <RangePicker format="DD/MM/YYYY" size="small"
-          value={dateRange} onChange={v => setDateRange(v as [dayjs.Dayjs, dayjs.Dayjs] | null)} />
-        <Space style={{ marginLeft: 'auto' }}>
-          <Button icon={<ReloadOutlined />} size="small"
-            onClick={() => { setSearch(''); setDestFilter(null); setDateRange(null) }}>
-            Réinitialiser
-          </Button>
+      {/* ── Enregistrements archivés ─────────────────────────────────────────── */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+        <span style={{ fontSize: 12.5, fontWeight: 700, color: C.blue, fontStyle: 'italic' }}>
+          Enregistrements archivés
+        </span>
+        <Input placeholder="Recherche ref / nom / immat / châssis / marque…"
+          prefix={<SearchOutlined style={{ color: '#ccc' }} />}
+          value={search} onChange={e => setSearch(e.target.value)} allowClear size="small"
+          style={{ width: 280, marginLeft: 8 }} />
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
           {selected.length > 0 && (
-            <Button danger icon={<DeleteOutlined />} size="small" onClick={() => setPurgeOpen(true)}>
-              Purger ({selected.length})
-            </Button>
+            <>
+              <Button size="small" icon={<RollbackOutlined />} onClick={() => rappeler(selected)}
+                style={{ color: C.accent, borderColor: C.accent, fontWeight: 600 }}>
+                Rappeler la sélection ({selected.length})
+              </Button>
+              <Button danger size="small" icon={<DeleteOutlined />} onClick={() => setPurgeOpen(true)}>
+                Purger ({selected.length})
+              </Button>
+            </>
           )}
-        </Space>
+        </div>
       </div>
 
       <Table
-        columns={columns} dataSource={filtered} rowKey="id" size="small"
-        pagination={{ pageSize: 12, showSizeChanger: false, showTotal: t => `${t} entrée(s)` }}
+        className="archives-table"
+        columns={columns} dataSource={filtrees} rowKey="ref" size="small"
+        pagination={{ pageSize: 10, showSizeChanger: false, showTotal: t => `${t} archive(s)` }}
         rowSelection={{
           selectedRowKeys: selected,
-          onChange: keys => setSelected(keys as number[]),
+          onChange: keys => setSelected(keys as string[]),
         }}
+        locale={{ emptyText: 'Aucun enregistrement archivé pour le moment.' }}
         style={{ border: `1px solid ${C.border}`, borderRadius: 6 }}
-        rowClassName={(_, i) => i % 2 === 0 ? '' : 'table-row-alt'}
+        rowClassName={(_, i) => i % 2 === 1 ? 'table-row-verte' : ''}
       />
 
-      <Modal title={<><WarningOutlined style={{ color: C.danger, marginRight: 6 }} />Purger les enregistrements</>}
-        open={purgeOpen} onOk={handlePurge} onCancel={() => setPurgeOpen(false)}
-        okText="Purger définitivement" okButtonProps={{ danger: true }} width={400}>
+      {/* ── Confirmation d'archivage ─────────────────────────────────────────── */}
+      <Modal
+        title={<>📦 Lancer l&apos;archivage</>}
+        open={confirmOpen} onOk={lancerArchivage} onCancel={() => setConfirmOpen(false)}
+        okText={`Archiver ${archivables.length} enregistrement(s)`} cancelText="Annuler" width={440}
+      >
+        <p style={{ fontSize: 12, marginBottom: 8, lineHeight: 1.6 }}>
+          Les <strong>{archivables.length} enregistrement(s)</strong> enregistrés jusqu&apos;au{' '}
+          <strong>{dateLimite.format('DD/MM/YYYY')}</strong> seront déplacés vers les archives.
+          <br />La base active passera de <strong>{actifs.length}</strong> à{' '}
+          <strong>{actifs.length - archivables.length}</strong> enregistrements.
+        </p>
+        <Alert type="info" showIcon style={{ fontSize: 11 }}
+          message="Les archives restent consultables et rappelables à tout moment — rien n'est supprimé." />
+      </Modal>
+
+      {/* ── Confirmation de purge définitive ─────────────────────────────────── */}
+      <Modal
+        title={<><WarningOutlined style={{ color: C.danger, marginRight: 6 }} />Purger les archives</>}
+        open={purgeOpen} onOk={purger} onCancel={() => setPurgeOpen(false)}
+        okText="Purger définitivement" okButtonProps={{ danger: true }} cancelText="Annuler" width={400}
+      >
         <p style={{ fontSize: 12, marginBottom: 8 }}>
-          Vous allez supprimer définitivement <strong>{selected.length} enregistrement(s)</strong> archivé(s).
+          Vous allez supprimer définitivement <strong>{selected.length} archive(s)</strong>.
           Cette action est irréversible.
         </p>
-        <Alert type="warning" message="Les données supprimées ne pourront pas être récupérées." showIcon style={{ fontSize: 11 }} />
+        <Alert type="warning" message="Les données purgées ne pourront plus être rappelées." showIcon style={{ fontSize: 11 }} />
       </Modal>
     </div>
   )
