@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import type { CSSProperties } from 'react'
 import dayjs from 'dayjs'
+import { getCalibrage } from '@mock/printConfig'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FEUILLET N°3 — CONDITIONS PARTICULIÈRES ASSURANCE AUTOMOBILE (Blanc A4)
@@ -97,6 +98,7 @@ function pose(topMm: number, leftMm: number, opts?: { size?: number; bold?: bool
 // ── Une page du feuillet : feuille blanche + données positionnées ───────────
 function Feuillet3Page({ data, derniere }: { data: Feuillet3Data; derniere: boolean }): JSX.Element {
   const maintenant = dayjs().format('DD/MM/YYYY')
+  const cal = getCalibrage('feuillet3') // décalage global configurable (Config. Imprimantes)
 
   return (
     <div
@@ -112,6 +114,7 @@ function Feuillet3Page({ data, derniere }: { data: Feuillet3Data; derniere: bool
         boxShadow: '0 4px 20px rgba(0,0,0,0.35)',
       }}
     >
+      <div style={{ position: 'absolute', left: `${cal.dx}mm`, top: `${cal.dy}mm`, width: '100%', height: '100%' }}>
       {/* Ligne d'entête imprimée sur le bord haut du pré-imprimé */}
       <div style={pose(6.9, 3, { size: 3 })}>Assurances : Conditions Particulières (TCIT)</div>
       <div style={pose(6.9, 82, { size: 3 })}>Imprimée le :&nbsp; {maintenant}</div>
@@ -148,6 +151,7 @@ function Feuillet3Page({ data, derniere }: { data: Feuillet3Data; derniere: bool
       {/* Reçu */}
       <div style={pose(226.2, 19.4, { size: 3.4 })}>
         Reçu de {data.nom.toUpperCase()} la somme de {montantEnLettres(PRIME_TTC)} Francs CFA
+      </div>
       </div>
     </div>
   )

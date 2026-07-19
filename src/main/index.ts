@@ -79,6 +79,16 @@ function setupMdiIPC(): void {
     [...mdiWindows.entries()].filter(([, w]) => !w.isDestroyed()).map(([id]) => id)
   )
 
+  // Imprimantes du système (nom + défaut) — pour Config. Imprimantes
+  ipcMain.handle('printers:list', async (e) => {
+    try {
+      const liste = await e.sender.getPrintersAsync()
+      return liste.map(p => ({ name: p.name, isDefault: p.isDefault }))
+    } catch {
+      return []
+    }
+  })
+
   // Fermeture ciblée d'une fenêtre MDI par son id
   ipcMain.on('mdi:close-id', (_, id: string) => {
     const w = mdiWindows.get(id)

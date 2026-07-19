@@ -18,6 +18,10 @@ const api = {
   mdiListOpen: (): Promise<string[]> => ipcRenderer.invoke('mdi:list-open'),
   mdiCloseId:  (id: string) => ipcRenderer.send('mdi:close-id', id),
 
+  // Imprimantes du système (Config. Imprimantes)
+  printersList: (): Promise<Array<{ name: string; isDefault: boolean }>> =>
+    ipcRenderer.invoke('printers:list'),
+
   // Self-control for child MDI windows
   mdiSelfClose:    () => ipcRenderer.send('mdi:self:close'),
   mdiSelfMinimize: () => ipcRenderer.send('mdi:self:minimize'),

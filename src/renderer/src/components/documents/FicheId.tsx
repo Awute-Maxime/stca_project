@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import type { CSSProperties } from 'react'
 import dayjs from 'dayjs'
 import Code128 from './Code128'
+import { getCalibrage } from '@mock/printConfig'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FICHE ID JAUNE — 10,5 × 21,2 cm, ENTIÈREMENT imprimée (contrairement à la
@@ -82,6 +83,7 @@ function champ(topMm: number, opts?: { leftMm?: number; size?: number; bold?: bo
 // ── Le document ─────────────────────────────────────────────────────────────
 export function FicheIdDoc({ data }: { data: FicheIdData }): JSX.Element {
   const maintenant = dayjs().format('DD/MM/YYYY HH:mm:ss')
+  const cal = getCalibrage('ficheId') // décalage global configurable (Config. Imprimantes)
   // Codes-barres (cf. commentaire d'entête) :
   // haut = châssis (VIN) ; bas = immat+frontière | N° Tri | clé d'auth.
   const idComplet = `${data.immat}${data.destCode}`.toUpperCase()
@@ -102,6 +104,7 @@ export function FicheIdDoc({ data }: { data: FicheIdData }): JSX.Element {
         flexShrink: 0,
       }}
     >
+      <div style={{ position: 'absolute', left: `${cal.dx}mm`, top: `${cal.dy}mm`, width: '100%', height: '100%' }}>
       {/* Entête : STCA + date/heure d'impression */}
       <div style={champ(6.5, { size: 6, bold: true, spacing: 0.8 })}>STCA</div>
       <div style={{ ...champ(7.5, { size: 3 }), left: 'auto', right: '10mm' }}>
@@ -158,6 +161,7 @@ export function FicheIdDoc({ data }: { data: FicheIdData }): JSX.Element {
         textAlign: 'right', fontFamily: FONT, fontSize: '2.2mm', color: '#555',
       }}>
         Usage strictement réservé à TCIT&nbsp; [v{dayjs().format('YYYY')}-1]&nbsp;&nbsp; Toute reproduction interdite.
+      </div>
       </div>
     </div>
   )

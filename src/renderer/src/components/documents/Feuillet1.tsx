@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import type { CSSProperties } from 'react'
+import { getCalibrage } from '@mock/printConfig'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FEUILLET N°1 — ASSURANCE (BLEU) : bande PRÉ-IMPRIMÉE de 28,2 × 7,51 cm
@@ -69,6 +70,7 @@ function Zone({ data, xMm, avecNom, nomEnHaut }: {
 
 // ── Le document : bande blanche + données des 3 zones ───────────────────────
 export function Feuillet1Doc({ data }: { data: Feuillet1Data }): JSX.Element {
+  const cal = getCalibrage('feuillet1') // décalage global configurable (Config. Imprimantes)
   return (
     <div
       id="feuillet1-print-root"
@@ -81,6 +83,7 @@ export function Feuillet1Doc({ data }: { data: Feuillet1Data }): JSX.Element {
         flexShrink: 0,
       }}
     >
+      <div style={{ position: 'absolute', left: `${cal.dx}mm`, top: `${cal.dy}mm`, width: '100%', height: '100%' }}>
       {/* Zone 1 — section « Assuré » */}
       <Zone data={data} xMm={7} avecNom nomEnHaut={false} />
       {/* Zone 2 — partie à enlever (pare-brise), sans le nom */}
@@ -96,6 +99,7 @@ export function Feuillet1Doc({ data }: { data: Feuillet1Data }): JSX.Element {
         whiteSpace: 'nowrap',
       }}>
         TCIT
+      </div>
       </div>
     </div>
   )

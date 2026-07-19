@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import type { CSSProperties } from 'react'
+import { getCalibrage } from '@mock/printConfig'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FEUILLET N°2 — ASSURANCE (ROSE) : bande PRÉ-IMPRIMÉE de 28,2 × 7,51 cm —
@@ -66,6 +67,7 @@ function ZoneExemplaire({ data, xMm }: { data: Feuillet2Data; xMm: number }): JS
 
 // ── Le document : bande blanche + données des 4 zones ───────────────────────
 export function Feuillet2Doc({ data }: { data: Feuillet2Data }): JSX.Element {
+  const cal = getCalibrage('feuillet2') // décalage global configurable (Config. Imprimantes)
   return (
     <div
       id="feuillet2-print-root"
@@ -78,6 +80,7 @@ export function Feuillet2Doc({ data }: { data: Feuillet2Data }): JSX.Element {
         flexShrink: 0,
       }}
     >
+      <div style={{ position: 'absolute', left: `${cal.dx}mm`, top: `${cal.dy}mm`, width: '100%', height: '100%' }}>
       {/* Zone 1 — Exemplaire Assureur */}
       <ZoneExemplaire data={data} xMm={10.3} />
       {/* Zone 2 — Exemplaire Bureau National */}
@@ -105,6 +108,7 @@ export function Feuillet2Doc({ data }: { data: Feuillet2Data }): JSX.Element {
         whiteSpace: 'nowrap',
       }}>
         TCIT
+      </div>
       </div>
     </div>
   )

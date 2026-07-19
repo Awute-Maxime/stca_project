@@ -10,6 +10,7 @@ declare global {
       mdiOpen:         (data: { id: string; x: number; y: number; width: number; height: number }) => void
       mdiListOpen:     () => Promise<string[]>
       mdiCloseId:      (id: string) => void
+      printersList:    () => Promise<Array<{ name: string; isDefault: boolean }>>
       mdiSelfClose:    () => void
       mdiSelfMinimize: () => void
       mdiSelfMaximize: () => void
@@ -28,6 +29,8 @@ export const electronApi = {
     window.api?.mdiOpen?.(data),
   mdiListOpen:     (): Promise<string[]> => window.api?.mdiListOpen?.() ?? Promise.resolve([]),
   mdiCloseId:      (id: string) => window.api?.mdiCloseId?.(id),
+  printersList:    (): Promise<Array<{ name: string; isDefault: boolean }>> =>
+    window.api?.printersList?.() ?? Promise.resolve([]),
   mdiSelfClose:    () => window.api?.mdiSelfClose?.(),
   mdiSelfMinimize: () => window.api?.mdiSelfMinimize?.(),
   mdiSelfMaximize: () => window.api?.mdiSelfMaximize?.(),

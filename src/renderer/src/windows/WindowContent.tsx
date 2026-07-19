@@ -24,8 +24,9 @@ import { AnalyseAssuranceWindow, MontantRestituerWindow } from '@pages/Assurance
 import { FixerRefWindow, PosteImmatWindow } from '@pages/OutilsSimpleWindows'
 import {
   TypesVehiculeWindow, ParamDestinationsWindow,
-  ConfigAssurancesWindow, ConfigImprimantesWindow,
+  ConfigAssurancesWindow,
 } from '@pages/OutilsConfigWindows'
+import ConfigImprimantesWindow from '@pages/ConfigImprimantesWindow'
 import UserManagementWindow from '@pages/UserManagementWindow'
 
 export function renderWindowContent(id: string): JSX.Element {

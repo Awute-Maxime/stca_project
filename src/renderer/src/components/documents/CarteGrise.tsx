@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import type { CSSProperties } from 'react'
+import { getCalibrage } from '@mock/printConfig'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CARTE GRISE — Certificat d'immatriculation provisoire de véhicule
@@ -82,6 +83,7 @@ function fieldStyle(topMm: number, opts?: { center?: boolean; leftMm?: number; s
 // ── Le document : fiche blanche + données positionnées ──────────────────────
 export function CarteGriseDoc({ data }: { data: CarteGriseData }): JSX.Element {
   const numeroComplet = `TG WZ ${data.immat} ${data.destCode}`.replace(/\s+/g, ' ').trim()
+  const cal = getCalibrage('cg') // décalage global configurable (Config. Imprimantes)
 
   return (
     <div
@@ -95,6 +97,7 @@ export function CarteGriseDoc({ data }: { data: CarteGriseData }): JSX.Element {
         flexShrink: 0,
       }}
     >
+      <div style={{ position: 'absolute', left: `${cal.dx}mm`, top: `${cal.dy}mm`, width: '100%', height: '100%' }}>
       {/* N° d'immatriculation complet — TG WZ C7389 AFO */}
       <div style={fieldStyle(POS.numero, { center: true, size: 7, spacing: 1.2 })}>
         {numeroComplet}
@@ -136,6 +139,7 @@ export function CarteGriseDoc({ data }: { data: CarteGriseData }): JSX.Element {
       {/* Date de délivrance */}
       <div style={fieldStyle(POS.delivrance, { leftMm: X.delivrance })}>
         {data.dateDelivrance}
+      </div>
       </div>
     </div>
   )
