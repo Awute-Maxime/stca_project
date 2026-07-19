@@ -153,11 +153,11 @@ function Feuillet3Page({ data, derniere }: { data: Feuillet3Data; derniere: bool
   )
 }
 
-// ── Le document : DEUX exemplaires identiques (comme le vrai STCA II) ───────
+// ── Le document : UN exemplaire (ajustement utilisateur du 25/07/2026 —
+// la structure multi-pages est conservée si besoin de revenir à plusieurs) ──
 export function Feuillet3Doc({ data }: { data: Feuillet3Data }): JSX.Element {
   return (
     <div id="feuillet3-print-root" style={{ display: 'flex', flexDirection: 'column' }}>
-      <Feuillet3Page data={data} derniere={false} />
       <Feuillet3Page data={data} derniere={true} />
     </div>
   )
