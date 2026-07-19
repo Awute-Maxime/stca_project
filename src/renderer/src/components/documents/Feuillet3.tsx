@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import type { CSSProperties } from 'react'
 import dayjs from 'dayjs'
-import { getCalibrage } from '@mock/printConfig'
+import { getCalibrage, styleCalibrage } from '@mock/printConfig'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FEUILLET N°3 — CONDITIONS PARTICULIÈRES ASSURANCE AUTOMOBILE (Blanc A4)
@@ -114,7 +114,7 @@ function Feuillet3Page({ data, derniere }: { data: Feuillet3Data; derniere: bool
         boxShadow: '0 4px 20px rgba(0,0,0,0.35)',
       }}
     >
-      <div style={{ position: 'absolute', left: `${cal.dx}mm`, top: `${cal.dy}mm`, width: '100%', height: '100%' }}>
+      <div style={styleCalibrage(cal)}>
       {/* Ligne d'entête imprimée sur le bord haut du pré-imprimé */}
       <div style={pose(6.9, 3, { size: 3 })}>Assurances : Conditions Particulières (TCIT)</div>
       <div style={pose(6.9, 82, { size: 3 })}>Imprimée le :&nbsp; {maintenant}</div>

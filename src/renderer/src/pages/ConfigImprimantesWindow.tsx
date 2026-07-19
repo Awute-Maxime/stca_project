@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { notification } from 'antd'
 import { PrinterOutlined } from '@ant-design/icons'
 import { electronApi } from '@api/electron'
-import { getConfigImpression, setConfigImpression, type ConfigImpression, type DocCalibrable } from '@mock/printConfig'
+import { getConfigImpression, setConfigImpression, CALIBRAGE_NEUTRE, type ConfigImpression, type DocCalibrable } from '@mock/printConfig'
 import { ouvrirApercuDoc } from '@components/documents/editionHelpers'
 import { getAllVehicules } from '@mock/vehiculesStore'
 
@@ -49,7 +49,7 @@ export function ConfigImprimantesWindow(): JSX.Element {
 
   const parDefaut = imprimantes.find(p => p.isDefault)?.name ?? ''
   const doc = DOCS.find(d => d.cle === actif) as DocDef
-  const cal = doc.cal ? cfg.calibrage[doc.cal] : { dx: 0, dy: 0 }
+  const cal = doc.cal ? cfg.calibrage[doc.cal] : { ...CALIBRAGE_NEUTRE }
 
   // Vraies imprimantes du système ; le défaut système remplit les champs vides
   useEffect(() => {
@@ -74,8 +74,26 @@ export function ConfigImprimantesWindow(): JSX.Element {
       calibrage: {
         ...prev.calibrage,
         [cible]: {
+          ...prev.calibrage[cible],
           dx: Math.round((prev.calibrage[cible].dx + dx) * 2) / 2, // pas de 0,5 mm
           dy: Math.round((prev.calibrage[cible].dy + dy) * 2) / 2,
+        },
+      },
+    }))
+  }
+
+  const majEchelle = (ex: number, ey: number): void => {
+    if (!doc.cal) return
+    const cible = doc.cal
+    const borne = (v: number): number => Math.min(110, Math.max(90, Math.round(v * 2) / 2)) // pas 0,5 %, borné 90–110 %
+    setCfg(prev => ({
+      ...prev,
+      calibrage: {
+        ...prev.calibrage,
+        [cible]: {
+          ...prev.calibrage[cible],
+          ex: borne(prev.calibrage[cible].ex + ex),
+          ey: borne(prev.calibrage[cible].ey + ey),
         },
       },
     }))
@@ -84,7 +102,7 @@ export function ConfigImprimantesWindow(): JSX.Element {
   const resetCalibrage = (): void => {
     if (!doc.cal) return
     const cible = doc.cal
-    setCfg(prev => ({ ...prev, calibrage: { ...prev.calibrage, [cible]: { dx: 0, dy: 0 } } }))
+    setCfg(prev => ({ ...prev, calibrage: { ...prev.calibrage, [cible]: { ...CALIBRAGE_NEUTRE } } }))
   }
 
   const valider = (): void => {
@@ -312,7 +330,7 @@ export function ConfigImprimantesWindow(): JSX.Element {
                   <button className="cfgimp-pave-btn" title="Monter de 0,5 mm" onClick={() => majCalibrage(0, -0.5)}>▲</button>
                   <span />
                   <button className="cfgimp-pave-btn" title="Vers la gauche de 0,5 mm" onClick={() => majCalibrage(-0.5, 0)}>◀</button>
-                  <button onClick={resetCalibrage} title="Réinitialiser (0,0)" style={{
+                  <button onClick={resetCalibrage} title="Réinitialiser (décalage 0,0 — échelle 100 %)" style={{
                     fontSize: 12, fontWeight: 700, color: '#1D4ED8', border: '1px dashed #BFDBFE',
                     borderRadius: 8, background: '#fff', cursor: 'pointer',
                   }}>↺</button>
@@ -325,7 +343,28 @@ export function ConfigImprimantesWindow(): JSX.Element {
                   Horizontal : {cal.dx > 0 ? '+' : ''}{cal.dx.toFixed(1).replace('.', ',')} mm
                   &nbsp;·&nbsp; Vertical : {cal.dy > 0 ? '+' : ''}{cal.dy.toFixed(1).replace('.', ',')} mm
                 </div>
-                <button className="cfgimp-btn-test" style={{ marginTop: 12 }} onClick={testImpression}>
+
+                {/* Échelle d'impression : compense les imprimantes qui étirent
+                    ou rétrécissent la page (dérive progressive des positions) */}
+                <span style={{ ...LBL, marginTop: 14 }}>Échelle d&apos;impression (%)</span>
+                {([
+                  { titre: 'Largeur',  valeur: cal.ex, moins: [-0.5, 0] as const, plus: [0.5, 0] as const },
+                  { titre: 'Hauteur',  valeur: cal.ey, moins: [0, -0.5] as const, plus: [0, 0.5] as const },
+                ]).map(l => (
+                  <div key={l.titre} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
+                    <span style={{ fontSize: 11.5, color: '#374151', width: 52 }}>{l.titre} :</span>
+                    <button className="cfgimp-pave-btn" style={{ width: 26, height: 26 }}
+                      title={`Réduire de 0,5 %`} onClick={() => majEchelle(l.moins[0], l.moins[1])}>−</button>
+                    <span style={{
+                      width: 58, textAlign: 'center', fontSize: 12, fontWeight: 700,
+                      color: l.valeur === 100 ? '#64748B' : '#1D4ED8',
+                    }}>{l.valeur.toFixed(1).replace('.', ',')} %</span>
+                    <button className="cfgimp-pave-btn" style={{ width: 26, height: 26 }}
+                      title={`Agrandir de 0,5 %`} onClick={() => majEchelle(l.plus[0], l.plus[1])}>+</button>
+                  </div>
+                ))}
+
+                <button className="cfgimp-btn-test" style={{ marginTop: 10 }} onClick={testImpression}>
                   🖨 Imprimer une page de test
                 </button>
                 <div style={{ fontSize: 10, color: '#64748B', marginTop: 10, lineHeight: 1.5, maxWidth: 240 }}>
@@ -353,7 +392,9 @@ export function ConfigImprimantesWindow(): JSX.Element {
                   <div style={{
                     position: 'absolute', inset: 0, background: doc.miniaFond, borderRadius: 2,
                     boxShadow: '0 6px 18px rgba(0,0,0,0.35)', padding: '10%  8%',
-                    transform: `translate(${cal.dx * AMPLI_MINIATURE}px, ${cal.dy * AMPLI_MINIATURE}px)`,
+                    transform: `translate(${cal.dx * AMPLI_MINIATURE}px, ${cal.dy * AMPLI_MINIATURE}px)`
+                      + ` scale(${1 + (cal.ex / 100 - 1) * AMPLI_MINIATURE}, ${1 + (cal.ey / 100 - 1) * AMPLI_MINIATURE})`,
+                    transformOrigin: 'top left',
                     transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
                     display: 'flex', flexDirection: 'column', gap: '7%',
                   }}>

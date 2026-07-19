@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import type { CSSProperties } from 'react'
 import dayjs from 'dayjs'
 import Code128 from './Code128'
-import { getCalibrage } from '@mock/printConfig'
+import { getCalibrage, styleCalibrage } from '@mock/printConfig'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FICHE ID JAUNE — 10,5 × 21,2 cm, ENTIÈREMENT imprimée (contrairement à la
@@ -104,7 +104,7 @@ export function FicheIdDoc({ data }: { data: FicheIdData }): JSX.Element {
         flexShrink: 0,
       }}
     >
-      <div style={{ position: 'absolute', left: `${cal.dx}mm`, top: `${cal.dy}mm`, width: '100%', height: '100%' }}>
+      <div style={styleCalibrage(cal)}>
       {/* Entête : STCA + date/heure d'impression */}
       <div style={champ(6.5, { size: 6, bold: true, spacing: 0.8 })}>STCA</div>
       <div style={{ ...champ(7.5, { size: 3 }), left: 'auto', right: '10mm' }}>

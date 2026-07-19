@@ -37,7 +37,7 @@ export const WINDOW_REGISTRY: Record<string, WindowConfig> = {
   'outils.configAssurances':        { title: 'Configuration Assurances',                         defaultX: 240, defaultY: 144, width: 720, height: 520 },
   'outils.typesVehicule':           { title: 'Types Véhicule',                                   defaultX: 320, defaultY: 184, width: 540, height: 460 },
   'outils.paramDestinations':       { title: 'Paramètres Destinations',                          defaultX: 240, defaultY: 144, width: 800, height: 600 },
-  'outils.configImprimantes':       { title: 'Configuration des éditions et imprimantes',        defaultX: 220, defaultY: 134, width: 820, height: 620 },
+  'outils.configImprimantes':       { title: 'Configuration des éditions et imprimantes',        defaultX: 220, defaultY: 110, width: 820, height: 700 },
   'outils.exporter':                { title: 'Exportation des enregistrements de véhicules',     defaultX: 260, defaultY: 154, width: 680, height: 420 },
   'outils.pointage':                { title: 'Pointage / Dépointage de la sortie des véhicules', defaultX: 200, defaultY: 124, width: 980, height: 660 },
 

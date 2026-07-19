@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import type { CSSProperties } from 'react'
-import { getCalibrage } from '@mock/printConfig'
+import { getCalibrage, styleCalibrage } from '@mock/printConfig'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FEUILLET N°2 — ASSURANCE (ROSE) : bande PRÉ-IMPRIMÉE de 28,2 × 7,51 cm —
@@ -80,7 +80,7 @@ export function Feuillet2Doc({ data }: { data: Feuillet2Data }): JSX.Element {
         flexShrink: 0,
       }}
     >
-      <div style={{ position: 'absolute', left: `${cal.dx}mm`, top: `${cal.dy}mm`, width: '100%', height: '100%' }}>
+      <div style={styleCalibrage(cal)}>
       {/* Zone 1 — Exemplaire Assureur */}
       <ZoneExemplaire data={data} xMm={10.3} />
       {/* Zone 2 — Exemplaire Bureau National */}

@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import type { CSSProperties } from 'react'
-import { getCalibrage } from '@mock/printConfig'
+import { getCalibrage, styleCalibrage } from '@mock/printConfig'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CARTE GRISE — Certificat d'immatriculation provisoire de véhicule
@@ -97,7 +97,7 @@ export function CarteGriseDoc({ data }: { data: CarteGriseData }): JSX.Element {
         flexShrink: 0,
       }}
     >
-      <div style={{ position: 'absolute', left: `${cal.dx}mm`, top: `${cal.dy}mm`, width: '100%', height: '100%' }}>
+      <div style={styleCalibrage(cal)}>
       {/* N° d'immatriculation complet — TG WZ C7389 AFO */}
       <div style={fieldStyle(POS.numero, { center: true, size: 7, spacing: 1.2 })}>
         {numeroComplet}
