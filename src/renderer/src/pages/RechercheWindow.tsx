@@ -9,7 +9,8 @@ import { CarteGrisePrintDirect, type CarteGriseData } from '@components/document
 import { FacturePrintDirect, type FactureData } from '@components/documents/Facture'
 import { FicheIdPrintDirect, type FicheIdData } from '@components/documents/FicheId'
 import { Feuillet3PrintDirect, type Feuillet3Data } from '@components/documents/Feuillet3'
-import { docsPourChoix, cgDataDe, factureDataDe, ficheIdDataDe, feuillet3DataDe, ouvrirApercuDoc } from '@components/documents/editionHelpers'
+import { Feuillet1PrintDirect, type Feuillet1Data } from '@components/documents/Feuillet1'
+import { docsPourChoix, cgDataDe, factureDataDe, ficheIdDataDe, feuillet1DataDe, feuillet3DataDe, ouvrirApercuDoc } from '@components/documents/editionHelpers'
 
 const DEST_COLORS: Record<string, string> = {
   AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
@@ -35,11 +36,12 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
   const [confirm, setConfirm] = useState<{ msg: ReactNode; cb: () => void } | null>(null)
   const [editionType, setEditionType] = useState<'duplicata' | 'renouvel' | null>(null)
   // Impression directe séquentielle (sans aperçu) — un document à la fois
-  const [directQueue, setDirectQueue] = useState<Array<'facture' | 'cg' | 'ficheId' | 'feuillet3'>>([])
+  const [directQueue, setDirectQueue] = useState<Array<'facture' | 'cg' | 'ficheId' | 'feuillet1' | 'feuillet3'>>([])
   const [directCg, setDirectCg] = useState<CarteGriseData | null>(null)
   const [directFacture, setDirectFacture] = useState<FactureData | null>(null)
   const [directFicheId, setDirectFicheId] = useState<FicheIdData | null>(null)
   const [directFeuillet3, setDirectFeuillet3] = useState<Feuillet3Data | null>(null)
+  const [directFeuillet1, setDirectFeuillet1] = useState<Feuillet1Data | null>(null)
 
   const avancerDirect = (): void => {
     setDirectQueue(q => {
@@ -299,6 +301,7 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
                 setDirectFacture(docs.includes('facture') ? factureDataDe(v) : null)
                 setDirectFicheId(docs.includes('ficheId') ? ficheIdDataDe(v) : null)
                 setDirectFeuillet3(docs.includes('feuillet3') ? feuillet3DataDe(v, editionType === 'duplicata' ? 'DUPLICATA' : '') : null)
+                setDirectFeuillet1(docs.includes('feuillet1') ? feuillet1DataDe(v) : null)
                 setDirectQueue(docs)
               }
               return
@@ -318,6 +321,9 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
       )}
       {directQueue[0] === 'feuillet3' && directFeuillet3 && (
         <Feuillet3PrintDirect data={directFeuillet3} onDone={avancerDirect} />
+      )}
+      {directQueue[0] === 'feuillet1' && directFeuillet1 && (
+        <Feuillet1PrintDirect data={directFeuillet1} onDone={avancerDirect} />
       )}
     </div>
   )

@@ -4,6 +4,7 @@ import type { CarteGriseData } from './CarteGrise'
 import { type FactureData, MONTANT_ASSURANCE_FACTURE } from './Facture'
 import type { FicheIdData } from './FicheId'
 import type { Feuillet3Data } from './Feuillet3'
+import type { Feuillet1Data } from './Feuillet1'
 import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 
@@ -14,13 +15,14 @@ import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 // Source unique — la Liste et la Recherche ne peuvent plus diverger.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type DocImp = 'facture' | 'cg' | 'ficheId' | 'feuillet3'
+export type DocImp = 'facture' | 'cg' | 'ficheId' | 'feuillet1' | 'feuillet3'
 
 // Choix du modal EditionDocsModal (WinDialogs.DOC_OPTIONS) → documents inclus
 export const DOCS_AVEC_CG      = ['tous', 'facture_cg', 'cg_fiche_id', 'uniq_cg']
 export const DOCS_AVEC_FACTURE = ['tous', 'facture_cg', 'uniq_facture']
 export const DOCS_AVEC_FICHEID = ['tous', 'cg_fiche_id', 'uniq_fiche_id']
 export const DOCS_AVEC_FEUILLET3 = ['tous', 'toutes_assur', 'feuillet3']
+export const DOCS_AVEC_FEUILLET1 = ['tous', 'toutes_assur', 'feuillet1']
 
 /** Documents imprimables pour un choix (facture, carte grise, puis fiche ID — comme le vrai STCA). */
 export function docsPourChoix(choix: string): DocImp[] {
@@ -28,6 +30,7 @@ export function docsPourChoix(choix: string): DocImp[] {
   if (DOCS_AVEC_FACTURE.includes(choix)) docs.push('facture')
   if (DOCS_AVEC_CG.includes(choix)) docs.push('cg')
   if (DOCS_AVEC_FICHEID.includes(choix)) docs.push('ficheId')
+  if (DOCS_AVEC_FEUILLET1.includes(choix)) docs.push('feuillet1')
   if (DOCS_AVEC_FEUILLET3.includes(choix)) docs.push('feuillet3')
   return docs
 }
@@ -87,12 +90,26 @@ export function feuillet3DataDe(v: MockVehicule, mention = ''): Feuillet3Data {
   }
 }
 
-const APERCU_IDS:  Record<DocImp, string> = { cg: 'apercu.carteGrise',      facture: 'apercu.facture',      ficheId: 'apercu.ficheId',      feuillet3: 'apercu.feuillet3' }
-const APERCU_CLES: Record<DocImp, string> = { cg: 'tcit_apercu_carteGrise', facture: 'tcit_apercu_facture', ficheId: 'tcit_apercu_ficheId', feuillet3: 'tcit_apercu_feuillet3' }
+/** Données Feuillet N°1 Assurance (Bleu) depuis un véhicule du store. */
+export function feuillet1DataDe(v: MockVehicule): Feuillet1Data {
+  const f3 = feuillet3DataDe(v)
+  return {
+    nom: v.nomAcheteur,
+    numPolice: f3.numPolice,
+    dateEffet: f3.dateEffet,
+    dateEcheance: f3.dateEcheance,
+    marque: v.marqueModele,
+    immatStac: f3.immatStac,
+    chassis: v.chassis,
+  }
+}
+
+const APERCU_IDS:  Record<DocImp, string> = { cg: 'apercu.carteGrise',      facture: 'apercu.facture',      ficheId: 'apercu.ficheId',      feuillet1: 'apercu.feuillet1',      feuillet3: 'apercu.feuillet3' }
+const APERCU_CLES: Record<DocImp, string> = { cg: 'tcit_apercu_carteGrise', facture: 'tcit_apercu_facture', ficheId: 'tcit_apercu_ficheId', feuillet1: 'tcit_apercu_feuillet1', feuillet3: 'tcit_apercu_feuillet3' }
 
 /** Ouvre la fenêtre d'aperçu d'un document (BrowserWindow propre — Règle 10). */
 export function ouvrirApercuDoc(doc: DocImp, v: MockVehicule, autoPrint: boolean, ts: number, mention = ''): void {
-  const data = doc === 'cg' ? cgDataDe(v) : doc === 'facture' ? factureDataDe(v) : doc === 'ficheId' ? ficheIdDataDe(v) : feuillet3DataDe(v, mention)
+  const data = doc === 'cg' ? cgDataDe(v) : doc === 'facture' ? factureDataDe(v) : doc === 'ficheId' ? ficheIdDataDe(v) : doc === 'feuillet1' ? feuillet1DataDe(v) : feuillet3DataDe(v, mention)
   localStorage.setItem(APERCU_CLES[doc], JSON.stringify({ data, autoPrint, ts }))
   const id = APERCU_IDS[doc]
   const cfg = WINDOW_REGISTRY[id]
