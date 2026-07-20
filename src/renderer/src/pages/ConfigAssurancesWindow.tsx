@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { notification, InputNumber } from 'antd'
 import { SafetyCertificateOutlined } from '@ant-design/icons'
 import { electronApi } from '@api/electron'
@@ -27,6 +27,24 @@ export default function ConfigAssurancesWindow(): JSX.Element {
   const [imprimer, setImprimer] = useState<boolean>(() => cfg.imprimerAssurances)
   const [selId, setSelId] = useState<number | null>(cfg.assureurs[0]?.id ?? null)
   const [edition, setEdition] = useState<Assureur | null>(null) // copie de travail du modal
+  // Déplacement du modal par sa barre de titre (translate x/y en px)
+  const [modalPos, setModalPos] = useState({ x: 0, y: 0 })
+  const posRef = useRef(modalPos)
+  posRef.current = modalPos
+
+  const demarrerDragModal = (e: React.MouseEvent): void => {
+    e.preventDefault()
+    const depart = { sx: e.clientX, sy: e.clientY, bx: posRef.current.x, by: posRef.current.y }
+    const bouger = (ev: MouseEvent): void => {
+      setModalPos({ x: depart.bx + ev.clientX - depart.sx, y: depart.by + ev.clientY - depart.sy })
+    }
+    const lacher = (): void => {
+      window.removeEventListener('mousemove', bouger)
+      window.removeEventListener('mouseup', lacher)
+    }
+    window.addEventListener('mousemove', bouger)
+    window.addEventListener('mouseup', lacher)
+  }
 
   const enregistrerMiseEnService = (): void => {
     setConfigAssurances({ ...cfg, imprimerAssurances: imprimer })
@@ -41,6 +59,7 @@ export default function ConfigAssurancesWindow(): JSX.Element {
   // s'agrandit à l'ouverture et reprend sa taille à la fermeture
   const ouvrirModal = (a: Assureur): void => {
     window.resizeTo(950, 700)
+    setModalPos({ x: 0, y: 0 }) // toujours ré-ouvert centré
     setEdition(a)
   }
 
@@ -236,16 +255,19 @@ export default function ConfigAssurancesWindow(): JSX.Element {
           <div style={{
             background: '#fff', borderRadius: 10, width: 920, maxWidth: '97vw',
             boxShadow: '0 20px 60px rgba(0,0,0,0.25)', animation: 'formEnter 0.2s ease',
+            transform: `translate(${modalPos.x}px, ${modalPos.y}px)`,
           }}>
-            <div style={{
+            {/* Barre de titre déplaçable (comme une vraie fenêtre) */}
+            <div onMouseDown={demarrerDragModal} style={{
               display: 'flex', alignItems: 'center', padding: '12px 18px',
               background: '#1B3A6B', borderRadius: '10px 10px 0 0',
+              cursor: 'move', userSelect: 'none',
             }}>
               <span style={{ fontSize: 12, marginRight: 8 }}>🛡</span>
               <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: '#fff' }}>
                 Création / Modification d&apos;un assureur
               </span>
-              <button onClick={fermerModal} style={{
+              <button onClick={fermerModal} onMouseDown={e => e.stopPropagation()} style={{
                 width: 26, height: 26, background: 'none', border: 'none',
                 color: 'rgba(255,255,255,0.6)', cursor: 'pointer', fontSize: 17,
               }}>✕</button>
