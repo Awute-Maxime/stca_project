@@ -34,7 +34,8 @@ export interface ConfigAssurances {
 const LS_KEY = 'tcit_config_assurances'
 const LOCAL_EVENT = 'tcit:config-assurances-changed'
 
-// Valeurs du vrai STCA (captures) — Voiture 12 000/679/20 %, Camion 18 500/1047/20 %
+// Tarifs en vigueur (mis à jour par l'utilisateur le 21/07/2026 : Voiture
+// 13 000, Camion 19 500 — les captures STCA montraient 12 000/18 500).
 const DEFAUT: ConfigAssurances = {
   imprimerAssurances: true,
   assureurs: [
@@ -43,9 +44,9 @@ const DEFAUT: ConfigAssurances = {
       nom: 'POOL TPV VT - MOTO',
       coordonnees: '01 BP 2689 Lomé Togo tel : 221 70 92',
       tarifs: [
-        { type: 'Voiture', tarif: 12000, taxe: 679,  commissionPct: 20 },
-        { type: 'Camion',  tarif: 18500, taxe: 1047, commissionPct: 20 },
-        { type: 'Autre',   tarif: 12000, taxe: 679,  commissionPct: 20 },
+        { type: 'Voiture', tarif: 13000, taxe: 679,  commissionPct: 20 },
+        { type: 'Camion',  tarif: 19500, taxe: 1047, commissionPct: 20 },
+        { type: 'Autre',   tarif: 13000, taxe: 679,  commissionPct: 20 },
       ],
     },
   ],
