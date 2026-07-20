@@ -4,7 +4,7 @@ import { SafetyCertificateOutlined } from '@ant-design/icons'
 import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 import {
-  useConfigAssurances, setConfigAssurances, brutDe, commissionDe, netAssureurDe,
+  useConfigAssurances, setConfigAssurances, brutDe, commissionDe, montantARestituerDe,
   type Assureur, type TarifAssurance,
 } from '@mock/assurancesStore'
 
@@ -95,7 +95,7 @@ export default function ConfigAssurancesWindow(): JSX.Element {
   const NUM: React.CSSProperties = { width: 90 }
   const THM: React.CSSProperties = {
     background: '#EEF3FB', color: '#1B3A6B', fontSize: 10.5, fontWeight: 700,
-    padding: '5px 8px', textAlign: 'center', borderBottom: '1px solid #D7E3F4', whiteSpace: 'nowrap',
+    padding: '5px 8px', textAlign: 'center', borderBottom: '1px solid #D7E3F4', lineHeight: 1.25,
   }
   const TDM: React.CSSProperties = { padding: '4px 6px', borderBottom: '1px solid #EEF2F7', textAlign: 'center' }
 
@@ -241,7 +241,7 @@ export default function ConfigAssurancesWindow(): JSX.Element {
                   border: '1px solid #BBF7D0', background: '#F0FDF4', color: '#16A34A', fontWeight: 700,
                 }}>➕ Ajouter un type</button>
                 <span style={{ fontSize: 10.5, color: '#64748B', alignSelf: 'center' }}>
-                  Tarif brut = Tarif − Taxe &nbsp;·&nbsp; Commission STCA = brut × % (reversée par l&apos;assureur)
+                  Tarif brut = Tarif − Taxe &nbsp;·&nbsp; Commission STCA = brut × % &nbsp;·&nbsp; Montant à restituer = Tarif − Commission
                 </span>
               </div>
 
@@ -250,13 +250,13 @@ export default function ConfigAssurancesWindow(): JSX.Element {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr>
-                      <th style={{ ...THM, textAlign: 'left' }}>Type de véhicule (voiture, camion etc…)</th>
+                      <th style={{ ...THM, textAlign: 'left', width: 150 }}>Type de véhicule (voiture, camion etc…)</th>
                       <th style={THM}>Tarif</th>
                       <th style={THM}>Tarif brut</th>
                       <th style={THM}>Taxe</th>
                       <th style={THM}>Commission stca (% sur le brut)</th>
                       <th style={THM}>Montant de la commission</th>
-                      <th style={THM}>Net assureur</th>
+                      <th style={THM}>Montant à restituer</th>
                       <th style={{ ...THM, width: 30 }} />
                     </tr>
                   </thead>
@@ -283,7 +283,7 @@ export default function ConfigAssurancesWindow(): JSX.Element {
                             onChange={v => majTarif(i, { commissionPct: v ?? 0 })} />
                         </td>
                         <td style={{ ...TDM, fontWeight: 700, color: '#16A34A', fontSize: 11.5 }}>{fmt(commissionDe(t))}</td>
-                        <td style={{ ...TDM, color: '#64748B', fontSize: 11.5 }}>{fmt(netAssureurDe(t))}</td>
+                        <td style={{ ...TDM, fontWeight: 700, color: '#1B3A6B', fontSize: 11.5 }}>{fmt(montantARestituerDe(t))}</td>
                         <td style={TDM}>
                           <button title="Supprimer cette ligne" onClick={() => setEdition({
                             ...edition, tarifs: edition.tarifs.filter((_, j) => j !== i),

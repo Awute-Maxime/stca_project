@@ -78,8 +78,12 @@ export const brutDe = (t: TarifAssurance): number => t.tarif - t.taxe
 /** Commission STCA = brut × % (ex. 11 321 × 20 % = 2 264). */
 export const commissionDe = (t: TarifAssurance): number => Math.round(brutDe(t) * t.commissionPct / 100)
 
-/** Part nette de l'assureur = brut − commission STCA. */
-export const netAssureurDe = (t: TarifAssurance): number => brutDe(t) - commissionDe(t)
+/**
+ * Montant à restituer à l'assureur = Tarif − Commission STCA
+ * (ex. 12 000 − 2 264 = 9 736 ; 18 500 − 3 491 = 15 009 — capture réelle).
+ * C'est la base de la fenêtre « Montant à restituer » du menu Assurances.
+ */
+export const montantARestituerDe = (t: TarifAssurance): number => t.tarif - commissionDe(t)
 
 /**
  * Tarif applicable à un type de véhicule de l'application (Voiture, Camion,
