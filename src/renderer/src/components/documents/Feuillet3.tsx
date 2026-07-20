@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import type { CSSProperties } from 'react'
 import dayjs from 'dayjs'
 import { getCalibrage, getDimensionsDoc, styleCalibrage } from '@mock/printConfig'
+import type { PrimesAssurance } from '@mock/assurancesStore'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FEUILLET N°3 — CONDITIONS PARTICULIÈRES ASSURANCE AUTOMOBILE (Blanc A4)
@@ -27,6 +28,9 @@ export interface Feuillet3Data {
   chassis: string
   immatStac: string      // ex. TG WZ A 2173 NO
   mention: string        // '' à la 1re impression, 'DUPLICATA' en réédition
+  // Primes de la catégorie du véhicule (Configuration Assurances) —
+  // absentes = valeurs de référence du modèle réel (véhicule léger).
+  primes?: PrimesAssurance
 }
 
 // ── Primes du modèle réel (véhicule léger) — TTC = montant assurance facture ─
@@ -100,6 +104,10 @@ function Feuillet3Page({ data, derniere }: { data: Feuillet3Data; derniere: bool
   const maintenant = dayjs().format('DD/MM/YYYY')
   const cal = getCalibrage('feuillet3') // décalage global configurable (Config. Imprimantes)
   const dim = getDimensionsDoc('feuillet3') // dimensions papier configurables
+  // Primes : celles de la catégorie (Configuration Assurances) ou la référence
+  const primes: PrimesAssurance = data.primes ?? {
+    ...PRIMES_FEUILLET3, nette: PRIME_TOTALE_NETTE, ttc: PRIME_TTC,
+  }
 
   return (
     <div
@@ -141,17 +149,17 @@ function Feuillet3Page({ data, derniere }: { data: Feuillet3Data; derniere: bool
       <div style={pose(161.3, 154, { size: 3.8, bold: true })}>{data.immatStac}</div>
 
       {/* Garanties souscrites et primes (colonnes du tableau pré-imprimé) */}
-      <div style={pose(220.7, 17, { size: 3.4, bold: true })}>{fmt(PRIMES_FEUILLET3.rc)}</div>
-      <div style={pose(220.7, 45.7, { size: 3.4, bold: true })}>{fmt(PRIMES_FEUILLET3.cedeao)}</div>
-      <div style={pose(220.7, 70.8, { size: 3.4, bold: true })}>{fmt(PRIMES_FEUILLET3.individuelle)}</div>
-      <div style={pose(220.7, 118.8, { size: 3.4, bold: true })}>{fmt(PRIME_TOTALE_NETTE)}</div>
-      <div style={pose(220.7, 146.2, { size: 3.4, bold: true })}>{fmt(PRIMES_FEUILLET3.accessoires)}</div>
-      <div style={pose(220.7, 160, { size: 3.4, bold: true })}>{fmt(PRIMES_FEUILLET3.taxes)}</div>
-      <div style={pose(220.7, 178, { size: 3.4, bold: true })}>{fmt(PRIME_TTC)} F.Cfa</div>
+      <div style={pose(220.7, 17, { size: 3.4, bold: true })}>{fmt(primes.rc)}</div>
+      <div style={pose(220.7, 45.7, { size: 3.4, bold: true })}>{fmt(primes.cedeao)}</div>
+      <div style={pose(220.7, 70.8, { size: 3.4, bold: true })}>{fmt(primes.individuelle)}</div>
+      <div style={pose(220.7, 118.8, { size: 3.4, bold: true })}>{fmt(primes.nette)}</div>
+      <div style={pose(220.7, 146.2, { size: 3.4, bold: true })}>{fmt(primes.accessoires)}</div>
+      <div style={pose(220.7, 160, { size: 3.4, bold: true })}>{fmt(primes.taxes)}</div>
+      <div style={pose(220.7, 178, { size: 3.4, bold: true })}>{fmt(primes.ttc)} F.Cfa</div>
 
       {/* Reçu */}
       <div style={pose(226.2, 19.4, { size: 3.4 })}>
-        Reçu de {data.nom.toUpperCase()} la somme de {montantEnLettres(PRIME_TTC)} Francs CFA
+        Reçu de {data.nom.toUpperCase()} la somme de {montantEnLettres(primes.ttc)} Francs CFA
       </div>
       </div>
     </div>

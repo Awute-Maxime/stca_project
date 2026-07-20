@@ -51,7 +51,14 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
   const [analyseOpen, setAnalyseOpen] = useState(false)
   const [assuranceOpen, setAssuranceOpen] = useState(false)
   const [clefAdminOpen, setClefAdminOpen] = useState(false)
-  const [archivageGate, setArchivageGate] = useState(false)
+  // Fenêtres réservées à l'Administrateur (Règle 17) : id → message de la garde
+  const FENETRES_ADMIN: Record<string, string> = {
+    'outils.archivage':
+      "L'archivage des enregistrements est réservé à l'Administrateur de TCIT. Donnez le mot de passe de forçage pour continuer.",
+    'outils.configAssurances':
+      "La configuration des assurances (assureurs, tarifs, commissions) est réservée à l'Administrateur de TCIT. Donnez le mot de passe de forçage pour continuer.",
+  }
+  const [gateAdminId, setGateAdminId] = useState<string | null>(null)
   // Confirmation de bascule entre fenêtres principales
   const [switchConfirm, setSwitchConfirm] = useState<{ msg: ReactNode; cb: () => void; nonCb: () => void } | null>(null)
 
@@ -81,9 +88,9 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
       setClefAdminOpen(true)
       return
     }
-    if (id === 'outils.archivage') {
-      // Archivage — réservé à l'Administrateur : mot de passe requis (Règle 17)
-      setArchivageGate(true)
+    if (FENETRES_ADMIN[id]) {
+      // Fenêtre réservée à l'Administrateur : mot de passe requis (Règle 17)
+      setGateAdminId(id)
       return
     }
     ouvrirAvecExclusivite(id)
@@ -180,12 +187,12 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
       {analyseOpen && <AnalysePage onClose={() => setAnalyseOpen(false)} />}
       {assuranceOpen && <MontantRestituerWindow onClose={() => setAssuranceOpen(false)} />}
       {clefAdminOpen && <ClefAdminFlow onClose={() => setClefAdminOpen(false)} />}
-      {archivageGate && (
+      {gateAdminId && (
         <MdpAdminGate
           titre="Saisie 'Mot de passe' de Configuration"
-          message="L'archivage des enregistrements est réservé à l'Administrateur de TCIT. Donnez le mot de passe de forçage pour continuer."
-          onOk={() => { setArchivageGate(false); ouvrirAvecExclusivite('outils.archivage') }}
-          onClose={() => setArchivageGate(false)}
+          message={FENETRES_ADMIN[gateAdminId]}
+          onOk={() => { const id = gateAdminId; setGateAdminId(null); ouvrirAvecExclusivite(id) }}
+          onClose={() => setGateAdminId(null)}
         />
       )}
       {switchConfirm && (

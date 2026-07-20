@@ -1,7 +1,8 @@
 import dayjs from 'dayjs'
 import type { MockVehicule } from '@mock/vehicules'
 import type { CarteGriseData } from './CarteGrise'
-import { type FactureData, MONTANT_ASSURANCE_FACTURE } from './Facture'
+import type { FactureData } from './Facture'
+import { tarifPourType, primesPourType } from '@mock/assurancesStore'
 import type { FicheIdData } from './FicheId'
 import type { Feuillet3Data } from './Feuillet3'
 import type { Feuillet1Data } from './Feuillet1'
@@ -57,7 +58,8 @@ export function factureDataDe(v: MockVehicule): FactureData {
     nom: v.nomAcheteur, pays: v.paysDestination || v.paysResidence,
     destCode: v.destination, immat: v.immat, chassis: v.chassis,
     marque: v.marqueModele, natureVeh: v.typeVehicule,
-    montantStca: v.montant, montantAssurance: MONTANT_ASSURANCE_FACTURE,
+    // Tarif de la catégorie du véhicule — Configuration Assurances (source unique)
+    montantStca: v.montant, montantAssurance: tarifPourType(v.typeVehicule).tarif,
   }
 }
 
@@ -90,6 +92,8 @@ export function feuillet3DataDe(v: MockVehicule, mention = ''): Feuillet3Data {
     categorieUsage: v.typeVehicule, marque: v.marqueModele, chassis: v.chassis,
     immatStac: `TG WZ ${fmtImmatEspacee(v.immat)} ${v.destination}`,
     mention,
+    // Primes de la catégorie du véhicule — Configuration Assurances (source unique)
+    primes: primesPourType(v.typeVehicule),
   }
 }
 

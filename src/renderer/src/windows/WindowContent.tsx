@@ -24,9 +24,10 @@ import { AnalyseAssuranceWindow, MontantRestituerWindow } from '@pages/Assurance
 import { FixerRefWindow, PosteImmatWindow } from '@pages/OutilsSimpleWindows'
 import {
   TypesVehiculeWindow, ParamDestinationsWindow,
-  ConfigAssurancesWindow,
 } from '@pages/OutilsConfigWindows'
 import ConfigImprimantesWindow from '@pages/ConfigImprimantesWindow'
+import ConfigAssurancesWindow from '@pages/ConfigAssurancesWindow'
+import ListeAssurancesApercuWindow from '@pages/ListeAssurancesApercuWindow'
 import UserManagementWindow from '@pages/UserManagementWindow'
 
 export function renderWindowContent(id: string): JSX.Element {
@@ -78,6 +79,8 @@ export function renderWindowContent(id: string): JSX.Element {
       return <Feuillet1ApercuWindow />
     case 'apercu.feuillet2':
       return <Feuillet2ApercuWindow />
+    case 'apercu.listeAssurances':
+      return <ListeAssurancesApercuWindow />
 
     // ── Menu Analyse — géré comme overlay modal dans MainScreen, pas en MDI
     // case 'analyse': / case 'analyse.stca': → MainScreen.tsx
