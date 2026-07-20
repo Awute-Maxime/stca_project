@@ -34,7 +34,7 @@ export const WINDOW_REGISTRY: Record<string, WindowConfig> = {
   'outils.archivage':               { title: 'Archivage des enregistrements',                    defaultX: 130, defaultY: 100, width: 1180, height: 690 },
   'outils.fixerRef':                { title: 'Fixer N° Référence',                               defaultX: 340, defaultY: 204, width: 580, height: 340 },
   'outils.posteImmat':              { title: 'Activation du mode assurance',                     defaultX: 260, defaultY: 154, width: 640, height: 480 },
-  'outils.configAssurances':        { title: "Liste d'assureur ou Groupement d'assurance",       defaultX: 200, defaultY: 120, width: 950, height: 560 },
+  'outils.configAssurances':        { title: "Liste d'assureur ou Groupement d'assurance",       defaultX: 200, defaultY: 120, width: 950, height: 475 },
   'outils.typesVehicule':           { title: 'Types Véhicule',                                   defaultX: 320, defaultY: 184, width: 540, height: 460 },
   'outils.paramDestinations':       { title: 'Paramètres Destinations',                          defaultX: 240, defaultY: 144, width: 800, height: 600 },
   'outils.configImprimantes':       { title: 'Configuration des éditions et imprimantes',        defaultX: 220, defaultY: 110, width: 820, height: 700 },
