@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { notification, InputNumber } from 'antd'
 import { SafetyCertificateOutlined } from '@ant-design/icons'
 import {
-  getConfigAssurances, setConfigAssurances, brutDe, commissionDe, montantARestituerDe, detailDe,
+  getConfigAssurances, setConfigAssurances, brutDe, commissionDe, montantARestituerDe,
+  detailDe, appliquerTarif,
   type Assureur, type TarifAssurance, type DetailPrimes,
 } from '@mock/assurancesStore'
 
@@ -18,16 +19,21 @@ import {
 const fmt = (n: number): string => n.toLocaleString('fr-FR')
 
 function chargerAssureur(): Assureur {
+  let assureur: Assureur | null = null
   try {
     const raw = localStorage.getItem('tcit_edition_assureur')
     if (raw) {
       const p = JSON.parse(raw) as { assureur: Assureur }
-      if (p.assureur) return p.assureur
+      if (p.assureur) assureur = p.assureur
     }
   } catch { /* défaut */ }
-  // Repli : premier assureur de la config
-  const cfg = getConfigAssurances()
-  return JSON.parse(JSON.stringify(cfg.assureurs[0])) as Assureur
+  if (!assureur) {
+    // Repli : premier assureur de la config
+    assureur = JSON.parse(JSON.stringify(getConfigAssurances().assureurs[0])) as Assureur
+  }
+  // Détail matérialisé sur chaque ligne : les règles fixe/adaptatif
+  // s'appliquent toujours sur des valeurs visibles
+  return { ...assureur, tarifs: assureur.tarifs.map(t => ({ ...t, detail: detailDe(t) })) }
 }
 
 export default function EditionAssureurWindow(): JSX.Element {
@@ -63,12 +69,14 @@ export default function EditionAssureurWindow(): JSX.Element {
         if (j !== i) return t
         const nouveau = { ...t, ...changes }
         if ('tarif' in changes) {
-          // Le Tarif est maître : le détail des primes est re-réparti
-          // proportionnellement (modifiable ensuite dans la rubrique détail)
-          nouveau.detail = undefined
-        } else if ('taxe' in changes && nouveau.detail) {
-          // Taxe modifiée avec un détail saisi → le tarif suit la somme
-          const d = nouveau.detail
+          // Nouveau Tarif TTC : Taxe, CEDEAO et Accessoires restent FIXES —
+          // seules R.C. et Individuelle se répartissent la différence
+          return appliquerTarif(t, nouveau.tarif)
+        }
+        if ('taxe' in changes) {
+          // Taxe (montant fixe) modifiée → le Tarif TTC suit la somme
+          const d = detailDe(nouveau)
+          nouveau.detail = d
           nouveau.tarif = d.rc + d.cedeao + d.individuelle + d.accessoires + nouveau.taxe
         }
         return nouveau
@@ -202,18 +210,19 @@ export default function EditionAssureurWindow(): JSX.Element {
           Détail des primes constituant le tarif
         </span>
         <span style={{ fontSize: 10, color: '#64748B' }}>
-          (imprimé sur le Feuillet N°3 — Cond. Part.) · modifier une prime recalcule le Tarif ;
-          modifier le Tarif ci-dessus répartit à nouveau les primes
+          (imprimé sur le Feuillet N°3 — Cond. Part.) · Taxes, CEDEAO et Accessoires = montants FIXES ;
+          changer le Tarif n&apos;adapte que R.C. et Individuelle · toute saisie ici recalcule le Tarif TTC
         </span>
       </div>
       <div style={{ border: '1px solid #D7E3F4', borderRadius: 6, overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
-              <th style={{ ...THM, textAlign: 'left', width: 150 }}>Type de véhicule</th>
+              <th style={{ ...THM, textAlign: 'left', width: 140 }}>Type de véhicule</th>
               <th style={THM}>R.C. (Resp. Civile)</th>
               <th style={THM}>CEDEAO</th>
               <th style={THM}>Individuelle Accidents</th>
+              <th style={THM}>Prime totale nette</th>
               <th style={THM}>Accessoires</th>
               <th style={THM}>Taxes</th>
               <th style={THM}>= Tarif (TTC)</th>
@@ -239,11 +248,17 @@ export default function EditionAssureurWindow(): JSX.Element {
                     <InputNumber size="small" value={d.individuelle} min={0} step={100} style={{ width: 82 }}
                       onChange={v => majDetail(i, { individuelle: v ?? 0 })} />
                   </td>
+                  <td style={{ ...TDM, fontWeight: 700, color: '#1B3A6B', fontSize: 11.5 }}>
+                    {fmt(d.rc + d.cedeao + d.individuelle)}
+                  </td>
                   <td style={TDM}>
                     <InputNumber size="small" value={d.accessoires} min={0} step={100} style={{ width: 82 }}
                       onChange={v => majDetail(i, { accessoires: v ?? 0 })} />
                   </td>
-                  <td style={{ ...TDM, color: '#64748B', fontSize: 11.5 }}>{fmt(t.taxe)}</td>
+                  <td style={TDM}>
+                    <InputNumber size="small" value={t.taxe} min={0} step={1} style={{ width: 74 }}
+                      onChange={v => majTarif(i, { taxe: v ?? 0 })} />
+                  </td>
                   <td style={{ ...TDM, fontWeight: 700, color: '#1D4ED8', fontSize: 11.5 }}>{fmt(t.tarif)}</td>
                 </tr>
               )

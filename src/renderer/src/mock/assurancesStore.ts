@@ -128,16 +128,33 @@ export interface PrimesAssurance {
 
 /**
  * Détail des primes d'une ligne de tarif : celui SAISI dans Config.
- * Assurances s'il existe, sinon dérivé proportionnellement de la référence
- * (point de départ modifiable dans la fenêtre).
+ * Assurances s'il existe, sinon dérivé de la référence.
+ * Règle utilisateur (22/07/2026) : Taxe, CEDEAO et Accessoires sont des
+ * montants FIXES — seules R.C. et Individuelle absorbent la différence.
  */
 export function detailDe(t: TarifAssurance): DetailPrimes {
   if (t.detail) return t.detail
   const accessoires = REF_PRIMES.accessoires
-  const nette = Math.max(0, t.tarif - accessoires - t.taxe)
-  const rc = Math.round(nette * REF_PRIMES.rc / REF_NETTE)
-  const cedeao = Math.round(nette * REF_PRIMES.cedeao / REF_NETTE)
-  return { rc, cedeao, individuelle: nette - rc - cedeao, accessoires }
+  const cedeao = REF_PRIMES.cedeao
+  const reste = Math.max(0, t.tarif - t.taxe - accessoires - cedeao) // R.C. + Individuelle
+  const refRcInd = REF_PRIMES.rc + REF_PRIMES.individuelle
+  const rc = Math.round(reste * REF_PRIMES.rc / refRcInd)
+  return { rc, cedeao, individuelle: reste - rc, accessoires }
+}
+
+/**
+ * Applique un nouveau Tarif TTC à une ligne : Taxe, CEDEAO et Accessoires
+ * restent FIXES, seules R.C. et Individuelle se répartissent la différence
+ * (au prorata de leurs valeurs courantes). Le tarif retourné = somme exacte.
+ */
+export function appliquerTarif(t: TarifAssurance, nouveauTarif: number): TarifAssurance {
+  const d = detailDe(t)
+  const reste = Math.max(0, nouveauTarif - t.taxe - d.accessoires - d.cedeao)
+  const base = d.rc + d.individuelle
+  const refRcInd = REF_PRIMES.rc + REF_PRIMES.individuelle
+  const rc = Math.round(reste * (base > 0 ? d.rc / base : REF_PRIMES.rc / refRcInd))
+  const detail = { ...d, rc, individuelle: reste - rc }
+  return { ...t, detail, tarif: reste + d.cedeao + d.accessoires + t.taxe }
 }
 
 export function primesPourType(typeVehicule: string): PrimesAssurance {
