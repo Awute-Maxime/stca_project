@@ -21,7 +21,10 @@ interface MainScreenProps {
 
 // Fenêtres secondaires PRINCIPALES (une seule à la fois) — les fenêtres
 // liées (aperçus avant impression) ne sont pas concernées
-const estFenetrePrincipale = (id: string): boolean => !id.startsWith('apercu.')
+// Fenêtres liées (aperçus, éditions ouvertes depuis une fenêtre principale) :
+// exclues de la règle « une seule fenêtre principale à la fois »
+const estFenetrePrincipale = (id: string): boolean =>
+  !id.startsWith('apercu.') && !id.startsWith('edition.')
 
 // Son d'alerte (carillon bref à deux notes — WebAudio, aucun fichier requis)
 function sonAlerte(): void {

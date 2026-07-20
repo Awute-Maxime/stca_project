@@ -50,6 +50,7 @@ export const WINDOW_REGISTRY: Record<string, WindowConfig> = {
   'apercu.montantRestituer':        { title: 'Montant à restituer',                              defaultX: 160, defaultY:  50, width: 960, height: 740 },
   'apercu.facture':                 { title: 'Aperçu — Facture (A4)',                            defaultX: 200, defaultY:  30, width: 880, height: 900 },
   'apercu.listeAssurances':         { title: 'Liste des Assurances gérés dans TCIT',             defaultX: 240, defaultY:  30, width: 880, height: 860 },
+  'edition.assureur':               { title: "Création / Modification d'un assureur",             defaultX: 180, defaultY:  90, width: 960, height: 640 },
   'apercu.ficheId':                 { title: 'Aperçu — Fiche ID (papier jaune 10,5 × 21,2 cm)',  defaultX: 260, defaultY:  30, width: 560, height: 900 },
   'apercu.feuillet3':               { title: 'Aperçu — Feuillet N°3 Cond. Part. (pré-imprimé A4)', defaultX: 200, defaultY: 30, width: 880, height: 900 },
   'apercu.feuillet1':               { title: 'Aperçu — Feuillet N°1 Assurance Bleu (28,2 × 7,51 cm)', defaultX: 60, defaultY: 120, width: 1180, height: 480 },

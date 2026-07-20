@@ -1,50 +1,25 @@
-import { useState, useRef } from 'react'
-import { notification, InputNumber } from 'antd'
+import { useState } from 'react'
+import { notification } from 'antd'
 import { SafetyCertificateOutlined } from '@ant-design/icons'
 import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
-import {
-  useConfigAssurances, setConfigAssurances, brutDe, commissionDe, montantARestituerDe, detailDe,
-  type Assureur, type TarifAssurance, type DetailPrimes,
-} from '@mock/assurancesStore'
+import { useConfigAssurances, setConfigAssurances, type Assureur } from '@mock/assurancesStore'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CONFIGURATION ASSURANCES — fidèle aux captures du vrai STCA (21/07/2026) :
 // - « Mise en service des fonctions Assurances » : Imprimer Facture + Cond.
 //   Part. + Assurances OUI/NON + Enregistrer,
-// - liste des assureurs (nom + coordonnées) + Modifier / Imprimer / Fermer,
-// - modal « Création / Modification d'un assureur » : nom, coordonnées, table
-//   des tarifs par type de véhicule — Tarif brut = Tarif − Taxe, Commission
-//   STCA = brut × % (part reversée à STCA, pour les rapports de revenus).
-// Accès protégé par MdpAdminGate (MainScreen). Source unique : assurancesStore
-// (consommée par la Facture et le Feuillet N°3).
+// - liste des assureurs (nom + coordonnées) + Modifier / Imprimer / Fermer.
+// Modifier/Nouvel assureur ouvrent la FENÊTRE INDÉPENDANTE edition.assureur
+// (déplaçable librement — Règle 10) via localStorage 'tcit_edition_assureur' ;
+// la liste se synchronise automatiquement (assurancesStore, event storage).
+// Accès protégé par MdpAdminGate (MainScreen).
 // ─────────────────────────────────────────────────────────────────────────────
-
-const fmt = (n: number): string => n.toLocaleString('fr-FR')
 
 export default function ConfigAssurancesWindow(): JSX.Element {
   const cfg = useConfigAssurances()
   const [imprimer, setImprimer] = useState<boolean>(() => cfg.imprimerAssurances)
   const [selId, setSelId] = useState<number | null>(cfg.assureurs[0]?.id ?? null)
-  const [edition, setEdition] = useState<Assureur | null>(null) // copie de travail du modal
-  // Déplacement du modal par sa barre de titre (translate x/y en px)
-  const [modalPos, setModalPos] = useState({ x: 0, y: 0 })
-  const posRef = useRef(modalPos)
-  posRef.current = modalPos
-
-  const demarrerDragModal = (e: React.MouseEvent): void => {
-    e.preventDefault()
-    const depart = { sx: e.clientX, sy: e.clientY, bx: posRef.current.x, by: posRef.current.y }
-    const bouger = (ev: MouseEvent): void => {
-      setModalPos({ x: depart.bx + ev.clientX - depart.sx, y: depart.by + ev.clientY - depart.sy })
-    }
-    const lacher = (): void => {
-      window.removeEventListener('mousemove', bouger)
-      window.removeEventListener('mouseup', lacher)
-    }
-    window.addEventListener('mousemove', bouger)
-    window.addEventListener('mouseup', lacher)
-  }
 
   const enregistrerMiseEnService = (): void => {
     setConfigAssurances({ ...cfg, imprimerAssurances: imprimer })
@@ -55,50 +30,23 @@ export default function ConfigAssurancesWindow(): JSX.Element {
     })
   }
 
-  // Le modal (2 tableaux) demande plus de hauteur que la liste : la fenêtre
-  // s'agrandit à l'ouverture et reprend sa taille à la fermeture
-  const ouvrirModal = (a: Assureur): void => {
-    window.resizeTo(950, 700)
-    setModalPos({ x: 0, y: 0 }) // toujours ré-ouvert centré
-    setEdition(a)
-  }
-
-  const fermerModal = (): void => {
-    setEdition(null)
-    window.resizeTo(950, 475)
+  const ouvrirEdition = (assureur: Assureur): void => {
+    localStorage.setItem('tcit_edition_assureur', JSON.stringify({ assureur, ts: Date.now() }))
+    const c = WINDOW_REGISTRY['edition.assureur']
+    if (c) electronApi.mdiOpen({ id: 'edition.assureur', x: c.defaultX, y: c.defaultY, width: c.width, height: c.height })
   }
 
   const ouvrirModification = (): void => {
     const a = cfg.assureurs.find(x => x.id === selId) ?? cfg.assureurs[0]
     if (!a) return
-    ouvrirModal(JSON.parse(JSON.stringify(a)) as Assureur)
+    ouvrirEdition(JSON.parse(JSON.stringify(a)) as Assureur)
   }
 
   const ouvrirCreation = (): void => {
     const id = cfg.assureurs.reduce((m, a) => Math.max(m, a.id), 0) + 1
-    ouvrirModal({
+    ouvrirEdition({
       id, nom: '', coordonnees: '',
       tarifs: [{ type: 'Voiture', tarif: 13000, taxe: 679, commissionPct: 20 }],
-    })
-  }
-
-  const validerEdition = (): void => {
-    if (!edition) return
-    if (!edition.nom.trim()) {
-      notification.warning({ message: "Saisissez le nom de l'assurance ou du groupement.", placement: 'bottomRight' })
-      return
-    }
-    const existe = cfg.assureurs.some(a => a.id === edition.id)
-    const assureurs = existe
-      ? cfg.assureurs.map(a => a.id === edition.id ? edition : a)
-      : [...cfg.assureurs, edition]
-    setConfigAssurances({ ...cfg, assureurs })
-    setSelId(edition.id)
-    fermerModal()
-    notification.success({
-      message: `✅ Assureur « ${edition.nom} » enregistré`,
-      description: 'Les tarifs alimentent la Facture, le Feuillet N°3 et les rapports de revenus.',
-      placement: 'bottomRight',
     })
   }
 
@@ -106,40 +54,6 @@ export default function ConfigAssurancesWindow(): JSX.Element {
     const cle = 'apercu.listeAssurances'
     const c = WINDOW_REGISTRY[cle]
     if (c) electronApi.mdiOpen({ id: cle, x: c.defaultX, y: c.defaultY, width: c.width, height: c.height })
-  }
-
-  const majTarif = (i: number, changes: Partial<TarifAssurance>): void => {
-    if (!edition) return
-    setEdition({
-      ...edition,
-      tarifs: edition.tarifs.map((t, j) => {
-        if (j !== i) return t
-        const nouveau = { ...t, ...changes }
-        if ('tarif' in changes) {
-          // Le Tarif est maître : le détail des primes est re-réparti
-          // proportionnellement (modifiable ensuite dans la rubrique détail)
-          nouveau.detail = undefined
-        } else if ('taxe' in changes && nouveau.detail) {
-          // Taxe modifiée avec un détail saisi → le tarif suit la somme
-          const d = nouveau.detail
-          nouveau.tarif = d.rc + d.cedeao + d.individuelle + d.accessoires + nouveau.taxe
-        }
-        return nouveau
-      }),
-    })
-  }
-
-  // Modifier une prime du détail → le Tarif se recalcule (somme + taxe)
-  const majDetail = (i: number, changes: Partial<DetailPrimes>): void => {
-    if (!edition) return
-    setEdition({
-      ...edition,
-      tarifs: edition.tarifs.map((t, j) => {
-        if (j !== i) return t
-        const d = { ...detailDe(t), ...changes }
-        return { ...t, detail: d, tarif: d.rc + d.cedeao + d.individuelle + d.accessoires + t.taxe }
-      }),
-    })
   }
 
   // ── Styles ────────────────────────────────────────────────────────────────
@@ -152,12 +66,6 @@ export default function ConfigAssurancesWindow(): JSX.Element {
     fontSize: 11, fontWeight: 700, padding: '6px 10px', textAlign: 'left',
   }
   const TD: React.CSSProperties = { fontSize: 11.5, padding: '6px 10px', borderBottom: '1px solid #EEF2F7' }
-  const NUM: React.CSSProperties = { width: 90 }
-  const THM: React.CSSProperties = {
-    background: '#EEF3FB', color: '#1B3A6B', fontSize: 10.5, fontWeight: 700,
-    padding: '5px 8px', textAlign: 'center', borderBottom: '1px solid #D7E3F4', lineHeight: 1.25,
-  }
-  const TDM: React.CSSProperties = { padding: '4px 6px', borderBottom: '1px solid #EEF2F7', textAlign: 'center' }
 
   return (
     <div style={{ animation: 'formEnter 0.3s ease' }}>
@@ -245,193 +153,6 @@ export default function ConfigAssurancesWindow(): JSX.Element {
           </button>
         </div>
       </div>
-
-      {/* ── Modal Création / Modification d'un assureur (capture 2) ────────── */}
-      {edition && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 800,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <div style={{
-            background: '#fff', borderRadius: 10, width: 920, maxWidth: '97vw',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.25)', animation: 'formEnter 0.2s ease',
-            transform: `translate(${modalPos.x}px, ${modalPos.y}px)`,
-          }}>
-            {/* Barre de titre déplaçable (comme une vraie fenêtre) */}
-            <div onMouseDown={demarrerDragModal} style={{
-              display: 'flex', alignItems: 'center', padding: '12px 18px',
-              background: '#1B3A6B', borderRadius: '10px 10px 0 0',
-              cursor: 'move', userSelect: 'none',
-            }}>
-              <span style={{ fontSize: 12, marginRight: 8 }}>🛡</span>
-              <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: '#fff' }}>
-                Création / Modification d&apos;un assureur
-              </span>
-              <button onClick={fermerModal} onMouseDown={e => e.stopPropagation()} style={{
-                width: 26, height: 26, background: 'none', border: 'none',
-                color: 'rgba(255,255,255,0.6)', cursor: 'pointer', fontSize: 17,
-              }}>✕</button>
-            </div>
-
-            <div style={{ padding: '16px 20px' }}>
-              {/* Nom + coordonnées (disposition de la capture) */}
-              <div style={{ display: 'flex', gap: 14, marginBottom: 12 }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#1B3A6B', marginBottom: 4 }}>
-                    Nom de l&apos;assurance ou groupement
-                  </div>
-                  <input className="light-input" value={edition.nom}
-                    onChange={e => setEdition({ ...edition, nom: e.target.value })}
-                    style={{ width: '100%', height: 28, fontWeight: 700, color: '#1D4ED8', textAlign: 'center', textTransform: 'uppercase' }} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#1B3A6B', marginBottom: 4 }}>
-                    Coordonnées ( adresse cp ville tel etc … )
-                  </div>
-                  <input className="light-input" value={edition.coordonnees}
-                    onChange={e => setEdition({ ...edition, coordonnees: e.target.value })}
-                    style={{ width: '100%', height: 28 }} />
-                </div>
-              </div>
-
-              {/* Barre d'outils tarifs (➕ / comme la capture) */}
-              <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
-                <button title="Ajouter un type de véhicule" onClick={() => setEdition({
-                  ...edition,
-                  tarifs: [...edition.tarifs, { type: '', tarif: 12000, taxe: 679, commissionPct: 20 }],
-                })} style={{
-                  height: 26, padding: '0 10px', borderRadius: 4, cursor: 'pointer', fontSize: 11.5,
-                  border: '1px solid #BBF7D0', background: '#F0FDF4', color: '#16A34A', fontWeight: 700,
-                }}>➕ Ajouter un type</button>
-                <span style={{ fontSize: 10.5, color: '#64748B', alignSelf: 'center' }}>
-                  Tarif brut = Tarif − Taxe &nbsp;·&nbsp; Commission STCA = brut × % &nbsp;·&nbsp; Montant à restituer = Tarif − Commission
-                </span>
-              </div>
-
-              {/* Table des tarifs (colonnes de la capture + net assureur) */}
-              <div style={{ border: '1px solid #D7E3F4', borderRadius: 6, overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr>
-                      <th style={{ ...THM, textAlign: 'left', width: 150 }}>Type de véhicule (voiture, camion etc…)</th>
-                      <th style={THM}>Tarif</th>
-                      <th style={THM}>Tarif brut</th>
-                      <th style={THM}>Taxe</th>
-                      <th style={THM}>Commission stca (% sur le brut)</th>
-                      <th style={THM}>Montant de la commission</th>
-                      <th style={THM}>Montant à restituer</th>
-                      <th style={{ ...THM, width: 30 }} />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {edition.tarifs.map((t, i) => (
-                      <tr key={i}>
-                        <td style={{ ...TDM, textAlign: 'left' }}>
-                          <input className="light-input" value={t.type} placeholder="ex : Voiture"
-                            onChange={e => majTarif(i, { type: e.target.value })}
-                            style={{ width: '100%', height: 26, fontWeight: 600 }} />
-                        </td>
-                        <td style={TDM}>
-                          <InputNumber size="small" value={t.tarif} min={0} step={500} style={NUM}
-                            onChange={v => majTarif(i, { tarif: v ?? 0 })} />
-                        </td>
-                        <td style={{ ...TDM, fontWeight: 700, color: '#1B3A6B', fontSize: 11.5 }}>{fmt(brutDe(t))}</td>
-                        <td style={TDM}>
-                          <InputNumber size="small" value={t.taxe} min={0} step={1} style={{ width: 76 }}
-                            onChange={v => majTarif(i, { taxe: v ?? 0 })} />
-                        </td>
-                        <td style={TDM}>
-                          <InputNumber size="small" value={t.commissionPct} min={0} max={100} step={0.5}
-                            decimalSeparator="," style={{ width: 76 }}
-                            onChange={v => majTarif(i, { commissionPct: v ?? 0 })} />
-                        </td>
-                        <td style={{ ...TDM, fontWeight: 700, color: '#16A34A', fontSize: 11.5 }}>{fmt(commissionDe(t))}</td>
-                        <td style={{ ...TDM, fontWeight: 700, color: '#1B3A6B', fontSize: 11.5 }}>{fmt(montantARestituerDe(t))}</td>
-                        <td style={TDM}>
-                          <button title="Supprimer cette ligne" onClick={() => setEdition({
-                            ...edition, tarifs: edition.tarifs.filter((_, j) => j !== i),
-                          })} style={{
-                            width: 22, height: 22, border: 'none', background: 'none',
-                            color: '#DC2626', cursor: 'pointer', fontSize: 13,
-                          }}>🗑</button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* ── Détail des primes constituant le tarif (Feuillet N°3) ── */}
-              <div style={{ margin: '16px 0 4px', display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 11.5, fontWeight: 700, color: '#1B3A6B' }}>
-                  Détail des primes constituant le tarif
-                </span>
-                <span style={{ fontSize: 10, color: '#64748B' }}>
-                  (imprimé sur le Feuillet N°3 — Cond. Part.) · modifier une prime recalcule le Tarif ;
-                  modifier le Tarif ci-dessus répartit à nouveau les primes
-                </span>
-              </div>
-              <div style={{ border: '1px solid #D7E3F4', borderRadius: 6, overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr>
-                      <th style={{ ...THM, textAlign: 'left', width: 150 }}>Type de véhicule</th>
-                      <th style={THM}>R.C. (Resp. Civile)</th>
-                      <th style={THM}>CEDEAO</th>
-                      <th style={THM}>Individuelle Accidents</th>
-                      <th style={THM}>Accessoires</th>
-                      <th style={THM}>Taxes</th>
-                      <th style={THM}>= Tarif (TTC)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {edition.tarifs.map((t, i) => {
-                      const d = detailDe(t)
-                      return (
-                        <tr key={i}>
-                          <td style={{ ...TDM, textAlign: 'left', fontWeight: 600, fontSize: 11.5, color: '#1E293B' }}>
-                            {t.type || '—'}
-                          </td>
-                          <td style={TDM}>
-                            <InputNumber size="small" value={d.rc} min={0} step={100} style={{ width: 82 }}
-                              onChange={v => majDetail(i, { rc: v ?? 0 })} />
-                          </td>
-                          <td style={TDM}>
-                            <InputNumber size="small" value={d.cedeao} min={0} step={50} style={{ width: 74 }}
-                              onChange={v => majDetail(i, { cedeao: v ?? 0 })} />
-                          </td>
-                          <td style={TDM}>
-                            <InputNumber size="small" value={d.individuelle} min={0} step={100} style={{ width: 82 }}
-                              onChange={v => majDetail(i, { individuelle: v ?? 0 })} />
-                          </td>
-                          <td style={TDM}>
-                            <InputNumber size="small" value={d.accessoires} min={0} step={100} style={{ width: 82 }}
-                              onChange={v => majDetail(i, { accessoires: v ?? 0 })} />
-                          </td>
-                          <td style={{ ...TDM, color: '#64748B', fontSize: 11.5 }}>{fmt(t.taxe)}</td>
-                          <td style={{ ...TDM, fontWeight: 700, color: '#1D4ED8', fontSize: 11.5 }}>{fmt(t.tarif)}</td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Valider / Quitter (capture) */}
-              <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 16 }}>
-                <button onClick={validerEdition} style={{
-                  height: 32, padding: '0 26px', background: '#16A34A', color: '#fff',
-                  border: 'none', borderRadius: 5, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
-                }}>Valider ✔</button>
-                <button onClick={fermerModal} style={{
-                  height: 32, padding: '0 22px', background: '#DC2626', color: '#fff',
-                  border: 'none', borderRadius: 5, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
-                }}>Quitter ⊗</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
