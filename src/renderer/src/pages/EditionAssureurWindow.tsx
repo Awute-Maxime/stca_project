@@ -62,36 +62,59 @@ export default function EditionAssureurWindow(): JSX.Element {
     setTimeout(fermer, 350)
   }
 
+  // ── Règle métier (précisée le 22/07/2026) : le TARIF fixé en haut NE
+  // CHANGE JAMAIS depuis le détail — il EST le Tarif TTC du bas. Taxes,
+  // CEDEAO et Accessoires sont statiques ; SEULES R.C. et Individuelle
+  // fluctuent pour que la somme retombe toujours sur le tarif. ──────────────
+  const reequilibrer = (t: TarifAssurance, d: DetailPrimes, fixe?: 'rc' | 'individuelle'): TarifAssurance => {
+    const reste = Math.max(0, t.tarif - t.taxe - d.cedeao - d.accessoires) // part R.C. + Individuelle
+    let rc = d.rc
+    let individuelle = d.individuelle
+    if (fixe === 'rc') {
+      rc = Math.min(Math.max(0, d.rc), reste)
+      individuelle = reste - rc
+    } else if (fixe === 'individuelle') {
+      individuelle = Math.min(Math.max(0, d.individuelle), reste)
+      rc = reste - individuelle
+    } else {
+      // Répartition au prorata des valeurs courantes (tarif/taxe/CEDEAO/accessoires modifiés)
+      const base = d.rc + d.individuelle
+      rc = base > 0 ? Math.round(reste * d.rc / base) : Math.round(reste * 5065 / 8815)
+      individuelle = reste - rc
+    }
+    return { ...t, detail: { ...d, rc, individuelle } }
+  }
+
   const majTarif = (i: number, changes: Partial<TarifAssurance>): void => {
     setEdition(prev => ({
       ...prev,
       tarifs: prev.tarifs.map((t, j) => {
         if (j !== i) return t
-        const nouveau = { ...t, ...changes }
         if ('tarif' in changes) {
-          // Nouveau Tarif TTC : Taxe, CEDEAO et Accessoires restent FIXES —
-          // seules R.C. et Individuelle se répartissent la différence
-          return appliquerTarif(t, nouveau.tarif)
+          // Nouveau Tarif : R.C. et Individuelle se répartissent la différence
+          return appliquerTarif(t, changes.tarif ?? 0)
         }
+        const nouveau = { ...t, ...changes }
         if ('taxe' in changes) {
-          // Taxe (montant fixe) modifiée → le Tarif TTC suit la somme
-          const d = detailDe(nouveau)
-          nouveau.detail = d
-          nouveau.tarif = d.rc + d.cedeao + d.individuelle + d.accessoires + nouveau.taxe
+          // Taxe modifiée : le TARIF NE BOUGE PAS — R.C./Individuelle absorbent
+          return reequilibrer(nouveau, detailDe(nouveau))
         }
         return nouveau
       }),
     }))
   }
 
-  // Modifier une prime du détail → le Tarif se recalcule (somme + taxe)
+  // Saisie dans le détail : le Tarif reste FIXE —
+  // R.C. ↔ Individuelle se compensent, le reste est statique
   const majDetail = (i: number, changes: Partial<DetailPrimes>): void => {
     setEdition(prev => ({
       ...prev,
       tarifs: prev.tarifs.map((t, j) => {
         if (j !== i) return t
         const d = { ...detailDe(t), ...changes }
-        return { ...t, detail: d, tarif: d.rc + d.cedeao + d.individuelle + d.accessoires + t.taxe }
+        if ('rc' in changes) return reequilibrer(t, d, 'rc')
+        if ('individuelle' in changes) return reequilibrer(t, d, 'individuelle')
+        return reequilibrer(t, d) // CEDEAO / Accessoires modifiés → prorata
       }),
     }))
   }
@@ -210,8 +233,8 @@ export default function EditionAssureurWindow(): JSX.Element {
           Détail des primes constituant le tarif
         </span>
         <span style={{ fontSize: 10, color: '#64748B' }}>
-          (imprimé sur le Feuillet N°3 — Cond. Part.) · Taxes, CEDEAO et Accessoires = montants FIXES ;
-          changer le Tarif n&apos;adapte que R.C. et Individuelle · toute saisie ici recalcule le Tarif TTC
+          (imprimé sur le Feuillet N°3 — Cond. Part.) · le Tarif TTC est FIXÉ en haut et ne change jamais ici ·
+          seules R.C. et Individuelle fluctuent pour retomber sur le Tarif — le reste est statique
         </span>
       </div>
       <div style={{ border: '1px solid #D7E3F4', borderRadius: 6, overflow: 'hidden' }}>
