@@ -12,11 +12,20 @@ import { useState, useEffect } from 'react'
 // Persistée dans localStorage + synchro toutes fenêtres (storage + CustomEvent).
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Détail des primes constituant le tarif (imprimées sur le Feuillet N°3)
+export interface DetailPrimes {
+  rc: number           // Responsabilité Civile
+  cedeao: number       // Carte Brune CEDEAO
+  individuelle: number // Individuelle Accidents
+  accessoires: number  // Accessoires
+}
+
 export interface TarifAssurance {
   type: string          // catégorie : Voiture, Camion, Autre…
   tarif: number         // prix TTC payé par le client (F CFA)
   taxe: number          // part de taxes incluse
   commissionPct: number // % STCA sur le tarif brut
+  detail?: DetailPrimes // saisi dans Config. Assurances — absent = dérivé proportionnellement
 }
 
 export interface Assureur {
@@ -117,14 +126,25 @@ export interface PrimesAssurance {
   ttc: number   // nette + accessoires + taxes = tarif de la catégorie
 }
 
-export function primesPourType(typeVehicule: string): PrimesAssurance {
-  const t = tarifPourType(typeVehicule)
+/**
+ * Détail des primes d'une ligne de tarif : celui SAISI dans Config.
+ * Assurances s'il existe, sinon dérivé proportionnellement de la référence
+ * (point de départ modifiable dans la fenêtre).
+ */
+export function detailDe(t: TarifAssurance): DetailPrimes {
+  if (t.detail) return t.detail
   const accessoires = REF_PRIMES.accessoires
   const nette = Math.max(0, t.tarif - accessoires - t.taxe)
   const rc = Math.round(nette * REF_PRIMES.rc / REF_NETTE)
   const cedeao = Math.round(nette * REF_PRIMES.cedeao / REF_NETTE)
-  const individuelle = nette - rc - cedeao // le reste — la somme tombe juste
-  return { rc, cedeao, individuelle, accessoires, taxes: t.taxe, nette, ttc: t.tarif }
+  return { rc, cedeao, individuelle: nette - rc - cedeao, accessoires }
+}
+
+export function primesPourType(typeVehicule: string): PrimesAssurance {
+  const t = tarifPourType(typeVehicule)
+  const d = detailDe(t)
+  const nette = d.rc + d.cedeao + d.individuelle
+  return { ...d, taxes: t.taxe, nette, ttc: nette + d.accessoires + t.taxe }
 }
 
 /** Hook React : configuration synchronisée entre toutes les fenêtres. */

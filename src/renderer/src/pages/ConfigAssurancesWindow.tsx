@@ -4,8 +4,8 @@ import { SafetyCertificateOutlined } from '@ant-design/icons'
 import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 import {
-  useConfigAssurances, setConfigAssurances, brutDe, commissionDe, montantARestituerDe,
-  type Assureur, type TarifAssurance,
+  useConfigAssurances, setConfigAssurances, brutDe, commissionDe, montantARestituerDe, detailDe,
+  type Assureur, type TarifAssurance, type DetailPrimes,
 } from '@mock/assurancesStore'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -37,17 +37,29 @@ export default function ConfigAssurancesWindow(): JSX.Element {
     })
   }
 
+  // Le modal (2 tableaux) demande plus de hauteur que la liste : la fenêtre
+  // s'agrandit à l'ouverture et reprend sa taille à la fermeture
+  const ouvrirModal = (a: Assureur): void => {
+    window.resizeTo(950, 700)
+    setEdition(a)
+  }
+
+  const fermerModal = (): void => {
+    setEdition(null)
+    window.resizeTo(950, 475)
+  }
+
   const ouvrirModification = (): void => {
     const a = cfg.assureurs.find(x => x.id === selId) ?? cfg.assureurs[0]
     if (!a) return
-    setEdition(JSON.parse(JSON.stringify(a)) as Assureur)
+    ouvrirModal(JSON.parse(JSON.stringify(a)) as Assureur)
   }
 
   const ouvrirCreation = (): void => {
     const id = cfg.assureurs.reduce((m, a) => Math.max(m, a.id), 0) + 1
-    setEdition({
+    ouvrirModal({
       id, nom: '', coordonnees: '',
-      tarifs: [{ type: 'Voiture', tarif: 12000, taxe: 679, commissionPct: 20 }],
+      tarifs: [{ type: 'Voiture', tarif: 13000, taxe: 679, commissionPct: 20 }],
     })
   }
 
@@ -63,7 +75,7 @@ export default function ConfigAssurancesWindow(): JSX.Element {
       : [...cfg.assureurs, edition]
     setConfigAssurances({ ...cfg, assureurs })
     setSelId(edition.id)
-    setEdition(null)
+    fermerModal()
     notification.success({
       message: `✅ Assureur « ${edition.nom} » enregistré`,
       description: 'Les tarifs alimentent la Facture, le Feuillet N°3 et les rapports de revenus.',
@@ -79,7 +91,36 @@ export default function ConfigAssurancesWindow(): JSX.Element {
 
   const majTarif = (i: number, changes: Partial<TarifAssurance>): void => {
     if (!edition) return
-    setEdition({ ...edition, tarifs: edition.tarifs.map((t, j) => j === i ? { ...t, ...changes } : t) })
+    setEdition({
+      ...edition,
+      tarifs: edition.tarifs.map((t, j) => {
+        if (j !== i) return t
+        const nouveau = { ...t, ...changes }
+        if ('tarif' in changes) {
+          // Le Tarif est maître : le détail des primes est re-réparti
+          // proportionnellement (modifiable ensuite dans la rubrique détail)
+          nouveau.detail = undefined
+        } else if ('taxe' in changes && nouveau.detail) {
+          // Taxe modifiée avec un détail saisi → le tarif suit la somme
+          const d = nouveau.detail
+          nouveau.tarif = d.rc + d.cedeao + d.individuelle + d.accessoires + nouveau.taxe
+        }
+        return nouveau
+      }),
+    })
+  }
+
+  // Modifier une prime du détail → le Tarif se recalcule (somme + taxe)
+  const majDetail = (i: number, changes: Partial<DetailPrimes>): void => {
+    if (!edition) return
+    setEdition({
+      ...edition,
+      tarifs: edition.tarifs.map((t, j) => {
+        if (j !== i) return t
+        const d = { ...detailDe(t), ...changes }
+        return { ...t, detail: d, tarif: d.rc + d.cedeao + d.individuelle + d.accessoires + t.taxe }
+      }),
+    })
   }
 
   // ── Styles ────────────────────────────────────────────────────────────────
@@ -204,7 +245,7 @@ export default function ConfigAssurancesWindow(): JSX.Element {
               <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: '#fff' }}>
                 Création / Modification d&apos;un assureur
               </span>
-              <button onClick={() => setEdition(null)} style={{
+              <button onClick={fermerModal} style={{
                 width: 26, height: 26, background: 'none', border: 'none',
                 color: 'rgba(255,255,255,0.6)', cursor: 'pointer', fontSize: 17,
               }}>✕</button>
@@ -298,13 +339,69 @@ export default function ConfigAssurancesWindow(): JSX.Element {
                 </table>
               </div>
 
+              {/* ── Détail des primes constituant le tarif (Feuillet N°3) ── */}
+              <div style={{ margin: '16px 0 4px', display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 11.5, fontWeight: 700, color: '#1B3A6B' }}>
+                  Détail des primes constituant le tarif
+                </span>
+                <span style={{ fontSize: 10, color: '#64748B' }}>
+                  (imprimé sur le Feuillet N°3 — Cond. Part.) · modifier une prime recalcule le Tarif ;
+                  modifier le Tarif ci-dessus répartit à nouveau les primes
+                </span>
+              </div>
+              <div style={{ border: '1px solid #D7E3F4', borderRadius: 6, overflow: 'hidden' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      <th style={{ ...THM, textAlign: 'left', width: 150 }}>Type de véhicule</th>
+                      <th style={THM}>R.C. (Resp. Civile)</th>
+                      <th style={THM}>CEDEAO</th>
+                      <th style={THM}>Individuelle Accidents</th>
+                      <th style={THM}>Accessoires</th>
+                      <th style={THM}>Taxes</th>
+                      <th style={THM}>= Tarif (TTC)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {edition.tarifs.map((t, i) => {
+                      const d = detailDe(t)
+                      return (
+                        <tr key={i}>
+                          <td style={{ ...TDM, textAlign: 'left', fontWeight: 600, fontSize: 11.5, color: '#1E293B' }}>
+                            {t.type || '—'}
+                          </td>
+                          <td style={TDM}>
+                            <InputNumber size="small" value={d.rc} min={0} step={100} style={{ width: 82 }}
+                              onChange={v => majDetail(i, { rc: v ?? 0 })} />
+                          </td>
+                          <td style={TDM}>
+                            <InputNumber size="small" value={d.cedeao} min={0} step={50} style={{ width: 74 }}
+                              onChange={v => majDetail(i, { cedeao: v ?? 0 })} />
+                          </td>
+                          <td style={TDM}>
+                            <InputNumber size="small" value={d.individuelle} min={0} step={100} style={{ width: 82 }}
+                              onChange={v => majDetail(i, { individuelle: v ?? 0 })} />
+                          </td>
+                          <td style={TDM}>
+                            <InputNumber size="small" value={d.accessoires} min={0} step={100} style={{ width: 82 }}
+                              onChange={v => majDetail(i, { accessoires: v ?? 0 })} />
+                          </td>
+                          <td style={{ ...TDM, color: '#64748B', fontSize: 11.5 }}>{fmt(t.taxe)}</td>
+                          <td style={{ ...TDM, fontWeight: 700, color: '#1D4ED8', fontSize: 11.5 }}>{fmt(t.tarif)}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
               {/* Valider / Quitter (capture) */}
               <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 16 }}>
                 <button onClick={validerEdition} style={{
                   height: 32, padding: '0 26px', background: '#16A34A', color: '#fff',
                   border: 'none', borderRadius: 5, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
                 }}>Valider ✔</button>
-                <button onClick={() => setEdition(null)} style={{
+                <button onClick={fermerModal} style={{
                   height: 32, padding: '0 22px', background: '#DC2626', color: '#fff',
                   border: 'none', borderRadius: 5, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
                 }}>Quitter ⊗</button>
