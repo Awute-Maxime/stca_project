@@ -32,7 +32,7 @@ export const WINDOW_REGISTRY: Record<string, WindowConfig> = {
   'outils.gestionUtilisateurs':      { title: 'Gestion des utilisateurs',                          defaultX: 260, defaultY: 154, width: 720, height: 520 },
   'outils.clefAdmin':               { title: 'Clef d\'administration',                           defaultX: 260, defaultY: 154, width: 640, height: 480 },
   'outils.archivage':               { title: 'Archivage des enregistrements',                    defaultX: 130, defaultY: 100, width: 1180, height: 690 },
-  'outils.fixerRef':                { title: 'Fixer N° Référence',                               defaultX: 340, defaultY: 204, width: 580, height: 340 },
+  'outils.fixerRef':                { title: 'Fixer N° Référence',                               defaultX: 340, defaultY: 130, width: 600, height: 660 },
   'outils.posteImmat':              { title: 'Activation du mode assurance',                     defaultX: 260, defaultY: 154, width: 640, height: 480 },
   'outils.configAssurances':        { title: "Liste d'assureur ou Groupement d'assurance",       defaultX: 200, defaultY: 120, width: 950, height: 475 },
   'outils.typesVehicule':           { title: 'Liste des Types de Véhicules (pour assurances)',   defaultX: 320, defaultY: 150, width: 560, height: 540 },

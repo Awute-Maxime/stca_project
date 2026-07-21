@@ -1,9 +1,11 @@
-import { useState } from 'react'
-import { Input, Button, Radio, Alert, Divider } from 'antd'
+import { useState, useMemo } from 'react'
+import { Input, Button, Radio, Alert, Divider, notification } from 'antd'
 import {
   LockOutlined, CheckCircleOutlined, WarningOutlined,
   NumberOutlined, ToolOutlined,
 } from '@ant-design/icons'
+import { getAllVehicules, getRefCompteur, setRefCompteur } from '@mock/vehiculesStore'
+import { getAllArchives } from '@mock/archivesStore'
 
 // ── Palette commune ───────────────────────────────────────────────────────────
 const C = {
@@ -46,71 +48,165 @@ function InfoRow({ label, value, mono = false }: { label: string; value: React.R
 // ─────────────────────────────────────────────────────────────────────────────
 // FIXER N° RÉFÉRENCE
 // ─────────────────────────────────────────────────────────────────────────────
+const fmtRef = (n: number): string => String(n).padStart(6, '0')
+
 export function FixerRefWindow(): JSX.Element {
-  const currentRef = 10053
-  const [newRef, setNewRef] = useState(String(currentRef))
-  const [saved,  setSaved]  = useState(false)
+  const [compteur, setCompteur] = useState(getRefCompteur)
+  const [saisie, setSaisie] = useState(() => String(getRefCompteur()))
 
-  const numVal  = parseInt(newRef, 10)
-  const isValid = !isNaN(numVal) && numVal > 0 && numVal <= 999999
-  const isDown  = isValid && numVal < currentRef
+  // Photo de la base : actifs + ARCHIVÉS (une référence archivée reste prise !)
+  const base = useMemo(() => {
+    const actifs = getAllVehicules()
+    const archives = getAllArchives()
+    const refs = [...actifs, ...archives]
+      .map(v => parseInt(v.ref, 10))
+      .filter(n => !isNaN(n))
+    return {
+      refs,
+      max: refs.reduce((m, n) => Math.max(m, n), 0),
+      nbActifs: actifs.length,
+      nbArchives: archives.length,
+    }
+  }, [compteur])
 
-  const handleApply = (): void => {
-    if (!isValid) return
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2500)
+  const val = parseInt(saisie, 10)
+  const valide = /^\d+$/.test(saisie.trim()) && !isNaN(val) && val >= 0 && val <= 999999
+
+  // ── CONTRÔLE AUTOMATIQUE (ce que le vrai STCA demande de faire à la main) ──
+  // Toute référence existante SUPÉRIEURE au compteur sera ré-attribuée par les
+  // prochains enregistrements → doublon. On les détecte et on bloque.
+  const collisions = valide ? base.refs.filter(n => n > val).sort((a, b) => a - b) : []
+  const bloque = valide && collisions.length > 0
+  const ecart = valide ? val - base.max : 0
+  const prochain = valide ? Math.max(val, base.max) + 1 : base.max + 1
+
+  const valider = (): void => {
+    if (!valide || bloque) return
+    setRefCompteur(val)
+    setCompteur(val)
+    notification.success({
+      message: '✅ N° de référence fixé',
+      description: `Compteur = ${fmtRef(val)} · prochain enregistrement : ${fmtRef(val + 1)}`,
+      placement: 'bottomRight',
+    })
   }
+
+  const fermer = (): void => window.dispatchEvent(new CustomEvent('mdi:close-self'))
 
   return (
     <div style={{ animation: 'formEnter 0.3s ease' }}>
       <PageHeader
         icon={<NumberOutlined />}
         title="FIXER LE N° DE RÉFÉRENCE"
-        subtitle="Définir le numéro de départ pour les prochains enregistrements"
+        subtitle="Compteur des références d'enregistrement — outil de réparation (restauration, migration)"
       />
 
-      <div style={{ background: C.bg, border: `1px solid #DDEAFF`, borderRadius: 8, padding: '10px 14px', marginBottom: 12 }}>
-        <InfoRow label="Référence actuelle" value={String(currentRef).padStart(6, '0')} mono />
-        <InfoRow label="Prochain enregistrement" value={String(currentRef + 1).padStart(6, '0')} mono />
+      {/* Avertissement du vrai STCA — mais ici TCIT fait le contrôle lui-même */}
+      <div style={{
+        background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8,
+        padding: '9px 12px', marginBottom: 12, display: 'flex', gap: 8, alignItems: 'flex-start',
+      }}>
+        <WarningOutlined style={{ color: C.danger, fontSize: 15, marginTop: 1 }} />
+        <div style={{ fontSize: 11.5, color: '#991B1B', lineHeight: 1.45 }}>
+          <strong>Attention ! Contrôler la table « enregistrement » avant de modifier ce N° !</strong>
+          <div style={{ color: '#7F1D1D', marginTop: 2 }}>
+            TCIT effectue ce contrôle automatiquement ci-dessous : toute valeur qui
+            écraserait des références existantes est refusée.
+          </div>
+        </div>
+      </div>
+
+      <div style={{ background: C.bg, border: '1px solid #DDEAFF', borderRadius: 8, padding: '10px 14px', marginBottom: 12 }}>
+        <InfoRow label="N° de référence en cours" value={fmtRef(compteur)} mono />
+        <InfoRow label="N° le plus élevé réellement utilisé" value={fmtRef(base.max)} mono />
         <div style={{ borderBottom: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', fontSize: 12 }}>
-          <span style={{ color: C.muted }}>Total enregistrements</span>
-          <span style={{ fontWeight: 600, color: C.blue }}>52 enregistrements</span>
+          <span style={{ color: C.muted }}>Enregistrements contrôlés</span>
+          <span style={{ fontWeight: 600, color: C.blue }}>
+            {base.nbActifs} actif(s) + {base.nbArchives} archivé(s)
+          </span>
         </div>
       </div>
 
-      <div style={{ marginBottom: 12 }}>
+      <div style={{ marginBottom: 10 }}>
         <div style={{ fontSize: 9, color: C.muted, marginBottom: 4, letterSpacing: 0.8, textTransform: 'uppercase', fontWeight: 700 }}>
-          Nouveau numéro de référence
+          N° de référence en cours … :
         </div>
-        <Input
-          value={newRef}
-          onChange={e => { setNewRef(e.target.value); setSaved(false) }}
-          style={{ fontFamily: 'Courier New, monospace', letterSpacing: 2, fontSize: 16, fontWeight: 700 }}
-          size="large"
-          status={newRef && !isValid ? 'error' : undefined}
-          maxLength={6}
-        />
+        <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
+          <Input
+            value={saisie}
+            onChange={e => setSaisie(e.target.value)}
+            style={{ flex: 1, fontFamily: 'Courier New, monospace', letterSpacing: 2, fontSize: 16, fontWeight: 700, textAlign: 'center' }}
+            size="large"
+            status={saisie && (!valide || bloque) ? 'error' : undefined}
+            maxLength={6}
+            autoFocus
+          />
+          <Button
+            size="large"
+            onClick={() => setSaisie(String(base.max))}
+            disabled={valide && val === base.max}
+            title="Caler le compteur sur la dernière référence réellement utilisée (actifs + archivés)"
+          >
+            ↺ Réaligner
+          </Button>
+        </div>
+        {compteur < base.max && (
+          <div style={{
+            marginTop: 8, padding: '7px 10px', borderRadius: 6,
+            background: '#FFFBEB', border: '1px solid #FDE68A',
+            fontSize: 11, color: '#92400E', lineHeight: 1.45,
+          }}>
+            ⚠ Le compteur enregistré (<strong>{fmtRef(compteur)}</strong>) est <strong>en retard</strong> sur
+            la base (<strong>{fmtRef(base.max)}</strong>) — typique après une restauration de sauvegarde.
+            Cliquez <strong>↺ Réaligner</strong> puis <strong>Valider</strong>.
+          </div>
+        )}
       </div>
 
-      {isDown && (
-        <Alert type="warning" showIcon icon={<WarningOutlined />}
-          message="Attention : numéro inférieur à la référence actuelle"
-          description="Réduire le compteur peut générer des doublons dans les enregistrements existants."
+      {/* ── Verdict du contrôle automatique ────────────────────────────────── */}
+      {!valide && saisie.trim() !== '' && (
+        <Alert type="error" showIcon message="Numéro invalide"
+          description="Saisissez un nombre entier entre 0 et 999999."
           style={{ marginBottom: 10, fontSize: 11 }} />
       )}
 
-      {saved && (
+      {bloque && (
+        <Alert type="error" showIcon icon={<WarningOutlined />}
+          message={`Refusé : ${collisions.length} référence(s) existante(s) seraient ré-attribuées`}
+          description={
+            <span style={{ fontSize: 11 }}>
+              Les prochains enregistrements repartiraient à {fmtRef(val + 1)} alors que ces
+              références sont déjà prises :{' '}
+              <strong style={{ fontFamily: 'Courier New, monospace' }}>
+                {collisions.slice(0, 6).map(fmtRef).join(', ')}
+                {collisions.length > 6 ? `… (+${collisions.length - 6})` : ''}
+              </strong>
+              . Minimum autorisé : <strong>{fmtRef(base.max)}</strong>.
+            </span>
+          }
+          style={{ marginBottom: 10, fontSize: 11 }} />
+      )}
+
+      {valide && !bloque && ecart === 0 && (
         <Alert type="success" showIcon icon={<CheckCircleOutlined />}
-          message={`Référence mise à jour → ${String(numVal).padStart(6, '0')}`}
+          message="Aligné sur la base — aucun risque de doublon"
+          description={`Le prochain enregistrement portera le n° ${fmtRef(prochain)}.`}
           style={{ marginBottom: 10, fontSize: 11 }} />
       )}
 
-      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-        <Button onClick={() => setNewRef(String(currentRef))}>Annuler</Button>
-        <Button type="primary" onClick={handleApply} disabled={!isValid || saved}
-          style={{ background: C.blue, borderColor: C.blue }}>
-          Appliquer
+      {valide && !bloque && ecart > 0 && (
+        <Alert type="warning" showIcon
+          message={`Saut de ${ecart} numéro(s) dans la numérotation`}
+          description={`Autorisé, mais les n° ${fmtRef(base.max + 1)} à ${fmtRef(val)} resteront inutilisés. Prochain enregistrement : ${fmtRef(prochain)}.`}
+          style={{ marginBottom: 10, fontSize: 11 }} />
+      )}
+
+      <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 14 }}>
+        <Button type="primary" onClick={valider} disabled={!valide || bloque}
+          style={{ background: !valide || bloque ? undefined : C.green, borderColor: !valide || bloque ? undefined : C.green, minWidth: 120 }}>
+          ✓ Valider
         </Button>
+        <Button onClick={fermer} danger style={{ minWidth: 110 }}>✗ Fermer</Button>
       </div>
     </div>
   )

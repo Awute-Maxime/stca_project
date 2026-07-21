@@ -64,6 +64,8 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
       "La gestion des types de véhicule (catégories de l'enregistrement et des assurances) est réservée à l'Administrateur de TCIT. Donnez le mot de passe de forçage pour continuer.",
     'outils.paramDestinations':
       "Les paramètres de destination (tarifs, n° d'immatriculation, couleurs de plaque) sont réservés à l'Administrateur de TCIT. Donnez le mot de passe de forçage pour continuer.",
+    'outils.fixerRef':
+      "Fixer le N° de référence des enregistrements est une opération sensible réservée à l'Administrateur de TCIT. Donnez le mot de passe de forçage pour continuer.",
   }
   const [gateAdminId, setGateAdminId] = useState<string | null>(null)
   // Confirmation de bascule entre fenêtres principales

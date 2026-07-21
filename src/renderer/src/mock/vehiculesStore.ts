@@ -61,6 +61,11 @@ export function addVehicule(v: MockVehicule): void {
   const added = loadAdded()
   added.unshift(v)
   localStorage.setItem(LS_KEY, JSON.stringify(added))
+  // Le compteur suit la référence réellement attribuée
+  const n = parseInt(v.ref, 10)
+  if (!isNaN(n) && n > getRefCompteur()) {
+    localStorage.setItem(LS_REF_COMPTEUR, String(n))
+  }
   notifyChanged()
 }
 
@@ -118,9 +123,60 @@ export function removeVehicule(ref: string): void {
 }
 
 /** Prochaine référence (max + 1, format 6 chiffres — cohérent avec les mocks). */
+// ── Compteur du N° de référence (Outils+Config. → Fixer N° Référence) ────────
+// Le vrai STCA stocke un « N° de référence en cours » que l'administrateur peut
+// corriger (après restauration de sauvegarde, migration, incident). On le
+// persiste ici ; il est initialisé depuis la base au premier usage.
+const LS_REF_COMPTEUR = 'tcit_ref_compteur'
+
+/** Référence la plus élevée présente dans la base ACTIVE. */
+export function maxRefActifs(): number {
+  return getAllVehicules().reduce((m, v) => Math.max(m, parseInt(v.ref, 10) || 0), 0)
+}
+
+/**
+ * Réf. la plus élevée présente dans les ARCHIVES. Lecture directe du
+ * localStorage à dessein : archivesStore dépend déjà de ce module, l'importer
+ * ici créerait un cycle. Une référence archivée reste PRISE — l'ignorer
+ * produirait des doublons.
+ */
+function maxRefArchives(): number {
+  try {
+    const raw = localStorage.getItem('tcit_archives')
+    if (!raw) return 0
+    const list = JSON.parse(raw) as { ref: string }[]
+    return list.reduce((m, v) => Math.max(m, parseInt(v.ref, 10) || 0), 0)
+  } catch { return 0 }
+}
+
+/** Réf. la plus élevée réellement utilisée : actifs ET archivés. */
+export function maxRefEnBase(): number {
+  return Math.max(maxRefActifs(), maxRefArchives())
+}
+
+/** « N° de référence en cours » = dernier numéro attribué (compteur persisté). */
+export function getRefCompteur(): number {
+  const raw = localStorage.getItem(LS_REF_COMPTEUR)
+  if (raw !== null) {
+    const n = parseInt(raw, 10)
+    if (!isNaN(n) && n >= 0) return n
+  }
+  return maxRefEnBase() // initialisation depuis la base (archives comprises)
+}
+
+export function setRefCompteur(n: number): void {
+  localStorage.setItem(LS_REF_COMPTEUR, String(Math.max(0, Math.floor(n))))
+  notifyChanged()
+}
+
+/**
+ * Prochaine référence. DÉFENSIF : jamais en dessous de ce qui existe déjà dans
+ * la base (anti-doublon si le compteur est resté en arrière), tout en honorant
+ * un compteur volontairement remonté par l'administrateur.
+ */
 export function nextRef(): string {
-  const maxRef = getAllVehicules().reduce((m, v) => Math.max(m, parseInt(v.ref, 10) || 0), 0)
-  return String(maxRef + 1).padStart(6, '0')
+  const base = Math.max(getRefCompteur(), maxRefEnBase())
+  return String(base + 1).padStart(6, '0')
 }
 
 /** Prochain id numérique unique. */
