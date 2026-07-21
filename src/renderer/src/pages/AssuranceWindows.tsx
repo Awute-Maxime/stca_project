@@ -4,12 +4,8 @@ import dayjs from 'dayjs'
 import { useVehicules } from '@mock/vehiculesStore'
 import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
+import { useDestColors } from '@mock/destinationsStore'
 
-const DEST_COLORS: Record<string, string> = {
-  AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
-  KP: '#16A34A', KW: '#16A34A', NO: '#16A34A',
-  'S/C': '#FFD700', POL: '#94A3B8',
-}
 function destTxt(bg: string): string {
   return (bg === '#FFD700' || bg === '#94A3B8') ? '#1E293B' : '#fff'
 }
@@ -33,6 +29,7 @@ export function AnalyseAssuranceWindow(): JSX.Element {
 
 export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): JSX.Element {
   const vehicules = useVehicules() // store partagé — synchro auto
+  const DEST_COLORS = useDestColors()
   const closeWindow = (): void => {
     if (onClose) onClose()
     else window.dispatchEvent(new CustomEvent('mdi:close-self'))

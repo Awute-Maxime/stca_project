@@ -1,3 +1,4 @@
+import { useDestColors } from '@mock/destinationsStore'
 import { useState, useMemo, type ReactNode } from 'react'
 import { notification } from 'antd'
 import dayjs from 'dayjs'
@@ -13,11 +14,7 @@ import { Feuillet1PrintDirect, type Feuillet1Data } from '@components/documents/
 import { Feuillet2PrintDirect, type Feuillet2Data } from '@components/documents/Feuillet2'
 import { docsPourChoix, cgDataDe, factureDataDe, ficheIdDataDe, feuillet1DataDe, feuillet2DataDe, feuillet3DataDe, ouvrirApercuDoc, type DocImp } from '@components/documents/editionHelpers'
 
-const DEST_COLORS: Record<string, string> = {
-  AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
-  KP: '#16A34A', KW: '#16A34A', NO: '#16A34A',
-  'S/C': '#FFD700', POL: '#94A3B8',
-}
+// DEST_COLORS lu depuis destinationsStore (couleur de plaque éditable, source unique)
 function destTxt(bg: string): string {
   return (bg === '#FFD700' || bg === '#94A3B8') ? '#1E293B' : '#fff'
 }
@@ -25,6 +22,7 @@ function destTxt(bg: string): string {
 const BTN = 'width:100%;padding:5px 6px;font-size:11px;border-radius:4px;cursor:pointer;border:1px solid'
 
 export default function ListePage(): JSX.Element {
+  const DEST_COLORS = useDestColors()
   const vehicules = useVehicules() // store partagé — se met à jour à chaque nouvel enregistrement
   const todayISO = dayjs().format('YYYY-MM-DD')
   // Dates saisies (inputs) vs dates appliquées (utilisées pour filtrer, MAJ au clic Rechercher)

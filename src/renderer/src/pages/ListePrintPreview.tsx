@@ -1,3 +1,4 @@
+import { useDestColors } from '@mock/destinationsStore'
 import { useState, useEffect, useMemo } from 'react'
 import dayjs from 'dayjs'
 import { getAllVehicules } from '@mock/vehiculesStore'
@@ -14,11 +15,7 @@ import { getAllVehicules } from '@mock/vehiculesStore'
 // l'aperçu est déjà ouvert.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const DEST_COLORS: Record<string, string> = {
-  AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
-  KP: '#16A34A', KW: '#16A34A', NO: '#16A34A',
-  'S/C': '#FFD700', POL: '#94A3B8',
-}
+// DEST_COLORS lu depuis destinationsStore (couleur de plaque éditable, source unique)
 function destTxt(bg: string): string {
   return (bg === '#FFD700' || bg === '#94A3B8') ? '#1E293B' : '#fff'
 }
@@ -48,6 +45,7 @@ function readParams(): ApercuParams {
 }
 
 export default function ListePrintPreview(): JSX.Element {
+  const DEST_COLORS = useDestColors()
   const [params, setParams] = useState<ApercuParams>(readParams)
 
   // Rafraîchit si la fenêtre Liste relance Imprimer avec de nouveaux filtres

@@ -28,7 +28,9 @@ import {
 import ConfigImprimantesWindow from '@pages/ConfigImprimantesWindow'
 import ConfigAssurancesWindow from '@pages/ConfigAssurancesWindow'
 import ListeAssurancesApercuWindow from '@pages/ListeAssurancesApercuWindow'
+import ListeDestinationsApercuWindow from '@pages/ListeDestinationsApercuWindow'
 import EditionAssureurWindow from '@pages/EditionAssureurWindow'
+import EditionDestinationWindow from '@pages/EditionDestinationWindow'
 import UserManagementWindow from '@pages/UserManagementWindow'
 
 export function renderWindowContent(id: string): JSX.Element {
@@ -82,8 +84,12 @@ export function renderWindowContent(id: string): JSX.Element {
       return <Feuillet2ApercuWindow />
     case 'apercu.listeAssurances':
       return <ListeAssurancesApercuWindow />
+    case 'apercu.listeDestinations':
+      return <ListeDestinationsApercuWindow />
     case 'edition.assureur':
       return <EditionAssureurWindow />
+    case 'edition.destination':
+      return <EditionDestinationWindow />
 
     // ── Menu Analyse — géré comme overlay modal dans MainScreen, pas en MDI
     // case 'analyse': / case 'analyse.stca': → MainScreen.tsx

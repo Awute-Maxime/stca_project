@@ -1,3 +1,4 @@
+import { useDestColors } from '@mock/destinationsStore'
 import { useState, useMemo, type ReactNode } from 'react'
 import { notification } from 'antd'
 import dayjs from 'dayjs'
@@ -15,11 +16,7 @@ import { Feuillet1PrintDirect, type Feuillet1Data } from '@components/documents/
 import { Feuillet2PrintDirect, type Feuillet2Data } from '@components/documents/Feuillet2'
 import { docsPourChoix, cgDataDe, factureDataDe, ficheIdDataDe, feuillet1DataDe, feuillet2DataDe, feuillet3DataDe, ouvrirApercuDoc } from '@components/documents/editionHelpers'
 
-const DEST_COLORS: Record<string, string> = {
-  AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
-  KP: '#16A34A', KW: '#16A34A', NO: '#16A34A',
-  'S/C': '#FFD700', POL: '#94A3B8',
-}
+// DEST_COLORS lu depuis destinationsStore (couleur de plaque éditable, source unique)
 function destTxt(bg: string): string {
   return (bg === '#FFD700' || bg === '#94A3B8') ? '#1E293B' : '#fff'
 }
@@ -29,6 +26,7 @@ interface Props {
 }
 
 export default function RechercheWindow({ mode }: Props): JSX.Element {
+  const DEST_COLORS = useDestColors()
   const vehicules = useVehicules() // store partagé — synchro auto
   const [query, setQuery] = useState('')
   const [searched, setSearched] = useState(false)

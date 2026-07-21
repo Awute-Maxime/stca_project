@@ -1,3 +1,4 @@
+import { useDestColors } from '@mock/destinationsStore'
 import { useState, useMemo } from 'react'
 import dayjs from 'dayjs'
 import { useVehicules } from '@mock/vehiculesStore'
@@ -63,11 +64,7 @@ function anlApplyPeriod(preset: string): { from: string; to: string } {
 }
 
 /* ── Couleurs destination — palette exacte du prototype (ligne 919) ── */
-const DEST_COLORS: Record<string, string> = {
-  AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
-  KP: '#16A34A', KW: '#16A34A', NO: '#16A34A',
-  'S/C': '#FFD700', POL: '#94A3B8',
-}
+// DEST_COLORS lu depuis destinationsStore (couleur de plaque éditable, source unique)
 function destTxt(bg: string): string {
   return (bg === '#FFD700' || bg === '#94A3B8') ? '#1E293B' : '#fff'
 }
@@ -88,6 +85,7 @@ type ReportSource = 'tcit_detail' | 'tcit_resume' | 'tcit_annual' | 'assurance'
 /*  AnalysePage — Multi-step modal flow                                */
 /* ================================================================== */
 export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.Element {
+  const DEST_COLORS = useDestColors()
   const vehicules = useVehicules() // store partagé — synchro auto
   const todayISO = dayjs().format('YYYY-MM-DD')
 

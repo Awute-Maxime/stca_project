@@ -1,16 +1,12 @@
+import { useDestColors, getDestinations } from '@mock/destinationsStore'
 import { useMemo } from 'react'
 import { Typography } from 'antd'
 import { useVehicules } from '@mock/vehiculesStore'
-import { mockDestinations } from '@mock/destinations'
 import dayjs from 'dayjs'
 
 const { Text } = Typography
 
-const DEST_COLORS: Record<string, string> = {
-  AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
-  KP: '#16A34A', KW: '#16A34A', NO: '#16A34A',
-  'S/C': '#FFD700', POL: '#94A3B8',
-}
+// DEST_COLORS lu depuis destinationsStore (couleur de plaque éditable, source unique)
 const TYPE_COLORS: Record<string, string> = {
   'Voiture': '#2563EB', 'Camion': '#D97706', 'Moto': '#DC2626',
   'Bus': '#16A34A', 'Pick-up': '#7C3AED', 'Minibus': '#0891B2',
@@ -81,6 +77,7 @@ function SectionTitle({ label }: { label: string }): JSX.Element {
 }
 
 export default function DashboardHome(): JSX.Element {
+  const DEST_COLORS = useDestColors()
   const vehicules = useVehicules() // store partagé — synchro auto à chaque enregistrement
   const today = dayjs().format('YYYY-MM-DD')
 
@@ -132,7 +129,7 @@ export default function DashboardHome(): JSX.Element {
           value={`${(stats.totalFcfa / 1000).toFixed(0)} 000 F`} valueStyle={{ fontSize: 17 }}
           label="FCFA collecté" sub="Toutes frontières" />
         <StatCard icon="📍" iconBg="#FFFBEB" borderColor="#D97706"
-          value={`${stats.frontieres} / ${mockDestinations.length}`}
+          value={`${stats.frontieres} / ${getDestinations().length}`}
           label="Frontières actives" sub="Sur 10 postes" />
         <StatCard icon="📅" iconBg="#F5F3FF" borderColor="#7C3AED"
           value={stats.todayCount} label="Enregistrements du jour" sub={today} />

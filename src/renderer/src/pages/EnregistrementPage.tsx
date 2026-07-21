@@ -8,9 +8,10 @@ import {
   PrinterOutlined, PlusOutlined,
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
-import { mockDestinations } from '@mock/destinations'
 import { addVehicule, updateVehicule, nextRef, nextId, countAddedForDest } from '@mock/vehiculesStore'
 import { useMarques } from '@mock/marquesStore'
+import { useTypesVehicule } from '@mock/typesVehiculeStore'
+import { useDestColors, getDestinations } from '@mock/destinationsStore'
 import { CarteGrisePrintDirect, type CarteGriseData } from '@components/documents/CarteGrise'
 import { FacturePrintDirect, type FactureData, MONTANT_ASSURANCE_FACTURE } from '@components/documents/Facture'
 import { FicheIdPrintDirect, type FicheIdData } from '@components/documents/FicheId'
@@ -20,7 +21,6 @@ import { Feuillet2PrintDirect, type Feuillet2Data } from '@components/documents/
 import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 
-const TYPES_VEHICULE = ['Voiture', 'Camion', 'Moto', 'Bus', 'Pick-up', 'Minibus']
 const MONTANT_FIXE   = 10000
 
 const C = {
@@ -244,6 +244,9 @@ const QBTN: CSSProperties = {
 // ── Page principale ───────────────────────────────────────────────────────────
 export default function EnregistrementPage(): JSX.Element {
 
+  // Types de véhicule — source unique (Outils+Config. → Types Véhicule)
+  const typesVehicule = useTypesVehicule()
+
   // ── État du formulaire ────────────────────────────────────────────────────
   const [date,            setDate]           = useState(dayjs())
   const [parc,            setParc]           = useState('')
@@ -291,7 +294,7 @@ export default function EnregistrementPage(): JSX.Element {
       if (v.type) setTypeVehicule(v.type)
       if (v.dest) {
         setDestination(v.dest)
-        const d = mockDestinations.find(dd => dd.code === v.dest)
+        const d = getDestinations().find(dd => dd.code === v.dest)
         if (d) setImmatGenere(v.immat || `${d.lettre}${String(d.numImmatActuel).padStart(4, '0')}`)
       }
       if (v.montant) setMontant(v.montant)
@@ -336,7 +339,7 @@ export default function EnregistrementPage(): JSX.Element {
   const formReady     = progressCount === 4
 
   const handleDestinationChange = (code: string): void => {
-    const dest = mockDestinations.find(d => d.code === code)
+    const dest = getDestinations().find(d => d.code === code)
     if (dest) {
       // Compteur incrémenté des enregistrements déjà ajoutés pour cette destination
       const num = String(dest.numImmatActuel + 1 + countAddedForDest(code)).padStart(4, '0')
@@ -417,7 +420,7 @@ export default function EnregistrementPage(): JSX.Element {
   }
 
   const destNom = destination
-    ? (mockDestinations.find(d => d.code === destination)?.nom ?? '')
+    ? (getDestinations().find(d => d.code === destination)?.nom ?? '')
     : ''
 
   // Bouton rappel marque dans le menu déroulant
@@ -433,11 +436,7 @@ export default function EnregistrementPage(): JSX.Element {
     ),
   }))
 
-  const DEST_COLORS: Record<string, string> = {
-    AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
-    KP: '#16A34A', KW: '#16A34A', NO: '#16A34A',
-    'S/C': '#FFD700', POL: '#94A3B8',
-  }
+  const DEST_COLORS = useDestColors()
 
   const R: CSSProperties = { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }
   const LBL: CSSProperties = { fontSize: 11, color: '#475569', whiteSpace: 'nowrap', width: 130, flexShrink: 0 }
@@ -575,7 +574,7 @@ export default function EnregistrementPage(): JSX.Element {
             <select style={{ ...FS2, width: 130 }} value={typeVehicule ?? ''} disabled={saved}
               onChange={e => { const v = e.target.value || undefined; setTypeVehicule(v); setDestination(undefined); setImmatGenere(null); setMontant(null) }}>
               <option value="">—</option>
-              {TYPES_VEHICULE.map(t => <option key={t} value={t}>{t}</option>)}
+              {typesVehicule.map(t => <option key={t.id} value={t.nom}>{t.nom}</option>)}
             </select>
             <HistoryInput fieldKey="description" history={descHist.history} value={description}
               onChange={setDescription} className="light-input" placeholder="Description / informations complémentaires"
@@ -588,7 +587,7 @@ export default function EnregistrementPage(): JSX.Element {
             <select style={{ ...FS2, width: 130 }} value={destination ?? ''} disabled={!typeVehicule || saved}
               onChange={e => { if (e.target.value) handleDestinationChange(e.target.value) }}>
               <option value="">{typeVehicule ? '—' : "⚠ Choisir d'abord le type"}</option>
-              {mockDestinations.map(d => <option key={d.code} value={d.code}>{d.code}</option>)}
+              {getDestinations().map(d => <option key={d.code} value={d.code}>{d.code}</option>)}
             </select>
             {destination && destNom && (
               <div style={{

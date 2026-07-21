@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import dayjs from 'dayjs'
 import { type MockVehicule } from '@mock/vehicules'
 import { getAllVehicules } from '@mock/vehiculesStore'
-import { mockDestinations } from '@mock/destinations'
+import { getDestinations } from '@mock/destinationsStore'
 import PrintPreviewShell from '@components/PrintPreviewShell'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -24,7 +24,7 @@ function fmtDateFR(iso: string): string {
 }
 
 function destLabel(code: string): string {
-  return mockDestinations.find(d => d.code === code)?.nom ?? code
+  return getDestinations().find(d => d.code === code)?.nom ?? code
 }
 
 type GroupBy = 'jour' | 'mois' | 'destination'
