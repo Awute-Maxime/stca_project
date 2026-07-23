@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { DatePicker, Modal, Input, Checkbox, Radio, Dropdown, notification } from 'antd'
 import type { MenuProps } from 'antd'
@@ -8,7 +8,9 @@ import {
   PrinterOutlined, PlusOutlined,
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
-import { addVehicule, updateVehicule, nextRef, nextId, countAddedForDest } from '@mock/vehiculesStore'
+import { addVehicule, updateVehicule, nextRef, nextId, countAddedForDest, getAllVehicules } from '@mock/vehiculesStore'
+import { getAllArchives } from '@mock/archivesStore'
+import { WinAlert } from '@components/WinDialogs'
 import { useMarques } from '@mock/marquesStore'
 import { useTypesVehicule } from '@mock/typesVehiculeStore'
 import { useDestColors, getDestinations } from '@mock/destinationsStore'
@@ -273,6 +275,7 @@ export default function EnregistrementPage(): JSX.Element {
   // ── État post-enregistrement ──────────────────────────────────────────────
   const [saved,         setSaved]       = useState(false)
   const [savedRef,      setSavedRef]    = useState<string | null>(null)
+  const [alerteChassis, setAlerteChassis] = useState<ReactNode | null>(null)
   const [showEdition,   setShowEdition] = useState(false)
   const [editMode,      setEditMode]    = useState(false)
   // Fenêtre d'origine (Liste/Recherche) — rouverte après validation de la modification
@@ -359,7 +362,29 @@ export default function EnregistrementPage(): JSX.Element {
     setSaved(false); setSavedRef(null); setShowEdition(false)
   }
 
+  // ── Détection d'un N° de châssis déjà enregistré (actifs ET archivés) ───────
+  // Un châssis déjà présent = anomalie à faire régler par l'administrateur.
+  // On exclut l'enregistrement en cours de modification (son propre châssis).
+  const chassisDuplique = useMemo(() => {
+    const ch = chassis.trim().toUpperCase()
+    if (ch.length < 5) return null
+    const tous = [...getAllVehicules(), ...getAllArchives()]
+    return tous.find(v => (v.chassis ?? '').trim().toUpperCase() === ch && v.ref !== savedRef) ?? null
+  }, [chassis, savedRef])
+
   const handleEnregistrer = async (): Promise<void> => {
+    // Garde-fou : châssis déjà enregistré → on bloque et on renvoie vers l'admin
+    if (chassisDuplique) {
+      setAlerteChassis(
+        <>
+          Le N° de châssis <strong>{chassis.trim().toUpperCase()}</strong> est <strong>déjà enregistré</strong> dans
+          la base (réf. {chassisDuplique.ref}
+          {chassisDuplique.immat ? <> — immat. {chassisDuplique.immat}</> : null}).
+          <br /><br />Veuillez vous <strong>adresser à l'administrateur</strong> pour régler ce point.
+        </>,
+      )
+      return
+    }
     setLoading(true)
 
     // Persistance des historiques
@@ -642,6 +667,20 @@ export default function EnregistrementPage(): JSX.Element {
             <input className="light-input" style={{ width: 130, background: '#F1F5F9', color: '#94A3B8', height: 26 }}
               placeholder="(N° série)" readOnly />
           </div>
+          {chassisDuplique && (
+            <div style={{
+              marginTop: 6, padding: '6px 10px', borderRadius: 6,
+              background: '#FEF2F2', border: '1px solid #FCA5A5',
+              fontSize: 10.5, color: '#991B1B', lineHeight: 1.45, display: 'flex', gap: 6, alignItems: 'flex-start',
+            }}>
+              <span style={{ fontSize: 12 }}>⚠</span>
+              <span>
+                Ce N° de châssis est <strong>déjà enregistré</strong> (réf. {chassisDuplique.ref}
+                {chassisDuplique.immat ? <> — immat. {chassisDuplique.immat}</> : null}).
+                Adressez-vous à l'<strong>administrateur</strong>.
+              </span>
+            </div>
+          )}
         </fieldset>
 
         {/* ── Bas : ancienne immat + recycler ──────────────────────────── */}
@@ -821,6 +860,7 @@ export default function EnregistrementPage(): JSX.Element {
         onSelect={v => { setParc(v); setParcModalOpen(false) }}
         onCancel={() => setParcModalOpen(false)}
       />
+      {alerteChassis && <WinAlert message={alerteChassis} onClose={() => setAlerteChassis(null)} />}
     </div>
   )
 }
