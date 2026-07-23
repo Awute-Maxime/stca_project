@@ -313,11 +313,12 @@ export default function LoginPage(): JSX.Element {
           </div>
         </div>
 
-        {/* Bande drapeau Togo */}
-        <div style={{ height: 4, display: 'flex' }}>
-          <div style={{ flex: 1, background: '#006A4E' }} />
-          <div style={{ flex: 1, background: '#FFDF00' }} />
-          <div style={{ flex: 1, background: '#D21034' }} />
+        {/* Bande drapeau Togo — fine, dégradée, bords fondus + reflet glissant */}
+        <div style={{
+          position: 'relative', overflow: 'hidden', height: 3,
+          background: 'linear-gradient(90deg, rgba(0,106,78,0) 0%, #006A4E 16%, #006A4E 34%, #FFDF00 50%, #D21034 66%, #D21034 84%, rgba(210,16,52,0) 100%)',
+        }}>
+          <div className="flag-shine" />
         </div>
       </div>
 

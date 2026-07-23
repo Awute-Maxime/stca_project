@@ -1,3 +1,20 @@
+export interface ImportPreview {
+  ok: boolean
+  error?: string
+  columns?: string[]
+  rows?: string[][]
+  delimiter?: string
+  totalApprox?: number
+}
+export interface ImportReport {
+  ok: boolean
+  error?: string
+  total: number
+  importes: number
+  doublons: number
+  erreurs: { ligne: number; raison: string }[]
+}
+
 declare global {
   interface Window {
     api: {
@@ -11,6 +28,11 @@ declare global {
       mdiListOpen:     () => Promise<string[]>
       mdiCloseId:      (id: string) => void
       printersList:    () => Promise<Array<{ name: string; isDefault: boolean }>>
+      dbCounts:        () => Promise<{ ok: boolean; counts?: Record<string, number>; error?: string }>
+      importPickFile:  () => Promise<string | null>
+      importPreview:   (chemin: string) => Promise<ImportPreview>
+      importRun:       (p: { chemin: string; mapping: Record<string, string | undefined>; delimiter: string }) => Promise<ImportReport>
+      onImportProgress:(cb: (p: { traite: number; importes: number }) => void) => (() => void)
       mdiSelfClose:    () => void
       mdiSelfMinimize: () => void
       mdiSelfMaximize: () => void
@@ -31,6 +53,15 @@ export const electronApi = {
   mdiCloseId:      (id: string) => window.api?.mdiCloseId?.(id),
   printersList:    (): Promise<Array<{ name: string; isDefault: boolean }>> =>
     window.api?.printersList?.() ?? Promise.resolve([]),
+  dbCounts:        (): Promise<{ ok: boolean; counts?: Record<string, number>; error?: string }> =>
+    window.api?.dbCounts?.() ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  importPickFile:  (): Promise<string | null> => window.api?.importPickFile?.() ?? Promise.resolve(null),
+  importPreview:   (chemin: string): Promise<ImportPreview> =>
+    window.api?.importPreview?.(chemin) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  importRun:       (p: { chemin: string; mapping: Record<string, string | undefined>; delimiter: string }): Promise<ImportReport> =>
+    window.api?.importRun?.(p) ?? Promise.resolve({ ok: false, error: 'window.api indisponible', total: 0, importes: 0, doublons: 0, erreurs: [] }),
+  onImportProgress:(cb: (p: { traite: number; importes: number }) => void): (() => void) =>
+    window.api?.onImportProgress?.(cb) ?? (() => {}),
   mdiSelfClose:    () => window.api?.mdiSelfClose?.(),
   mdiSelfMinimize: () => window.api?.mdiSelfMinimize?.(),
   mdiSelfMaximize: () => window.api?.mdiSelfMaximize?.(),

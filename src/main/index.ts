@@ -1,5 +1,7 @@
 import { app, shell, BrowserWindow, ipcMain, screen } from 'electron'
 import { join } from 'path'
+import { dbCounts, disconnectPrisma } from './db'
+import { pickCsvFile, previewCsv, runImport, type Mapping } from './import'
 
 const isDev = process.env['NODE_ENV'] === 'development' || !app.isPackaged
 
@@ -78,6 +80,21 @@ function setupMdiIPC(): void {
   ipcMain.handle('mdi:list-open', () =>
     [...mdiWindows.entries()].filter(([, w]) => !w.isDestroyed()).map(([id]) => id)
   )
+
+  // Base de données (Prisma dans le main) — sonde de santé
+  ipcMain.handle('db:counts', async () => {
+    try {
+      return { ok: true, counts: await dbCounts() }
+    } catch (err) {
+      return { ok: false, error: String(err) }
+    }
+  })
+
+  // Assistant d'import de l'ancienne base STCA (CSV)
+  ipcMain.handle('import:pickFile', () => pickCsvFile())
+  ipcMain.handle('import:preview', (_, chemin: string) => previewCsv(chemin))
+  ipcMain.handle('import:run', (e, p: { chemin: string; mapping: Mapping; delimiter: string }) =>
+    runImport(e, p.chemin, p.mapping, p.delimiter))
 
   // Imprimantes du système (nom + défaut) — pour Config. Imprimantes
   ipcMain.handle('printers:list', async (e) => {
@@ -208,6 +225,10 @@ app.whenReady().then(() => {
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+})
+
+app.on('before-quit', () => {
+  void disconnectPrisma()
 })
 
 app.on('window-all-closed', () => {

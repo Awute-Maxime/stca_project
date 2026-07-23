@@ -1,131 +1,172 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Schéma de la base TCIT — FIDÈLE à la base HFSQL « STCA M » (explorée le
+// 15/06/2026, cf. mémoire project-stca-database-schema). Objectif : importer
+// l'ancienne base SANS PERTE et remplacer le localStorage (plafonné ~5 Mo) qui
+// ne peut pas contenir les 338 075 enregistrements réels.
+//
+// Provider SQLite pour démarrer (fichier local, zéro serveur). Le passage à
+// PostgreSQL en client/serveur (Phase 4) se fera en changeant ce provider —
+// les modèles et le code Prisma restent les mêmes.
+//
+// Décisions validées par l'utilisateur (22/07/2026) :
+//  1. Archives = UNE SEULE table (dateArchivage nul = actif, rempli = archivé)
+//     au lieu des 2 tables STCA — colle au concept « l'archivage ne sort rien
+//     du système ». Les 2 tables STCA fusionnent à l'import.
+//  2. Mots de passe en clair pour l'instant (hachage branché en Phase 3).
+//  3. Portée = TOUT STCA M, même les champs pas encore affichés, pour un
+//     import sans perte.
+//
+// Note SQLite : pas de types natifs @db.VarChar ni d'enum (montants en Int —
+// F CFA sans centimes). Les FK « souples » de l'Enregistrement (categorieRang,
+// codeTransit) sont des valeurs indexées et non des contraintes dures, pour un
+// import robuste de données héritées — comme STCA (clés « avec doublon »).
+// ─────────────────────────────────────────────────────────────────────────────
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 // ─── Référentiels ──────────────────────────────────────────────
 
+/// ← CATVEH (RANG + TypeVehicule). Le « Rang dans la combos » = RANG.
+model CategorieVehicule {
+  id   Int    @id @default(autoincrement())
+  rang Int    @unique
+  nom  String
+
+  @@map("categorie_vehicule")
+}
+
+/// ← ZoneImportation (bureaux frontière). + couleur de plaque (ajout TCIT).
+model Destination {
+  id             Int     @id @default(autoincrement())
+  code           String  @unique // AFO, CK, KA, NO...
+  nom            String // Afolé, Cinkassé...
+  lettre         String  @default("") // lettre de la plaque
+  tarif          Int     @default(10000)
+  numImmatActuel Int     @default(0) // compteur immat. par frontière
+  couleur        String  @default("#2563EB") // couleur de la plaque pré-imprimée
+  contact        String? // ZoneImportation.Contact
+  description    String? // ZoneImportation.Description
+
+  @@map("destination")
+}
+
+/// ← TYPEVEH / TypVehIndex (marques et modèles).
 model MarqueModele {
-  id      Int    @id @default(autoincrement())
-  marque  String @db.VarChar(100)
-  modele  String @db.VarChar(100)
+  id      Int     @id @default(autoincrement())
+  marque  String
+  modele  String?
+  libelle String  @unique // « TOYOTA COROLLA » (MarqueModele combiné)
 
-  vehicules Vehicule[]
-
-  @@unique([marque, modele])
   @@map("marque_modele")
 }
 
-model ZoneImportation {
-  id          Int    @id @default(autoincrement())
-  code        String @unique @db.VarChar(20)
-  libelle     String @db.VarChar(200)
-  frontiere   String @db.VarChar(100)
-  pays        String @db.VarChar(100)
+/// ← PAYS (pour Pays de résidence / de destination).
+model Pays {
+  id        Int     @id @default(autoincrement())
+  nom       String  @unique
+  iso3      String? // ISO_Alpha3
+  actif     Boolean @default(true)
+  continent String?
+  codeOTR   String?
 
-  vehicules   Vehicule[]
-
-  @@map("zone_importation")
+  @@map("pays")
 }
 
-model MaisonTransit {
-  id      Int    @id @default(autoincrement())
-  code    String @unique @db.VarChar(20)
-  nom     String @db.VarChar(200)
-  adresse String? @db.VarChar(300)
+// ─── Assurance ─────────────────────────────────────────────────
 
-  vehicules Vehicule[]
+/// ← TYPEASSURANCE (assureur / groupement d'assurance).
+model Assureur {
+  id          Int     @id @default(autoincrement())
+  nom         String
+  coordonnees String?
 
-  @@map("maison_transit")
+  tarifs TarifAssurance[]
+
+  @@map("assureur")
 }
 
-// ─── Véhicules en transit ──────────────────────────────────────
+/// ← VEHASSURANCE (tarifs par catégorie) + détail des primes (ajout TCIT).
+model TarifAssurance {
+  id            Int @id @default(autoincrement())
+  assureurId    Int
+  categorieRang Int // ← CATVEH.RANG (souple)
+  tarif         Int // TTC payé par le client
+  taxe          Int // TaxeAssurance
+  commissionPct Int // % STCA sur le brut
+  // Détail des primes constituant le tarif (dérivé à l'import si absent)
+  rc           Int @default(0)
+  cedeao       Int @default(0)
+  individuelle Int @default(0)
+  accessoires  Int @default(0)
 
-model Vehicule {
-  id              Int      @id @default(autoincrement())
-  numeroImmat     String   @unique @db.VarChar(30)
-  numeroChassis   String?  @db.VarChar(50)
-  numeroTri       Int?
-  annee           Int?
-  couleur         String?  @db.VarChar(50)
-  dateEnregistrement DateTime @default(now())
-  dateExpiration  DateTime?
+  assureur Assureur @relation(fields: [assureurId], references: [id])
 
-  marqueModeleId  Int
-  marqueModele    MarqueModele @relation(fields: [marqueModeleId], references: [id])
-
-  zoneImportationId Int
-  zoneImportation   ZoneImportation @relation(fields: [zoneImportationId], references: [id])
-
-  maisonTransitId Int?
-  maisonTransit   MaisonTransit? @relation(fields: [maisonTransitId], references: [id])
-
-  proprietaire    Proprietaire?
-  documents       Document[]
-
-  @@map("vehicule")
+  @@unique([assureurId, categorieRang])
+  @@map("tarif_assurance")
 }
 
-model Proprietaire {
-  id         Int     @id @default(autoincrement())
-  nom        String  @db.VarChar(200)
-  prenom     String? @db.VarChar(200)
-  telephone  String? @db.VarChar(30)
-  nationalite String? @db.VarChar(100)
+// ─── Enregistrements (table UNIQUE : actifs + archivés) ─────────
 
-  vehiculeId Int     @unique
-  vehicule   Vehicule @relation(fields: [vehiculeId], references: [id])
+/// ← ENREGISTREMENTS + ARCHIVE fusionnées (dateArchivage nul = actif).
+model Enregistrement {
+  id                      Int       @id @default(autoincrement())
+  numRef                  Int       @unique // NumRef (clé unique STCA)
+  nomPrenomProprio        String
+  adresseProprio          String?
+  ancienneImmatriculation String? // AncienneImmatriculation
+  dateAncienneCG          DateTime? // DateAncienneCG
+  categorieRang           Int? // ← CATVEH.RANG (souple)
+  codeTransit             String // ← CodeTransit (souple)
+  maisonTransit           String?
+  nomDuParc               String?
+  marqueModele            String // texte, comme STCA
+  vin                     String    @unique // Vin_Vehicule (châssis)
+  numTri                  String?
+  numImmatriculation      String
+  montant                 Int       @default(10000) // Montant_Enregistrement
+  dateEnreg               DateTime  @default(now())
+  flagSortie              Boolean   @default(false)
+  dateSortie              DateTime?
+  nomUtilisateur          String? // agent qui a saisi (texte, comme STCA)
+  assureurId              Int? // ← IDTYPEASSURANCE
+  // Archivage : nul = actif, rempli = archivé (rien ne sort du système)
+  dateArchivage DateTime?
+  archivePar    String?
 
-  @@map("proprietaire")
+  @@unique([numImmatriculation, codeTransit]) // couple unique (Compo_ImmaCode)
+  @@index([dateEnreg])
+  @@index([codeTransit, dateEnreg])
+  @@index([flagSortie, dateSortie])
+  @@index([dateArchivage])
+  @@map("enregistrement")
 }
 
-model Document {
-  id         Int    @id @default(autoincrement())
-  type       String @db.VarChar(50)
-  numero     String @db.VarChar(100)
-  dateEmission DateTime?
-  dateExpiration DateTime?
+// ─── Système ───────────────────────────────────────────────────
 
-  vehiculeId Int
-  vehicule   Vehicule @relation(fields: [vehiculeId], references: [id])
-
-  @@map("document")
-}
-
-// ─── Utilisateurs ─────────────────────────────────────────────
-
+/// Comptes de connexion (mot de passe en clair pour l'instant — hachage Phase 3).
 model Utilisateur {
-  id          Int      @id @default(autoincrement())
-  login       String   @unique @db.VarChar(50)
-  motDePasseHash String @db.VarChar(255)
-  nom         String   @db.VarChar(200)
-  role        Role     @default(AGENT)
-  actif       Boolean  @default(true)
-  createdAt   DateTime @default(now())
-
-  sessions    Session[]
+  id             Int     @id @default(autoincrement())
+  login          String  @unique
+  motDePasse     String
+  nom            String
+  administrateur Boolean @default(false)
+  compteActif    Boolean @default(true)
 
   @@map("utilisateur")
 }
 
-model Session {
-  id          String   @id @default(cuid())
-  token       String   @unique
-  expiresAt   DateTime
-  createdAt   DateTime @default(now())
+/// Réglages singletons (compteur de référence, mise en service assurances,
+/// mot de passe de forçage admin...) sous forme clé → valeur.
+model Parametre {
+  cle    String @id
+  valeur String
 
-  utilisateurId Int
-  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id])
-
-  @@map("session")
-}
-
-enum Role {
-  ADMIN
-  SUPERVISEUR
-  AGENT
+  @@map("parametre")
 }

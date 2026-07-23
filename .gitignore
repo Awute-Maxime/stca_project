@@ -9,3 +9,8 @@ release/
 *.log
 .DS_Store
 Thumbs.db
+
+# Base SQLite locale (données) + fichiers Prisma générés
+prisma/*.db
+prisma/*.db-journal
+prisma/migrations/dev.db*
