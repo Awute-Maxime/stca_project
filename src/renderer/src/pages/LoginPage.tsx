@@ -83,7 +83,9 @@ export default function LoginPage(): JSX.Element {
 
   const outerStyle: DragCSS = {
     width: '100vw', height: '100vh',
-    background: 'transparent',
+    // Fond opaque explicite : la fenêtre est transparente (effet verre du
+    // splash), le login doit donc poser lui-même sa couleur.
+    background: '#081030',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     overflow: 'hidden', userSelect: 'none',
     WebkitAppRegion: 'drag',

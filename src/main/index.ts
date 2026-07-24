@@ -140,8 +140,11 @@ function createWindow(): void {
     center: true,
     show: false,
     frame: false,
-    transparent: false,
-    backgroundColor: '#081030',
+    // Fenêtre transparente : permet l'effet « verre » de l'image flash
+    // (on aperçoit le bureau au travers). Le login et l'écran principal
+    // posent leur propre fond opaque pour ne pas être affectés.
+    transparent: true,
+    backgroundColor: '#00000000',
     autoHideMenuBar: true,
     title: 'TCIT — Contrôle et Immatriculation Transit',
     webPreferences: {

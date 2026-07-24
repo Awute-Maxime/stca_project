@@ -24,7 +24,7 @@ const CAR = {
   cropX: 175, cropY: 100, cropW: 430, cropH: 255, // zone utile de l'image source
   srcW: 612,             // largeur réelle de l'image
   eclat: 14, contraste: 115,
-  opacite: 0.82,         // légèrement transparente → se fond dans la scène
+  opacite: 0.70,         // transparente → se fond dans la scène et laisse voir le bureau
 }
 const S = CAR.largeur / CAR.cropW // facteur d'échelle
 
@@ -46,7 +46,8 @@ export default function SplashScreen(): JSX.Element {
 
   const outer: DragCSS = {
     width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden',
-    background: 'radial-gradient(ellipse at 32% 40%, #0e2a52 0%, #071634 48%, #030a18 100%)',
+    // Fond TRANSLUCIDE → on aperçoit le bureau au travers (effet verre)
+    background: 'radial-gradient(ellipse at 32% 40%, rgba(14,42,82,.80) 0%, rgba(7,22,52,.84) 48%, rgba(3,10,24,.87) 100%)',
     userSelect: 'none', WebkitAppRegion: 'drag',
     animation: 'splashFadeIn 0.45s ease-out both',
   }
