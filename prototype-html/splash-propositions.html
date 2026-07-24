@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TCIT — Image Flash (Proposition A · v2)</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#080d16; color:#cfe6ff; min-height:100vh; padding:30px 20px 60px;
+    font-family:'Segoe UI', system-ui, sans-serif; display:flex; flex-direction:column; align-items:center; gap:14px; }
+  h1 { font-size:17px; font-weight:700; letter-spacing:.5px; color:#eaf4ff; }
+  .sub { font-size:12px; color:#6b8bb0; }
+  .card { width:840px; max-width:96vw; margin-top:10px; }
+
+  /* ── Bannière ─────────────────────────────────────────────── */
+  .splash { position:relative; width:100%; aspect-ratio:720/340; border-radius:12px; overflow:hidden; user-select:none;
+    background:radial-gradient(ellipse at 32% 40%, #0e2a52 0%, #071634 48%, #030a18 100%);
+    box-shadow:0 20px 55px rgba(0,0,0,.55), inset 0 0 0 1px rgba(56,189,248,.08); }
+  .grid-bg { position:absolute; inset:0; pointer-events:none;
+    background-image:radial-gradient(circle, rgba(0,212,255,.05) 1px, transparent 1px); background-size:30px 30px; }
+  .version { position:absolute; top:14px; left:16px; font-size:11px; letter-spacing:1px; color:rgba(120,180,230,.65); z-index:8; }
+
+  /* fond tech isométrique — SUBTIL, à droite (inspiration image 1) */
+  .bgtech { position:absolute; top:0; right:0; width:46%; height:100%; opacity:.20; pointer-events:none; z-index:1; }
+  .bgtech .pulse { animation:tw 4s ease-in-out infinite; }
+  @keyframes tw { 0%,100%{opacity:.25} 50%{opacity:.9} }
+
+  /* traces de circuit en bas (inspiration image 2) */
+  .circuit { position:absolute; left:0; right:0; bottom:0; height:38%; opacity:.16; pointer-events:none; z-index:1; }
+
+  /* radar */
+  .radar { position:absolute; top:38px; left:50%; transform:translateX(-50%); width:250px; height:250px; border-radius:50%;
+    background:conic-gradient(from 0deg, rgba(0,212,255,.24), transparent 26%); animation:spin 3.4s linear infinite; opacity:.5; z-index:2; }
+  .radar::before { content:''; position:absolute; inset:0; border-radius:50%; border:1px solid rgba(0,212,255,.16);
+    box-shadow:inset 0 0 0 42px rgba(0,212,255,.025), inset 0 0 0 84px rgba(0,212,255,.025); }
+  @keyframes spin { to { transform:translateX(-50%) rotate(360deg);} }
+
+  /* voiture low-poly */
+  .carA { position:absolute; top:46px; left:50%; transform:translateX(-50%); z-index:4;
+    filter:drop-shadow(0 0 14px rgba(0,150,255,.55)); animation:carIn 6s ease-in-out infinite; }
+  @keyframes carIn { 0%{opacity:0;transform:translateX(-50%) translateX(-14px)} 10%,88%{opacity:1;transform:translateX(-50%) translateX(0)} 100%{opacity:0} }
+
+  .scan { position:absolute; left:50%; transform:translateX(-50%); width:330px; height:2px;
+    background:linear-gradient(90deg,transparent,#8ff4ff,transparent); box-shadow:0 0 14px #00D4FF; z-index:5; animation:scan 3s ease-in-out infinite; }
+  @keyframes scan { 0%,100%{top:70px;opacity:.15} 50%{top:180px;opacity:.95} }
+
+  .plate { position:absolute; top:18px; left:50%; transform:translateX(-50%); padding:5px 15px; border-radius:6px; z-index:8;
+    border:1px solid rgba(0,212,255,.6); background:rgba(4,20,40,.55); color:#eafcff; font-family:Consolas,monospace;
+    font-size:16px; letter-spacing:3px; font-weight:700; text-shadow:0 0 10px rgba(0,212,255,.85);
+    box-shadow:0 0 22px rgba(0,212,255,.25), inset 0 0 12px rgba(0,212,255,.15); animation:plateIn 6s ease-in-out infinite; }
+  @keyframes plateIn { 0%,8%{opacity:0;transform:translateX(-50%) translateY(-6px) scale(.96)} 14%,20%{opacity:.35} 17%,26%{opacity:1}
+    32%,88%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)} 100%{opacity:0} }
+
+  .data { position:absolute; bottom:62px; left:50%; transform:translateX(-50%); font-family:Consolas,monospace;
+    font-size:8px; letter-spacing:1.4px; color:rgba(56,189,248,.42); white-space:nowrap; z-index:5; }
+
+  .titleblock { position:absolute; left:0; right:0; bottom:52px; text-align:center; z-index:7; }
+  .tcit { font-size:46px; font-weight:800; letter-spacing:9px; color:#fff; line-height:1; text-shadow:0 0 32px rgba(0,180,255,.6); }
+  .star { filter:drop-shadow(0 0 6px rgba(255,223,0,.85)); vertical-align:middle; margin-right:12px; }
+  .rule { width:220px; height:1px; margin:12px auto 8px; background:linear-gradient(90deg,transparent,#00D4FF 30%,#38BDF8 70%,transparent); }
+  .slogan { font-size:9.5px; letter-spacing:2px; text-transform:uppercase; color:rgba(56,189,248,.7); }
+
+  .progress { position:absolute; bottom:24px; left:50%; transform:translateX(-50%); width:220px; height:2px;
+    background:rgba(0,212,255,.14); border-radius:2px; overflow:hidden; z-index:7; }
+  .progress i { display:block; height:100%; border-radius:2px; background:linear-gradient(90deg,#0EA5E9,#00D4FF,#38BDF8); animation:prog 6s linear infinite; }
+  @keyframes prog { 0%{width:0} 85%{width:100%} 100%{width:100%} }
+
+  .flag { position:absolute; bottom:0; left:0; right:0; height:3px; overflow:hidden; z-index:9;
+    background:linear-gradient(90deg, rgba(0,106,78,0) 0%, #006A4E 16%, #006A4E 34%, #FFDF00 50%, #D21034 66%, #D21034 84%, rgba(210,16,52,0) 100%); }
+  .flag::after { content:''; position:absolute; top:0; bottom:0; left:-30%; width:30%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.72),transparent); animation:shine 5s ease-in-out infinite; }
+  @keyframes shine { 0%{transform:translateX(0);opacity:0} 8%{opacity:1} 42%{transform:translateX(433%);opacity:1} 50%{transform:translateX(433%);opacity:0} 100%{transform:translateX(433%);opacity:0} }
+
+  .note { width:840px; max-width:96vw; font-size:12px; color:#7d9bbd; line-height:1.7; margin-top:6px; }
+  .note b { color:#bcd9f5; }
+</style>
+</head>
+<body>
+  <h1>TCIT — Image Flash · Proposition A (v2)</h1>
+  <div class="sub">voiture low-poly · fond tech isométrique subtil à droite · traces de circuit · animé en boucle</div>
+
+  <div class="card">
+    <div class="splash">
+      <div class="grid-bg"></div>
+      <div class="version">Version 3.0.20.0</div>
+
+      <!-- ══ FOND TECH ISOMÉTRIQUE (droite, très subtil) ══ -->
+      <svg class="bgtech" viewBox="0 0 340 340" fill="none">
+        <g stroke="#38BDF8" stroke-width=".9" opacity=".75">
+          <!-- petits panneaux flottants isométriques -->
+          <path d="M96,116 L122,103 L148,116 L122,129 Z" opacity=".5"/>
+          <path d="M164,80 L190,67 L216,80 L190,93 Z" opacity=".42"/>
+          <path d="M200,156 L224,144 L248,156 L224,168 Z" opacity=".38"/>
+          <path d="M118,192 L140,181 L162,192 L140,203 Z" opacity=".32"/>
+          <path d="M250,110 L270,100 L290,110 L270,120 Z" opacity=".3"/>
+          <!-- glyphes d'icônes minimalistes -->
+          <rect x="116" y="111" width="12" height="9" rx="1.5" opacity=".55"/>
+          <circle cx="190" cy="79" r="4.5" opacity=".55"/>
+          <path d="M218,153 h11 M218,157 h7" opacity=".5"/>
+          <path d="M135,189 l5,-5 l5,5" opacity=".5"/>
+          <path d="M265,108 h10 M265,112 h6" opacity=".45"/>
+        </g>
+        <!-- liaisons pointillées -->
+        <g stroke="#00D4FF" stroke-width="1" stroke-dasharray="2 6" opacity=".5">
+          <path d="M108,144 L108,196"/><path d="M188,98 L188,158"/>
+          <path d="M156,120 L186,158"/><path d="M134,176 L186,158"/>
+          <path d="M60,120 L20,140"/><path d="M236,74 L286,60"/>
+        </g>
+        <!-- points lumineux (quelques touches de couleur, comme la référence) -->
+        <g>
+          <circle class="pulse" cx="108" cy="96"  r="3" fill="#00D4FF"/>
+          <circle class="pulse" cx="188" cy="50"  r="3" fill="#7CF7C6" style="animation-delay:.8s"/>
+          <circle class="pulse" cx="270" cy="158" r="3" fill="#FF6BA8" style="animation-delay:1.6s"/>
+          <circle class="pulse" cx="134" cy="216" r="2.5" fill="#FFDF6B" style="animation-delay:2.4s"/>
+          <circle class="pulse" cx="20"  cy="140" r="2.5" fill="#38BDF8" style="animation-delay:1.2s"/>
+          <circle class="pulse" cx="286" cy="60"  r="2.5" fill="#00D4FF" style="animation-delay:3s"/>
+        </g>
+      </svg>
+
+      <!-- ══ TRACES DE CIRCUIT (bas) ══ -->
+      <svg class="circuit" viewBox="0 0 720 130" fill="none" preserveAspectRatio="none">
+        <g stroke="#00D4FF" stroke-width="1" opacity=".55">
+          <path d="M0,40 H120 L140,60 H300"/><path d="M720,30 H600 L580,52 H430"/>
+          <path d="M0,86 H90 L112,66 H250"/><path d="M720,96 H560 L540,76 H400"/>
+          <path d="M60,40 V12"/><path d="M300,60 V96"/><path d="M580,52 V20"/><path d="M540,76 V104"/>
+        </g>
+        <g fill="#00D4FF" opacity=".7">
+          <circle cx="120" cy="40" r="2.5"/><circle cx="300" cy="60" r="2.5"/><circle cx="600" cy="30" r="2.5"/>
+          <circle cx="90" cy="86" r="2.5"/><circle cx="560" cy="96" r="2.5"/><circle cx="430" cy="52" r="2.5"/>
+        </g>
+      </svg>
+
+      <div class="radar"></div>
+      <div class="plate">TG WZ C 1847 KE</div>
+
+      <!-- ══ VOITURE LOW-POLY (perspective 3/4) ══ -->
+      <svg class="carA" width="376" height="215" viewBox="0 0 420 240" fill="none">
+        <defs>
+          <linearGradient id="body" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#0B4C9E" stop-opacity=".55"/>
+            <stop offset=".5" stop-color="#0E7BD4" stop-opacity=".35"/>
+            <stop offset="1" stop-color="#0A2E63" stop-opacity=".5"/>
+          </linearGradient>
+          <linearGradient id="edge" x1="0" x2="1">
+            <stop offset="0" stop-color="#39C9FF"/><stop offset=".5" stop-color="#7FE8FF"/><stop offset="1" stop-color="#2E9BE0"/>
+          </linearGradient>
+          <filter id="gl"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+
+        <!-- ═══ VRAIE PERSPECTIVE 3/4 : on voit la FACE AVANT + le flanc qui fuit ═══
+             Les arêtes « lointaines » convergent vers un point de fuite à droite. -->
+
+        <!-- reflet au sol -->
+        <ellipse cx="210" cy="206" rx="165" ry="8" fill="#00A2FF" opacity=".10"/>
+
+        <!-- FLANC (côté proche) — le grand volume qui fuit vers l'arrière -->
+        <path d="M62,190 L58,146 L188,132 L226,100 L292,96 L352,122 L356,160
+                 L348,152 Q302,112 256,158 L156,168 Q112,128 78,186 Z"
+              fill="url(#body)" stroke="url(#edge)" stroke-width="1.7" filter="url(#gl)"/>
+
+        <!-- CAPOT (surface qui fuit et se rétrécit) -->
+        <polygon points="58,146 120,138 238,124 188,132" fill="#5FD4FF" opacity=".16" stroke="url(#edge)" stroke-width="1.4"/>
+        <!-- PARE-BRISE -->
+        <polygon points="188,132 238,124 270,94 226,100" fill="#8FF4FF" opacity=".20" stroke="url(#edge)" stroke-width="1.4"/>
+        <!-- TOIT (se rétrécit vers l'arrière) -->
+        <polygon points="226,100 270,94 326,90 292,96" fill="#2BB4F5" opacity=".16" stroke="url(#edge)" stroke-width="1.3"/>
+        <!-- LUNETTE / PONT ARRIÈRE -->
+        <polygon points="292,96 326,90 352,122" fill="#1E7FC9" opacity=".14" stroke="url(#edge)" stroke-width="1.3"/>
+        <!-- FACE AVANT (le plan qui nous fait face — la clé de la perspective) -->
+        <polygon points="62,190 58,146 120,138 124,180" fill="#7FE8FF" opacity=".22" stroke="url(#edge)" stroke-width="1.7"/>
+
+        <!-- FACETTES low-poly sur le flanc -->
+        <g>
+          <polygon points="188,132 226,100 256,158" fill="#2BB4F5" opacity=".13"/>
+          <polygon points="226,100 292,96 256,158" fill="#5FD4FF" opacity=".10"/>
+          <polygon points="58,146 188,132 156,168" fill="#1E7FC9" opacity=".12"/>
+          <polygon points="292,96 352,122 256,158" fill="#2BB4F5" opacity=".09"/>
+          <polygon points="352,122 356,160 348,152" fill="#5FD4FF" opacity=".12"/>
+        </g>
+
+        <!-- ARÊTES du maillage -->
+        <g stroke="#5FD9FF" stroke-width=".9" opacity=".8">
+          <path d="M58,146 L156,168"/><path d="M188,132 L156,168"/><path d="M188,132 L256,158"/>
+          <path d="M226,100 L256,158"/><path d="M292,96 L256,158"/><path d="M352,122 L348,152"/>
+          <path d="M62,190 L120,138"/><path d="M124,180 L120,138"/>
+          <path d="M238,124 L270,94"/><path d="M326,90 L352,122"/>
+        </g>
+
+        <!-- sommets -->
+        <g fill="#BFF4FF">
+          <circle cx="62" cy="190" r="1.9"/><circle cx="58" cy="146" r="2.1"/><circle cx="120" cy="138" r="2.1"/>
+          <circle cx="124" cy="180" r="1.9"/><circle cx="188" cy="132" r="2"/><circle cx="238" cy="124" r="2"/>
+          <circle cx="226" cy="100" r="2.2"/><circle cx="270" cy="94" r="2.2"/><circle cx="292" cy="96" r="2"/>
+          <circle cx="326" cy="90" r="2"/><circle cx="352" cy="122" r="1.9"/><circle cx="356" cy="160" r="1.7"/>
+          <circle cx="156" cy="168" r="1.8"/><circle cx="256" cy="158" r="1.8"/>
+        </g>
+
+        <!-- ROUE ARRIÈRE (loin, plus petite) -->
+        <ellipse cx="302" cy="150" rx="27" ry="29" stroke="#39C9FF" stroke-width="1.4" filter="url(#gl)"/>
+        <ellipse cx="302" cy="150" rx="14" ry="16" stroke="#7FE8FF" stroke-width=".9" opacity=".55"/>
+        <circle cx="302" cy="150" r="3" fill="#8FF4FF" opacity=".85"/>
+
+        <!-- ROUE AVANT (proche, grande et détaillée) -->
+        <ellipse cx="112" cy="178" rx="34" ry="37" stroke="#7FE8FF" stroke-width="2" filter="url(#gl)"/>
+        <ellipse cx="112" cy="178" rx="22" ry="24" stroke="#39C9FF" stroke-width="1" opacity=".85"/>
+        <ellipse cx="112" cy="178" rx="10" ry="12" stroke="#8FF4FF" stroke-width=".9" opacity=".6"/>
+        <g stroke="#9BF0FF" stroke-width=".9" opacity=".8">
+          <path d="M122,178 L134,178"/><path d="M119,187 L128,196"/><path d="M112,190 L112,203"/>
+          <path d="M105,187 L96,196"/><path d="M102,178 L90,178"/><path d="M105,169 L96,160"/>
+          <path d="M112,166 L112,153"/><path d="M119,169 L128,160"/>
+        </g>
+        <circle cx="112" cy="178" r="4" fill="#DBFAFF"/>
+
+        <!-- ROUE AVANT DROITE entrevue derrière la face avant (profondeur) -->
+        <path d="M132,182 A20,22 0 0 1 150,168" stroke="#39C9FF" stroke-width="1.2" opacity=".45"/>
+
+        <!-- ═══ DÉTAILS DE LA FACE AVANT (on voit les DEUX phares) ═══ -->
+        <path d="M64,152 L92,146 L96,155 L68,161 Z" fill="#8FF4FF" opacity=".95" filter="url(#gl)"/>
+        <path d="M100,145 L118,141 L121,149 L103,153 Z" fill="#8FF4FF" opacity=".8" filter="url(#gl)"/>
+        <!-- calandre / prise d'air centrale -->
+        <path d="M70,170 L116,161 M72,176 L118,167" stroke="#5FD9FF" stroke-width="1" opacity=".5"/>
+        <!-- splitter avant -->
+        <path d="M62,186 L124,176" stroke="#7FE8FF" stroke-width="1.2" opacity=".6"/>
+        <!-- faisceaux de phares -->
+        <path d="M60,156 L28,148 M60,162 L30,168" stroke="#39C9FF" stroke-width=".7" opacity=".24"/>
+
+        <!-- feu arrière -->
+        <path d="M344,128 L356,133 L354,146 L343,142 Z" fill="#FF4E7A" opacity=".9" filter="url(#gl)"/>
+      </svg>
+
+      <div class="scan"></div>
+      <div class="data">0x4A · TG-WZ · SCAN OK · VIN ✓ · IMMAT ✓ · TRANSIT ✓ · 00 D4 FF</div>
+
+      <div class="titleblock">
+        <div class="tcit">
+          <svg class="star" width="24" height="24" viewBox="0 0 56 56"><polygon points="28,2 33.8,18.4 51.8,18.4 37.4,28.4 43.2,44.8 28,34.8 12.8,44.8 18.6,28.4 4.2,18.4 22.2,18.4" fill="#FFDF00"/></svg>TCIT
+        </div>
+        <div class="rule"></div>
+        <div class="slogan">Togolaise de Contrôle et d'Immatriculation Transit</div>
+      </div>
+
+      <div class="progress"><i></i></div>
+      <div class="flag"></div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>Ce qui a changé :</b> la voiture est maintenant en <b>low-poly</b> (facettes triangulaires translucides, arêtes lumineuses,
+    sommets marqués) comme ta référence · la <b>roue avant</b> est détaillée et brillante avec ses rayons ·
+    un <b>fond tech isométrique</b> (panneaux, icônes, liaisons pointillées, points colorés) est posé <b>très subtilement à droite</b> ·
+    des <b>traces de circuit imprimé</b> courent discrètement en bas · le tout garde le radar, la plaque holographique, le scan et le trait drapeau.
+  </div>
+</body>
+</html>

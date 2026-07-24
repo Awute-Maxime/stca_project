@@ -132,6 +132,8 @@ function setupMdiIPC(): void {
 // ── Main window ───────────────────────────────────────────────────────────────
 function createWindow(): void {
   mainWin = new BrowserWindow({
+    // Format compact de l'image flash — en harmonie avec la fenêtre de
+    // connexion (440×360) vers laquelle la fenêtre se réduit ensuite.
     width: 500,
     height: 320,
     resizable: false,

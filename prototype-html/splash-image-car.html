@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TCIT — Image Flash · Option 1 (voiture = image)</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#080d16; color:#cfe6ff; min-height:100vh; padding:26px 20px 60px;
+    font-family:'Segoe UI', system-ui, sans-serif; display:flex; flex-direction:column; align-items:center; gap:12px; }
+  h1 { font-size:17px; font-weight:700; color:#eaf4ff; }
+  .sub { font-size:12px; color:#6b8bb0; text-align:center; }
+  .card { width:860px; max-width:96vw; margin-top:8px; }
+
+  /* ── Bannière splash ─────────────────────────────── */
+  .splash { position:relative; width:100%; aspect-ratio:720/340; border-radius:12px; overflow:hidden; user-select:none;
+    background:radial-gradient(ellipse at 32% 40%, #0e2a52 0%, #071634 48%, #030a18 100%);
+    box-shadow:0 20px 55px rgba(0,0,0,.55), inset 0 0 0 1px rgba(56,189,248,.08); }
+  .splash.drag { outline:2px dashed #38f0c0; outline-offset:-8px; }
+  .grid-bg { position:absolute; inset:0; pointer-events:none;
+    background-image:radial-gradient(circle, rgba(0,212,255,.05) 1px, transparent 1px); background-size:30px 30px; }
+  .version { position:absolute; top:14px; left:16px; font-size:11px; letter-spacing:1px; color:rgba(120,180,230,.65); z-index:9; }
+
+  .bgtech { position:absolute; top:0; right:0; width:48%; height:100%; opacity:.38; pointer-events:none; z-index:1; }
+  .bgtech .pulse { animation:tw 4s ease-in-out infinite; }
+  @keyframes tw { 0%,100%{opacity:.3} 50%{opacity:1} }
+  .circuit { position:absolute; left:0; right:0; bottom:0; height:42%; opacity:.34; pointer-events:none; z-index:1; }
+
+  .radar { position:absolute; top:36px; left:50%; transform:translateX(-50%); width:255px; height:255px; border-radius:50%;
+    background:conic-gradient(from 0deg, rgba(0,212,255,.22), transparent 26%); animation:spin 3.4s linear infinite; opacity:.45; z-index:2; }
+  .radar::before { content:''; position:absolute; inset:0; border-radius:50%; border:1px solid rgba(0,212,255,.15);
+    box-shadow:inset 0 0 0 44px rgba(0,212,255,.02), inset 0 0 0 88px rgba(0,212,255,.02); }
+  @keyframes spin { to { transform:translateX(-50%) rotate(360deg);} }
+
+  /* ── LA VOITURE = IMAGE ─────────────────────────── */
+  /* La fusion est portée par le WRAPPER pour qu'elle s'applique au fond de la scène */
+  .carwrap { position:absolute; left:50%; transform:translateX(-50%); z-index:4; pointer-events:none;
+    mix-blend-mode:screen; }
+  /* fenêtre de recadrage : ne montre que la voiture (retire le texte « SMART CAR »)
+     + masque dégradé qui dissout les bords du rectangle dans la scène */
+  .crop { position:relative; overflow:hidden; }
+  #carImg { position:absolute; display:block; max-width:none; }
+
+  .scan { position:absolute; left:50%; transform:translateX(-50%); width:340px; height:2px;
+    background:linear-gradient(90deg,transparent,#8ff4ff,transparent); box-shadow:0 0 14px #00D4FF; z-index:5;
+    animation:scan 3s ease-in-out infinite; }
+  @keyframes scan { 0%,100%{top:70px;opacity:.12} 50%{top:185px;opacity:.9} }
+
+  .plate { position:absolute; top:18px; left:50%; transform:translateX(-50%); padding:5px 15px; border-radius:6px; z-index:8;
+    border:1px solid rgba(0,212,255,.6); background:rgba(4,20,40,.55); color:#eafcff; font-family:Consolas,monospace;
+    font-size:16px; letter-spacing:3px; font-weight:700; text-shadow:0 0 10px rgba(0,212,255,.85);
+    box-shadow:0 0 22px rgba(0,212,255,.25), inset 0 0 12px rgba(0,212,255,.15); animation:plateIn 6s ease-in-out infinite; }
+  @keyframes plateIn { 0%,6%{opacity:0;transform:translateX(-50%) translateY(-6px) scale(.96)} 12%,18%{opacity:.35}
+    15%,24%{opacity:1} 30%,92%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)} 100%{opacity:0} }
+
+  .data { position:absolute; bottom:13px; left:50%; transform:translateX(-50%); font-family:Consolas,monospace;
+    font-size:8px; letter-spacing:1.4px; color:rgba(56,189,248,.38); white-space:nowrap; z-index:5; }
+
+  /* Titre en grand — proportions inspirées de STCA II */
+  .titleblock { position:absolute; left:0; right:0; bottom:34px; text-align:center; z-index:7; }
+  .tcit { font-size:72px; font-weight:800; letter-spacing:18px; color:#F7FBFF; line-height:1;
+    text-shadow:0 0 44px rgba(0,180,255,.55), 0 3px 14px rgba(0,0,0,.5); }
+  .star { filter:drop-shadow(0 0 8px rgba(255,223,0,.9)); vertical-align:middle; margin-right:18px; }
+  .rule { width:300px; height:1px; margin:14px auto 9px; background:linear-gradient(90deg,transparent,#00D4FF 30%,#38BDF8 70%,transparent); }
+  .slogan { font-size:10.5px; letter-spacing:2.4px; text-transform:uppercase; color:rgba(56,189,248,.75); }
+
+  /* ── LE DRAPEAU EST LA BARRE DE PROGRESSION ──
+     Le rail sombre reste visible, et le drapeau se « complète » de gauche à droite. */
+  .flag { position:absolute; bottom:0; left:0; right:0; height:4px; z-index:9;
+    background:rgba(255,255,255,.07); }
+  .flagfill { position:absolute; inset:0; overflow:hidden;
+    background:linear-gradient(90deg, rgba(0,106,78,0) 0%, #006A4E 16%, #006A4E 34%, #FFDF00 50%, #D21034 66%, #D21034 84%, rgba(210,16,52,0) 100%);
+    animation:flagFill 6s cubic-bezier(.4,.05,.25,1) infinite; }
+  @keyframes flagFill {
+    0%   { clip-path:inset(0 100% 0 0); }
+    72%  { clip-path:inset(0 0 0 0); }
+    100% { clip-path:inset(0 0 0 0); }
+  }
+  /* le reflet ne passe qu'une fois le drapeau complet */
+  .flagfill::after { content:''; position:absolute; top:0; bottom:0; left:-30%; width:30%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.8),transparent); animation:shine 6s ease-in-out infinite; }
+  @keyframes shine { 0%,70%{transform:translateX(0);opacity:0} 76%{opacity:1} 94%{transform:translateX(433%);opacity:1} 100%{transform:translateX(433%);opacity:0} }
+
+  /* ── Panneau de réglages ─────────────────────────── */
+  .panel { width:860px; max-width:96vw; background:#0d1626; border:1px solid #1e3050; border-radius:10px; padding:16px 18px; margin-top:14px; }
+  .panel h2 { font-size:13px; color:#eaf4ff; margin-bottom:12px; }
+  .row { display:flex; align-items:center; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
+  .row label { font-size:12px; color:#9fc0e0; width:150px; flex-shrink:0; }
+  input[type=range] { flex:1; min-width:180px; accent-color:#38BDF8; }
+  .val { font-family:Consolas,monospace; font-size:11px; color:#7FE8FF; width:56px; text-align:right; }
+  select, input[type=file] { background:#0a1526; color:#cfe6ff; border:1px solid #24406a; border-radius:6px; padding:6px 8px; font-size:12px; }
+  .hint { font-size:11.5px; color:#6b8bb0; line-height:1.7; margin-top:8px; }
+  .hint b { color:#bcd9f5; }
+  .drop { border:2px dashed #24557f; border-radius:8px; padding:14px; text-align:center; font-size:12.5px; color:#8fb6d8; margin-bottom:14px; }
+  .drop b { color:#7FE8FF; }
+  code { background:#0a1526; padding:2px 6px; border-radius:4px; color:#7FE8FF; font-size:11px; }
+</style>
+</head>
+<body>
+  <h1>TCIT — Image Flash · Option 1 (la voiture est une image)</h1>
+  <div class="sub">Charge ta voiture ci-dessous, puis règle taille / position / fusion jusqu'à ce que ce soit parfait.</div>
+
+  <div class="card">
+    <div class="splash" id="splash">
+      <div class="grid-bg"></div>
+      <div class="version">Version 3.0.20.0</div>
+
+      <svg class="bgtech" viewBox="0 0 340 340" fill="none">
+        <g stroke="#38BDF8" stroke-width=".9" opacity=".75">
+          <path d="M96,116 L122,103 L148,116 L122,129 Z" opacity=".5"/>
+          <path d="M164,80 L190,67 L216,80 L190,93 Z" opacity=".42"/>
+          <path d="M200,156 L224,144 L248,156 L224,168 Z" opacity=".38"/>
+          <path d="M118,192 L140,181 L162,192 L140,203 Z" opacity=".32"/>
+          <path d="M250,110 L270,100 L290,110 L270,120 Z" opacity=".3"/>
+          <rect x="116" y="111" width="12" height="9" rx="1.5" opacity=".55"/>
+          <circle cx="190" cy="79" r="4.5" opacity=".55"/>
+          <path d="M218,153 h11 M218,157 h7" opacity=".5"/>
+          <path d="M135,189 l5,-5 l5,5" opacity=".5"/>
+        </g>
+        <g stroke="#00D4FF" stroke-width="1" stroke-dasharray="2 6" opacity=".5">
+          <path d="M122,129 L140,181"/><path d="M190,93 L224,144"/><path d="M148,116 L200,156"/><path d="M216,80 L270,100"/>
+        </g>
+        <g>
+          <circle class="pulse" cx="122" cy="103" r="3" fill="#00D4FF"/>
+          <circle class="pulse" cx="190" cy="67" r="3" fill="#7CF7C6" style="animation-delay:.8s"/>
+          <circle class="pulse" cx="248" cy="156" r="3" fill="#FF6BA8" style="animation-delay:1.6s"/>
+          <circle class="pulse" cx="140" cy="203" r="2.5" fill="#FFDF6B" style="animation-delay:2.4s"/>
+          <circle class="pulse" cx="290" cy="110" r="2.5" fill="#38BDF8" style="animation-delay:1.2s"/>
+        </g>
+      </svg>
+
+      <svg class="circuit" viewBox="0 0 720 130" fill="none" preserveAspectRatio="none">
+        <g stroke="#00D4FF" stroke-width="1" opacity=".55">
+          <path d="M0,40 H120 L140,60 H300"/><path d="M720,30 H600 L580,52 H430"/>
+          <path d="M0,86 H90 L112,66 H250"/><path d="M720,96 H560 L540,76 H400"/>
+          <path d="M60,40 V12"/><path d="M300,60 V96"/><path d="M580,52 V20"/><path d="M540,76 V104"/>
+        </g>
+        <g fill="#00D4FF" opacity=".7">
+          <circle cx="120" cy="40" r="2.5"/><circle cx="300" cy="60" r="2.5"/><circle cx="600" cy="30" r="2.5"/>
+          <circle cx="90" cy="86" r="2.5"/><circle cx="560" cy="96" r="2.5"/><circle cx="430" cy="52" r="2.5"/>
+        </g>
+      </svg>
+
+      <div class="radar"></div>
+
+      <!-- LA VOITURE (image réelle, recadrée) -->
+      <div class="carwrap" id="carwrap">
+        <div class="crop" id="crop">
+          <img id="carImg" src="../src/renderer/src/assets/car-lowpoly.png" alt="" />
+        </div>
+      </div>
+
+      <div class="scan"></div>
+      <div class="data">0x4A · TG-WZ · SCAN OK · VIN ✓ · IMMAT ✓ · TRANSIT ✓ · 00 D4 FF</div>
+
+      <div class="titleblock">
+        <div class="tcit">
+          <svg class="star" width="24" height="24" viewBox="0 0 56 56"><polygon points="28,2 33.8,18.4 51.8,18.4 37.4,28.4 43.2,44.8 28,34.8 12.8,44.8 18.6,28.4 4.2,18.4 22.2,18.4" fill="#FFDF00"/></svg>TCIT
+        </div>
+        <div class="rule"></div>
+        <div class="slogan">Togolaise de Contrôle et d'Immatriculation Transit</div>
+      </div>
+
+      <!-- le drapeau EST la barre de progression -->
+      <div class="flag"><div class="flagfill"></div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Réglages de la voiture</h2>
+    <div class="drop">
+      <b>Glisse-dépose</b> ton image directement sur la bannière ci-dessus, ou choisis un fichier :
+      <input type="file" id="file" accept="image/*" style="margin-left:8px" />
+    </div>
+
+    <div class="row">
+      <label>Mode de fusion</label>
+      <select id="blend">
+        <option value="screen" selected>Écran — retire un fond sombre ⭐</option>
+        <option value="normal">Normal — pour PNG transparent</option>
+        <option value="lighten">Éclaircir</option>
+        <option value="luminosity">Luminosité</option>
+      </select>
+      <span class="hint" style="margin:0">Si ton image a un fond bleu/noir, garde « Écran ».</span>
+    </div>
+    <div class="row"><label>Largeur</label><input type="range" id="w" min="150" max="700" value="380"><span class="val" id="wv">380px</span></div>
+    <div class="row"><label>Position verticale</label><input type="range" id="y" min="0" max="220" value="60"><span class="val" id="yv">60px</span></div>
+    <div class="row"><label>Décalage horizontal</label><input type="range" id="x" min="-200" max="200" value="0"><span class="val" id="xv">0px</span></div>
+    <div class="row"><label>Fondu des bords ⭐</label><input type="range" id="f" min="0" max="100" value="72"><span class="val" id="fv">72</span></div>
+    <div class="row"><label>Éclat (halo bleu)</label><input type="range" id="g" min="0" max="40" value="16"><span class="val" id="gv">16</span></div>
+    <div class="row"><label>Opacité</label><input type="range" id="o" min="30" max="100" value="100"><span class="val" id="ov">100%</span></div>
+    <div class="row"><label>Contraste</label><input type="range" id="c" min="80" max="200" value="115"><span class="val" id="cv">115%</span></div>
+
+    <h2 style="margin-top:16px">Recadrage dans l'image source (612 × 368)</h2>
+    <div class="row"><label>Départ X</label><input type="range" id="cx" min="0" max="400" value="175"><span class="val" id="cxv">175</span></div>
+    <div class="row"><label>Départ Y</label><input type="range" id="cy" min="0" max="300" value="100"><span class="val" id="cyv">100</span></div>
+    <div class="row"><label>Largeur zone</label><input type="range" id="cw" min="150" max="612" value="430"><span class="val" id="cwv">430</span></div>
+    <div class="row"><label>Hauteur zone</label><input type="range" id="ch" min="100" max="368" value="255"><span class="val" id="chv">255</span></div>
+
+    <div class="row" style="margin-top:14px">
+      <button id="reset" style="background:#1a2c48;color:#cfe6ff;border:1px solid #2b4466;border-radius:6px;padding:7px 14px;font-size:12px;cursor:pointer">
+        ↺ Revenir aux valeurs par défaut
+      </button>
+      <span class="hint" style="margin:0">✅ Tes réglages sont <b>mémorisés automatiquement</b> — ils survivent aux rechargements.</span>
+    </div>
+
+    <div class="hint">
+      <b>Réglages actuels</b> (je les reprendrai tels quels dans l'app) :
+      <code id="out">—</code>
+    </div>
+    <div class="hint">
+      ⚠️ Pense à vérifier que tu as le <b>droit d'utiliser</b> l'image choisie (beaucoup de visuels low-poly sont sous licence).
+    </div>
+  </div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const img = $('carImg'), crop = $('crop'), wrap = $('carwrap'), splash = $('splash');
+  let SRC_W = 612, SRC_H = 368; // dimensions de l'image source
+
+  // ── Mémorisation des réglages (survit aux rechargements) ──────────────────
+  const CLE = 'tcit_splash_reglages';
+  const IDS = ['w','y','x','f','g','o','c','cx','cy','cw','ch'];
+  function sauver() {
+    const o = { blend: $('blend').value };
+    IDS.forEach(i => o[i] = $(i).value);
+    try { localStorage.setItem(CLE, JSON.stringify(o)); } catch {}
+  }
+  function restaurer() {
+    try {
+      const o = JSON.parse(localStorage.getItem(CLE) || 'null');
+      if (!o) return;
+      if (o.blend) $('blend').value = o.blend;
+      IDS.forEach(i => { if (o[i] !== undefined) $(i).value = o[i]; });
+    } catch {}
+  }
+  $('reset').addEventListener('click', () => {
+    try { localStorage.removeItem(CLE); } catch {}
+    location.reload();
+  });
+
+  function apply() {
+    const w = +$('w').value, y = +$('y').value, x = +$('x').value,
+          g = +$('g').value, o = +$('o').value, c = +$('c').value, b = $('blend').value,
+          f = +$('f').value,
+          cx = +$('cx').value, cy = +$('cy').value, cw = +$('cw').value, ch = +$('ch').value;
+
+    const scale = w / cw;                       // la zone recadrée occupe « w » px à l'écran
+    crop.style.width  = w + 'px';
+    crop.style.height = (ch * scale) + 'px';
+    img.style.width   = (SRC_W * scale) + 'px';
+    img.style.left    = (-cx * scale) + 'px';
+    img.style.top     = (-cy * scale) + 'px';
+
+    // Fondu des bords : plus « f » est grand, plus le noyau opaque est petit
+    // et plus la dissolution vers le transparent est longue et progressive.
+    const coeur = Math.round(58 - f * 0.50);          // f=0 → 58% · f=100 → 8%
+    const p1 = coeur + Math.round(8 + f * 0.10);
+    const p2 = p1 + Math.round(8 + f * 0.12);
+    const p3 = Math.min(99, p2 + Math.round(8 + f * 0.10));
+    const masque = `radial-gradient(ellipse 62% 64% at 50% 52%, #000 ${coeur}%, `
+                 + `rgba(0,0,0,.78) ${p1}%, rgba(0,0,0,.42) ${p2}%, rgba(0,0,0,.16) ${p3}%, transparent 100%)`;
+    crop.style.webkitMaskImage = masque;
+    crop.style.maskImage = masque;
+
+    wrap.style.top = y + 'px';
+    wrap.style.transform = `translateX(-50%) translateX(${x}px)`;
+    wrap.style.mixBlendMode = b;   // fusion portée par le wrapper → agit sur le fond de la scène
+    img.style.opacity = o / 100;
+    img.style.filter = `drop-shadow(0 0 ${g}px rgba(0,170,255,.75)) contrast(${c}%)`;
+
+    $('wv').textContent = w + 'px'; $('yv').textContent = y + 'px'; $('xv').textContent = x + 'px';
+    $('gv').textContent = g; $('ov').textContent = o + '%'; $('cv').textContent = c + '%'; $('fv').textContent = f;
+    $('cxv').textContent = cx; $('cyv').textContent = cy; $('cwv').textContent = cw; $('chv').textContent = ch;
+    $('out').textContent = `largeur ${w}px · top ${y}px · décalage ${x}px · fusion ${b} · fondu ${f} · éclat ${g} · opacité ${o}% · contraste ${c}% — recadrage ${cx},${cy} ${cw}×${ch}`;
+    sauver();
+  }
+  ['w','y','x','f','g','o','c','cx','cy','cw','ch'].forEach(id => $(id).addEventListener('input', apply));
+  $('blend').addEventListener('change', apply);
+
+  img.addEventListener('load', () => {
+    if (img.naturalWidth) { SRC_W = img.naturalWidth; SRC_H = img.naturalHeight; apply(); }
+  });
+
+  function load(file) {
+    if (!file || !file.type.startsWith('image/')) return;
+    const r = new FileReader();
+    r.onload = e => { img.src = e.target.result; };
+    r.readAsDataURL(file);
+  }
+  $('file').addEventListener('change', e => load(e.target.files[0]));
+  ;['dragenter','dragover'].forEach(ev => splash.addEventListener(ev, e => { e.preventDefault(); splash.classList.add('drag'); }));
+  ;['dragleave','drop'].forEach(ev => splash.addEventListener(ev, e => { e.preventDefault(); splash.classList.remove('drag'); }));
+  splash.addEventListener('drop', e => load(e.dataTransfer.files[0]));
+  restaurer();   // ← récupère tes réglages avant le premier rendu
+  apply();
+</script>
+</body>
+</html>
