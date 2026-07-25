@@ -422,21 +422,16 @@ export default function EnregistrementPage(): JSX.Element {
     })
     setSavedRef(ref)
 
-    // Stub Poste Plaques — envoi des 3 données (serveur simulé hors ligne)
-    notification.warning({
-      message: 'Poste Plaques — Serveur hors ligne',
-      description: (
-        <div style={{ fontSize: 11, lineHeight: 1.8 }}>
-          <div>N° Tri&nbsp;: <strong>{numTri || '—'}</strong></div>
-          <div>Châssis&nbsp;: <strong>{chassis || '—'}</strong></div>
-          <div>IMMAT&nbsp;: <strong style={{ color: C.gold }}>{immatGenere}</strong></div>
-          <div style={{ color: '#9CA3AF', marginTop: 4, fontSize: 10 }}>
-            192.168.0.25 — non disponible. Données prêtes à renvoyer.
-          </div>
-        </div>
-      ),
-      duration: 7,
-      placement: 'bottomRight',
+    // Envoi vers le poste d'affichage (émetteur dans le main : bufferise hors ligne,
+    // se reconnecte seul ; n'échoue jamais côté enregistrement). Inactif si non configuré.
+    void electronApi.affichageEnvoyer({
+      reference: ref,
+      immatriculation: immatGenere ?? '',
+      numeroTri: numTri,
+      marqueModele,
+      chassis,
+      destination: destination ?? '',
+      agent: localStorage.getItem('tcit_session_login') ?? 'awute',
     })
 
     setSaved(true)

@@ -27,6 +27,7 @@
     "@electron-toolkit/utils": "^3.0.0",
     "@emotion/is-prop-valid": "^1.4.0",
     "@prisma/client": "^6.19.3",
+    "@types/ws": "^8.18.1",
     "antd": "^5.19.0",
     "axios": "^1.7.0",
     "csv-parse": "^7.0.1",
@@ -35,6 +36,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.24.0",
+    "ws": "^8.21.1",
     "zustand": "^4.5.4"
   },
   "devDependencies": {

@@ -56,7 +56,7 @@ const items: MenuProps['items'] = [
       { key: 'outils.fixerRef', label: 'Fixer N° Référence' },
       { type: 'divider' },
       { key: 'outils.impressionPlaque', label: "Impression de plaque d'immatriculation", disabled: true },
-      { key: 'outils.posteImmat', label: 'Config. Poste N° IMMAT.' },
+      { key: 'outils.posteImmat', label: 'Configuration des connexions' },
       { key: 'outils.configAssurances', label: 'Configuration Assurances' },
       { key: 'outils.typesVehicule', label: 'Types Véhicule' },
       { key: 'outils.paramDestinations', label: 'Paramètres Destinations' },

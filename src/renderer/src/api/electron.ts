@@ -60,6 +60,29 @@ export interface ImportReport {
   erreurs: { ligne: number; raison: string }[]
 }
 
+// ── Poste d'affichage (émetteur) ──────────────────────────────────────────────
+export interface AffichageConfig {
+  actif: boolean
+  nomPoste: string
+  ip: string
+  port: number
+}
+export interface AffichageEtat {
+  actif: boolean
+  connecte: boolean
+  enAttente: number
+  cible: string
+}
+export interface AffichagePayload {
+  reference: string
+  immatriculation: string
+  numeroTri: string
+  marqueModele: string
+  chassis: string
+  destination: string
+  agent: string
+}
+
 declare global {
   interface Window {
     api: {
@@ -94,6 +117,12 @@ declare global {
       dbAdminPasswordValid: (mdp: string) => Promise<{ ok: boolean; valide?: boolean; error?: string }>
       dbAdminGetForcage: () => Promise<{ ok: boolean; mdp?: string; error?: string }>
       dbAdminSetForcage: (mdp: string) => Promise<{ ok: boolean; error?: string }>
+      affichageConfigGet: () => Promise<{ ok: boolean; config?: AffichageConfig; error?: string }>
+      affichageConfigSet: (cfg: AffichageConfig) => Promise<{ ok: boolean; error?: string }>
+      affichageEnvoyer:   (payload: AffichagePayload) => Promise<{ ok: boolean; error?: string }>
+      affichageTester:    (ip: string, port: number) => Promise<{ ok: boolean; message: string }>
+      affichageEtat:      () => Promise<{ ok: boolean; etat?: AffichageEtat }>
+      onAffichageEtat:    (cb: (etat: AffichageEtat) => void) => (() => void)
       onDbChanged:     (cb: (p: { domaine: string }) => void) => (() => void)
       importPickFile:  () => Promise<string | null>
       importPreview:   (chemin: string) => Promise<ImportPreview>
@@ -163,6 +192,18 @@ export const electronApi = {
     window.api?.dbAdminSetForcage?.(mdp) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
   onDbChanged:     (cb: (p: { domaine: string }) => void): (() => void) =>
     window.api?.onDbChanged?.(cb) ?? (() => {}),
+  affichageConfigGet: (): Promise<{ ok: boolean; config?: AffichageConfig; error?: string }> =>
+    window.api?.affichageConfigGet?.() ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  affichageConfigSet: (cfg: AffichageConfig): Promise<{ ok: boolean; error?: string }> =>
+    window.api?.affichageConfigSet?.(cfg) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  affichageEnvoyer: (payload: AffichagePayload): Promise<{ ok: boolean; error?: string }> =>
+    window.api?.affichageEnvoyer?.(payload) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  affichageTester: (ip: string, port: number): Promise<{ ok: boolean; message: string }> =>
+    window.api?.affichageTester?.(ip, port) ?? Promise.resolve({ ok: false, message: 'window.api indisponible' }),
+  affichageEtat: (): Promise<{ ok: boolean; etat?: AffichageEtat }> =>
+    window.api?.affichageEtat?.() ?? Promise.resolve({ ok: false }),
+  onAffichageEtat: (cb: (etat: AffichageEtat) => void): (() => void) =>
+    window.api?.onAffichageEtat?.(cb) ?? (() => {}),
   importPickFile:  (): Promise<string | null> => window.api?.importPickFile?.() ?? Promise.resolve(null),
   importPreview:   (chemin: string): Promise<ImportPreview> =>
     window.api?.importPreview?.(chemin) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),

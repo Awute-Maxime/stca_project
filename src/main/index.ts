@@ -9,13 +9,25 @@ import {
   configAssurancesGet, configAssurancesSave, type ConfigAssurancesDto,
   usersList, userAuth, userAuthAdmin, userAdd, userUpdate, userRemove, type UtilisateurInput,
   getMdpForcage, setMdpForcage, adminPasswordValid,
+  getAffichageConfig, setAffichageConfig,
 } from './referentiels'
+import {
+  initAfficheur, configurerAfficheur, envoyerEnregistrement, testerConnexion, etatAfficheur
+} from './afficheur'
+import type { AffichageConfig, EnvoiPayload } from './protocoleAffichage'
 
 const isDev = process.env['NODE_ENV'] === 'development' || !app.isPackaged
 
 // ── MDI child windows registry ────────────────────────────────────────────────
 const mdiWindows = new Map<string, BrowserWindow>()
 let mainWin: BrowserWindow | null = null
+
+// Diffuse un message à TOUTES les fenêtres (état émetteur d'affichage, etc.)
+function diffuserTous(canal: string, payload: unknown): void {
+  for (const w of BrowserWindow.getAllWindows()) {
+    if (!w.isDestroyed()) w.webContents.send(canal, payload)
+  }
+}
 
 // ── Instance unique ───────────────────────────────────────────────────────────
 // Une seule instance de TCIT à la fois : un second lancement se ferme
@@ -182,6 +194,25 @@ function setupMdiIPC(): void {
     catch (err) { return { ok: false, error: String(err) } }
   })
 
+  // Poste d'affichage (émetteur WebSocket vers l'app d'affichage)
+  ipcMain.handle('affichage:config:get', async () => {
+    try { return { ok: true, config: await getAffichageConfig() } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('affichage:config:set', async (_, cfg: AffichageConfig) => {
+    try {
+      await setAffichageConfig(cfg)
+      configurerAfficheur(cfg, etat => diffuserTous('affichage:etat', etat))
+      return { ok: true }
+    } catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('affichage:envoyer', (_, payload: EnvoiPayload) => {
+    try { envoyerEnregistrement(payload); return { ok: true } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('affichage:tester', (_, p: { ip: string; port: number }) => testerConnexion(p.ip, p.port))
+  ipcMain.handle('affichage:etat', () => ({ ok: true, etat: etatAfficheur() }))
+
   // Assistant d'import de l'ancienne base STCA (CSV)
   ipcMain.handle('import:pickFile', () => pickCsvFile())
   ipcMain.handle('import:preview', (_, chemin: string) => previewCsv(chemin))
@@ -308,6 +339,12 @@ app.whenReady().then(() => {
   app.setAppUserModelId('tg.tcit')
 
   setupMdiIPC()
+
+  // Émetteur poste d'affichage : buffer persistant + connexion selon la config.
+  initAfficheur(join(app.getPath('userData'), 'affichage-buffer.json'))
+  void getAffichageConfig().then(cfg =>
+    configurerAfficheur(cfg, etat => diffuserTous('affichage:etat', etat))
+  )
 
   app.on('browser-window-created', (_, window) => {
     if (isDev) {

@@ -66,6 +66,19 @@ const api = {
     return () => ipcRenderer.removeListener('import:progress', h)
   },
 
+  // Poste d'affichage (émetteur)
+  affichageConfigGet: (): Promise<unknown> => ipcRenderer.invoke('affichage:config:get'),
+  affichageConfigSet: (cfg: unknown): Promise<unknown> => ipcRenderer.invoke('affichage:config:set', cfg),
+  affichageEnvoyer: (payload: unknown): Promise<unknown> => ipcRenderer.invoke('affichage:envoyer', payload),
+  affichageTester: (ip: string, port: number): Promise<{ ok: boolean; message: string }> =>
+    ipcRenderer.invoke('affichage:tester', { ip, port }),
+  affichageEtat: (): Promise<unknown> => ipcRenderer.invoke('affichage:etat'),
+  onAffichageEtat: (cb: (etat: { actif: boolean; connecte: boolean; enAttente: number; cible: string }) => void): (() => void) => {
+    const h = (_: unknown, data: { actif: boolean; connecte: boolean; enAttente: number; cible: string }): void => cb(data)
+    ipcRenderer.on('affichage:etat', h)
+    return () => ipcRenderer.removeListener('affichage:etat', h)
+  },
+
   // Self-control for child MDI windows
   mdiSelfClose:    () => ipcRenderer.send('mdi:self:close'),
   mdiSelfMinimize: () => ipcRenderer.send('mdi:self:minimize'),

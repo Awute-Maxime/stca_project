@@ -21,7 +21,8 @@ import ArchivagePage from '@pages/ArchivagePage'
 import PointagePage from '@pages/PointagePage'
 import ExportPage from '@pages/ExportPage'
 import { AnalyseAssuranceWindow, MontantRestituerWindow } from '@pages/AssuranceWindows'
-import { FixerRefWindow, PosteImmatWindow } from '@pages/OutilsSimpleWindows'
+import { FixerRefWindow } from '@pages/OutilsSimpleWindows'
+import ConfigConnexionsWindow from '@pages/ConfigConnexionsWindow'
 import {
   TypesVehiculeWindow, ParamDestinationsWindow,
 } from '@pages/OutilsConfigWindows'
@@ -108,7 +109,7 @@ export function renderWindowContent(id: string): JSX.Element {
     case 'outils.fixerRef':
       return <FixerRefWindow />
     case 'outils.posteImmat':
-      return <PosteImmatWindow />
+      return <ConfigConnexionsWindow />
     case 'outils.configAssurances':
       return <ConfigAssurancesWindow />
     case 'outils.typesVehicule':

@@ -68,6 +68,8 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
       "Fixer le N° de référence des enregistrements est une opération sensible réservée à l'Administrateur de TCIT. Donnez le mot de passe de forçage pour continuer.",
     'outils.exporter':
       "L'outil de données (sauvegarde, restauration, import de l'ancienne base) est réservé à l'Administrateur de TCIT. Donnez le mot de passe de forçage pour continuer.",
+    'outils.posteImmat':
+      "La configuration des connexions (poste d'affichage, applications connexes) est réservée à l'Administrateur de TCIT. Donnez le mot de passe de forçage pour continuer.",
   }
   const [gateAdminId, setGateAdminId] = useState<string | null>(null)
   // Confirmation de bascule entre fenêtres principales

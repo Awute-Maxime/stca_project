@@ -23,7 +23,10 @@ Décisions prises pendant le brainstorming (25/07/2026) :
 | Transport | **WebSocket** (temps réel + indicateur « en ligne » des deux côtés) |
 | Infos affichées | Immat, Tri, Marque/Modèle, Châssis, Destination (couleur), Guichet + Agent, ancienneté |
 | Sortie de file | Clic **« Plaque traitée »** par l'opérateur (retire de la file) |
-| Périmètre | **Bout en bout** : écran + émetteur STCA + fenêtre Config. Poste |
+| Périmètre | **Bout en bout** : écran + émetteur STCA + fenêtre Config |
+| Emplacement code | **Projet Electron séparé** `STCA-Affichage/` (installateur indépendant) |
+| Fenêtre Config | **Hub à onglets « Configuration des connexions »** ; onglet « Poste d'affichage » actif ; « mode assurance » reporté à un onglet futur |
+| Nom du poste | Champ « Nom de ce poste » pré-rempli (nom d'hôte Windows), modifiable |
 | Robustesse | File **persistée** (survit au redémarrage) ; STCA **bufferise** si l'écran est hors ligne ; **signal sonore** à chaque arrivée |
 | Hors robustesse | Pas de démarrage auto/kiosque forcé (le plein écran reste manuel) |
 
@@ -49,8 +52,8 @@ Trois composants :
 - **Plusieurs guichets** peuvent alimenter **un seul écran** (d'où « Adresse IP » + « Nom du Poste »).
 - L'écran est **maître de sa file** : le clic « traité » agit localement, il ne renvoie rien à STCA.
 
-### 2.1 Emplacement du code (à confirmer)
-Recommandation : **nouveau projet Electron autonome** dans un dossier séparé (ex. `STCA-Affichage/`, voisin de `STCA-Electron/`), même stack, **jetons visuels TCIT copiés** (palette, trait drapeau). Avantage : build et installateur **indépendants** (l'écran n'embarque pas tout STCA). Inconvénient : un peu de duplication des jetons de style (acceptable, périmètre réduit).
+### 2.1 Emplacement du code — DÉCIDÉ (25/07/2026)
+**Nouveau projet Electron autonome** dans un dossier séparé `STCA-Affichage/` (voisin de `STCA-Electron/`), même stack, **jetons visuels TCIT copiés** (palette, trait drapeau). Build et installateur **indépendants** (l'écran n'embarque pas tout STCA). Duplication des jetons de style acceptée (périmètre réduit).
 
 ---
 
@@ -67,8 +70,9 @@ Recommandation : **nouveau projet Electron autonome** dans un dossier séparé (
 
 **Guichet → Écran — identification :**
 ```json
-{ "type": "hello", "guichet": "Principal", "version": "1.0" }
+{ "type": "hello", "guichet": "Guichet Principal", "version": "1.0" }
 ```
+- `guichet` = **« Nom de ce poste »** configuré côté STCA (§5.3), pré-rempli avec le nom d'hôte Windows, modifiable. C'est la valeur de la colonne « Nom du Poste » à l'écran.
 
 **Guichet → Écran — enregistrement (le message principal) :**
 ```json
@@ -150,15 +154,18 @@ interface VehiculeFile {
 - À la (re)connexion, STCA **vide le buffer** dans l'ordre ; chaque message est retiré du buffer à réception de son `ack`.
 - Le buffer est plafonné (ex. 500 messages / 48 h) pour éviter une croissance sans fin.
 
-### 5.3 Fenêtre « Config. Poste N° IMMAT. »
-Reprend la fenêtre aujourd'hui à l'état de coquille vide (`OutilsSimpleWindows.tsx`), refaite d'après la capture réelle :
+### 5.3 Fenêtre « Configuration des connexions » (à onglets) — DÉCIDÉ (25/07/2026)
+L'ancienne « Config. Poste N° IMMAT. » (coquille vide dans `OutilsSimpleWindows.tsx`) devient un **hub à onglets regroupant toutes les config de connexion aux applications connexes**. Consolidation cohérente avec [[feedback-source-verite-et-ux]] (une fenêtre à onglets plutôt que des fenêtres éparpillées).
+
+**Onglet actif dans ce lot — « Poste d'affichage » :**
 - Case **« Activer l'envoi vers le poste d'affichage »**.
+- Champ **« Nom de ce poste »** — pré-rempli avec le **nom d'hôte Windows**, modifiable (ex. « Guichet Principal »). Valeur envoyée dans `hello`/messages → colonne « Nom du Poste » à l'écran.
 - **Adresse IP** du PC d'affichage (défaut `192.168.0.25`).
 - **N° de Port** (défaut `8000`).
 - Bouton **Tester** (icône serveur) → test réel (§3.3).
-- Valider / Fermer. Réglages persistés (table `Parametre` côté base, cohérent avec la migration Phase 3, ou localStorage en attendant).
+- Valider / Fermer. Réglages persistés en table `Parametre` (Phase 3).
 
-> ⚠️ **À vérifier au moment de coder** (Règle 20) : la capture de cette fenêtre mentionnait aussi un « mode de fonctionnement avec Assurance ». Il faudra confirmer avec l'utilisateur si cette case est le **même interrupteur** que la « mise en service » de Config. Assurances, ou un réglage distinct. Pour ce lot, on ne traite QUE l'envoi vers l'affichage ; la sémantique « mode assurance » reste hors périmètre.
+**Onglets futurs (réservés, hors périmètre de ce lot) :** « Mode assurance » (mis de côté — sa case existait dans la vieille capture mais son utilité reste à clarifier ; on l'ajoutera ici quand on la cernera), éventuellement « COTEC » et autres liaisons.
 
 ---
 
@@ -222,13 +229,13 @@ Reprend la fenêtre aujourd'hui à l'état de coquille vide (`OutilsSimpleWindow
 - `src/main/index.ts` — IPC `affichage:envoyer` / `affichage:tester` / `affichage:etat`.
 - `src/preload/index.ts` + `@api/electron` — exposition des IPC.
 - Flux de sauvegarde d'enregistrement — appel de l'envoi après succès.
-- `OutilsSimpleWindows.tsx` (ou fichier dédié) — fenêtre Config. Poste refaite.
-- Réglages `Parametre` : `affichage.actif`, `affichage.ip`, `affichage.port`.
+- Fenêtre **« Configuration des connexions »** à onglets (fichier dédié, ex. `ConfigConnexionsWindow.tsx`) — onglet « Poste d'affichage » actif.
+- Réglages `Parametre` : `affichage.actif`, `affichage.nomPoste`, `affichage.ip`, `affichage.port`.
 
 ---
 
-## 11. Questions ouvertes / risques
-1. **Emplacement du code** (§2.1) : projet séparé `STCA-Affichage/` — à confirmer.
-2. **Fenêtre Config** : sémantique du « mode assurance » à clarifier avec l'utilisateur avant de coder cette fenêtre (§5.3).
-3. **Nom du poste / IP source** : l'« Adresse IP » affichée = IP de la connexion entrante (fournie par le serveur) ; le « Nom du Poste » vient du `hello` (`guichet`). Cohérent avec les colonnes de la capture.
-4. **Format d'immatriculation** : on envoie la chaîne complète déjà formatée (`TG WZ C 1847 KE`) — plus simple et sûr que de reconstruire côté écran.
+## 11. Décisions résolues & notes
+1. ✅ **Emplacement du code** (§2.1) : projet Electron séparé `STCA-Affichage/`.
+2. ✅ **Fenêtre Config** (§5.3) : devient un **hub à onglets « Configuration des connexions »** ; onglet « Poste d'affichage » actif ; « mode assurance » mis de côté (onglet futur).
+3. ✅ **Nom du poste** : champ « Nom de ce poste » pré-rempli avec le nom d'hôte Windows, modifiable (§5.3). L'« Adresse IP » affichée = IP de la connexion entrante (fournie par le serveur) ; le « Nom du Poste » vient du `hello` (`guichet`).
+4. **Format d'immatriculation** (note) : on envoie la chaîne complète déjà formatée (`TG WZ C 1847 KE`) — plus simple et sûr que de reconstruire côté écran.

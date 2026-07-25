@@ -1,6 +1,8 @@
 import { BrowserWindow } from 'electron'
 import { scryptSync, randomBytes, timingSafeEqual } from 'crypto'
 import { getPrisma } from './db'
+import { hostname } from 'os'
+import type { AffichageConfig } from './protocoleAffichage'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PHASE 3 — Accès BASE DE DONNÉES des référentiels (process principal).
@@ -485,4 +487,21 @@ export async function adminPasswordValid(mdp: string): Promise<boolean> {
   if (forcage && mdp === forcage) return true
   const rows = await getPrisma().utilisateur.findMany()
   return rows.some(u => u.administrateur && u.compteActif && verifier(mdp, u.motDePasse))
+}
+
+// ── Poste d'affichage (connexion aux applications connexes) ───────────────────
+export async function getAffichageConfig(): Promise<AffichageConfig> {
+  return {
+    actif: (await getParam('affichage.actif')) === '1',
+    nomPoste: (await getParam('affichage.nomPoste')) || hostname(),
+    ip: (await getParam('affichage.ip')) ?? '192.168.0.25',
+    port: Number((await getParam('affichage.port')) ?? '8000') || 8000
+  }
+}
+
+export async function setAffichageConfig(c: AffichageConfig): Promise<void> {
+  await setParam('affichage.actif', c.actif ? '1' : '0')
+  await setParam('affichage.nomPoste', c.nomPoste)
+  await setParam('affichage.ip', c.ip)
+  await setParam('affichage.port', String(c.port))
 }
