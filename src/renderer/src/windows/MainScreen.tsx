@@ -177,7 +177,11 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
 
   // Fond opaque explicite : la fenêtre est transparente (effet verre du splash)
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', background: '#EEF2F9' }}>
+    <div style={{
+      display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', background: '#EEF2F9',
+      // Fin liseré tout autour de la fenêtre, dans le bleu nuit de la sidebar (discret)
+      border: '1.5px solid #1B3A6B', boxSizing: 'border-box',
+    }}>
       <MenuBar utilisateurLogin={utilisateurLogin} onMenuItemClick={handleMenuItemClick} />
 
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
