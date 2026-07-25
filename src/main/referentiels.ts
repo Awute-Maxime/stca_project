@@ -17,6 +17,41 @@ export function diffuserChangement(domaine: string): void {
   }
 }
 
+// ── Amorçage UNIQUE et sérialisé de tous les référentiels ────────────────────
+// Plusieurs fenêtres appellent les *List en parallèle : sans garde, chacune
+// verrait la table vide et amorcerait → DOUBLONS (surtout l'assureur qui n'a pas
+// de contrainte d'unicité). Ce verrou garantit un seul amorçage par process.
+let amorcagePromise: Promise<void> | null = null
+
+export function amorcerReferentiels(): Promise<void> {
+  if (!amorcagePromise) amorcagePromise = faireAmorcage()
+  return amorcagePromise
+}
+
+async function faireAmorcage(): Promise<void> {
+  const db = getPrisma()
+  if (await db.categorieVehicule.count() === 0) {
+    await db.categorieVehicule.createMany({ data: CATEGORIES_DEFAUT })
+  }
+  if (await db.destination.count() === 0) {
+    await db.destination.createMany({ data: DESTINATIONS_DEFAUT })
+  }
+  if (await db.marqueModele.count() === 0) {
+    await db.marqueModele.createMany({ data: dedupTri(MARQUES_DEFAUT).map(nom => ({ marque: nom, libelle: nom })) })
+  }
+  if (await db.assureur.count() === 0) {
+    const cats = await db.categorieVehicule.findMany({ orderBy: { rang: 'asc' } })
+    const a = await db.assureur.create({ data: ASSUREUR_DEFAUT })
+    const rangs = cats.length ? cats : [{ rang: 1 }, { rang: 2 }, { rang: 3 }]
+    await db.tarifAssurance.createMany({
+      data: rangs.map(c => {
+        const b = baseTarifRang(c.rang)
+        return { assureurId: a.id, categorieRang: c.rang, ...b, commissionPct: 20, ...deriverDetail(b.tarif, b.taxe) }
+      }),
+    })
+  }
+}
+
 // ── Catégories de véhicule (← CATVEH : rang + nom) ───────────────────────────
 
 export interface CategorieDto {
@@ -32,14 +67,8 @@ const CATEGORIES_DEFAUT = [
 ]
 
 export async function categoriesList(): Promise<CategorieDto[]> {
-  const db = getPrisma()
-  let liste = await db.categorieVehicule.findMany({ orderBy: { rang: 'asc' } })
-  if (liste.length === 0) {
-    // Premier lancement sur base vierge : amorcer les valeurs du vrai STCA
-    await db.categorieVehicule.createMany({ data: CATEGORIES_DEFAUT })
-    liste = await db.categorieVehicule.findMany({ orderBy: { rang: 'asc' } })
-  }
-  return liste
+  await amorcerReferentiels()
+  return getPrisma().categorieVehicule.findMany({ orderBy: { rang: 'asc' } })
 }
 
 /** Remplace la liste complète (l'UI édite la liste entière puis Enregistre). */
@@ -57,6 +86,7 @@ export async function categoriesSaveAll(
     db.categorieVehicule.createMany({ data: propres }),
   ])
   diffuserChangement('categories')
+  await reconcilierTarifs()   // les tarifs assurance suivent les catégories (1 par catégorie)
   return db.categorieVehicule.findMany({ orderBy: { rang: 'asc' } })
 }
 
@@ -97,13 +127,8 @@ const DESTINATIONS_DEFAUT = [
 ]
 
 export async function destinationsList(): Promise<DestinationDto[]> {
-  const db = getPrisma()
-  let liste = await db.destination.findMany({ orderBy: { id: 'asc' } })
-  if (liste.length === 0) {
-    await db.destination.createMany({ data: DESTINATIONS_DEFAUT })
-    liste = await db.destination.findMany({ orderBy: { id: 'asc' } })
-  }
-  return liste
+  await amorcerReferentiels()
+  return getPrisma().destination.findMany({ orderBy: { id: 'asc' } })
 }
 
 /** Crée ou met à jour une destination (clé métier = code). */
@@ -168,14 +193,8 @@ function dedupTri(noms: string[]): string[] {
 }
 
 export async function marquesList(): Promise<MarqueDto[]> {
-  const db = getPrisma()
-  let rows = await db.marqueModele.findMany({ orderBy: { libelle: 'asc' } })
-  if (rows.length === 0) {
-    await db.marqueModele.createMany({
-      data: dedupTri(MARQUES_DEFAUT).map(nom => ({ marque: nom, libelle: nom })),
-    })
-    rows = await db.marqueModele.findMany({ orderBy: { libelle: 'asc' } })
-  }
+  await amorcerReferentiels()
+  const rows = await getPrisma().marqueModele.findMany({ orderBy: { libelle: 'asc' } })
   return rows.map(r => ({ id: r.id, nom: r.libelle }))
 }
 
@@ -207,4 +226,110 @@ export async function marqueRename(id: number, nom: string): Promise<MarqueDto> 
 export async function marqueRemove(id: number): Promise<void> {
   await getPrisma().marqueModele.deleteMany({ where: { id } })
   diffuserChangement('marques')
+}
+
+// ── Paramètres singletons (clé → valeur) ─────────────────────────────────────
+async function getParam(cle: string): Promise<string | null> {
+  const p = await getPrisma().parametre.findUnique({ where: { cle } })
+  return p?.valeur ?? null
+}
+async function setParam(cle: string, valeur: string): Promise<void> {
+  await getPrisma().parametre.upsert({ where: { cle }, create: { cle, valeur }, update: { valeur } })
+}
+
+// ── Assurances (← TYPEASSURANCE + VEHASSURANCE) ──────────────────────────────
+// Un seul point de vérité : assureurs + tarifs par catégorie (avec le détail des
+// primes) + le flag « mise en service » (Parametre). La RÉCONCILIATION des
+// tarifs avec les catégories est faite ICI (fin de la période hybride).
+
+export interface DetailPrimesDto { rc: number; cedeao: number; individuelle: number; accessoires: number }
+export interface TarifDto { type: string; tarif: number; taxe: number; commissionPct: number; detail: DetailPrimesDto }
+export interface AssureurDto { id: number; nom: string; coordonnees: string; tarifs: TarifDto[] }
+export interface ConfigAssurancesDto { imprimerAssurances: boolean; assureurs: AssureurDto[] }
+
+const ASSUREUR_DEFAUT = { nom: 'POOL TPV VT - MOTO', coordonnees: '01 BP 2689 Lomé Togo tel : 221 70 92' }
+const TARIF_DEFAUT = { tarif: 13000, taxe: 679, commissionPct: 20 }
+// Dérivation du détail des primes (Accessoires/CEDEAO fixes, RC/Individuelle au prorata)
+const REF = { rc: 5065, cedeao: 506, individuelle: 3750, accessoires: 2000 }
+function deriverDetail(tarif: number, taxe: number): DetailPrimesDto {
+  const reste = Math.max(0, tarif - taxe - REF.accessoires - REF.cedeao)
+  const rc = Math.round(reste * REF.rc / (REF.rc + REF.individuelle))
+  return { rc, cedeao: REF.cedeao, individuelle: reste - rc, accessoires: REF.accessoires }
+}
+function baseTarifRang(rang: number): { tarif: number; taxe: number } {
+  return rang === 2 ? { tarif: 19500, taxe: 1047 } : { tarif: 13000, taxe: 679 }
+}
+
+export async function configAssurancesGet(): Promise<ConfigAssurancesDto> {
+  await amorcerReferentiels()
+  const db = getPrisma()
+  const cats = await db.categorieVehicule.findMany({ orderBy: { rang: 'asc' } })
+  const rangNom = new Map(cats.map(c => [c.rang, c.nom]))
+
+  const assureurs = await db.assureur.findMany({ include: { tarifs: true }, orderBy: { id: 'asc' } })
+  const imprimer = (await getParam('assurances.miseEnService')) !== 'false'
+  return {
+    imprimerAssurances: imprimer,
+    assureurs: assureurs.map(a => ({
+      id: a.id,
+      nom: a.nom,
+      coordonnees: a.coordonnees ?? '',
+      tarifs: [...a.tarifs].sort((x, y) => x.categorieRang - y.categorieRang).map(t => ({
+        type: rangNom.get(t.categorieRang) ?? `#${t.categorieRang}`,
+        tarif: t.tarif, taxe: t.taxe, commissionPct: t.commissionPct,
+        detail: { rc: t.rc, cedeao: t.cedeao, individuelle: t.individuelle, accessoires: t.accessoires },
+      })),
+    })),
+  }
+}
+
+export async function configAssurancesSave(cfg: ConfigAssurancesDto): Promise<ConfigAssurancesDto> {
+  const db = getPrisma()
+  const cats = await db.categorieVehicule.findMany()
+  const nomRang = new Map(cats.map(c => [c.nom.toLowerCase(), c.rang]))
+
+  await db.$transaction([db.tarifAssurance.deleteMany(), db.assureur.deleteMany()])
+  for (const a of cfg.assureurs) {
+    const created = await db.assureur.create({ data: { nom: a.nom, coordonnees: a.coordonnees } })
+    const data = a.tarifs.map(t => {
+      const d = t.detail ?? deriverDetail(t.tarif, t.taxe)
+      return {
+        assureurId: created.id,
+        categorieRang: nomRang.get(t.type.toLowerCase()) ?? 0,
+        tarif: t.tarif, taxe: t.taxe, commissionPct: t.commissionPct,
+        rc: d.rc, cedeao: d.cedeao, individuelle: d.individuelle, accessoires: d.accessoires,
+      }
+    })
+    if (data.length) await db.tarifAssurance.createMany({ data })
+  }
+  await setParam('assurances.miseEnService', cfg.imprimerAssurances ? 'true' : 'false')
+  diffuserChangement('assurances')
+  return configAssurancesGet()
+}
+
+/** Aligne les tarifs de chaque assureur sur les catégories (appelée quand elles changent). */
+async function reconcilierTarifs(): Promise<void> {
+  const db = getPrisma()
+  const cats = await db.categorieVehicule.findMany({ orderBy: { rang: 'asc' } })
+  const rangsValides = new Set(cats.map(c => c.rang))
+  const assureurs = await db.assureur.findMany({ include: { tarifs: true } })
+  let modifie = false
+
+  for (const a of assureurs) {
+    const rangsPresents = new Set(a.tarifs.map(t => t.categorieRang))
+    for (const t of a.tarifs) {
+      if (!rangsValides.has(t.categorieRang)) {
+        await db.tarifAssurance.delete({ where: { id: t.id } }); modifie = true
+      }
+    }
+    for (const c of cats) {
+      if (!rangsPresents.has(c.rang)) {
+        await db.tarifAssurance.create({
+          data: { assureurId: a.id, categorieRang: c.rang, ...TARIF_DEFAUT, ...deriverDetail(TARIF_DEFAUT.tarif, TARIF_DEFAUT.taxe) },
+        })
+        modifie = true
+      }
+    }
+  }
+  if (modifie) diffuserChangement('assurances')
 }

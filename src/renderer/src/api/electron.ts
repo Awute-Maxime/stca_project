@@ -1,3 +1,12 @@
+export interface DbAssurTarif {
+  type: string; tarif: number; taxe: number; commissionPct: number
+  detail: { rc: number; cedeao: number; individuelle: number; accessoires: number }
+}
+export interface DbAssurConfig {
+  imprimerAssurances: boolean
+  assureurs: Array<{ id: number; nom: string; coordonnees: string; tarifs: DbAssurTarif[] }>
+}
+
 export interface DbDestination {
   id: number
   code: string
@@ -58,6 +67,8 @@ declare global {
       dbMarqueAdd:     (nom: string) => Promise<{ ok: boolean; item?: { id: number; nom: string }; error?: string }>
       dbMarqueRename:  (id: number, nom: string) => Promise<{ ok: boolean; item?: { id: number; nom: string }; error?: string }>
       dbMarqueRemove:  (id: number) => Promise<{ ok: boolean; error?: string }>
+      dbAssurancesGet:  () => Promise<{ ok: boolean; config?: DbAssurConfig; error?: string }>
+      dbAssurancesSave: (cfg: DbAssurConfig) => Promise<{ ok: boolean; config?: DbAssurConfig; error?: string }>
       onDbChanged:     (cb: (p: { domaine: string }) => void) => (() => void)
       importPickFile:  () => Promise<string | null>
       importPreview:   (chemin: string) => Promise<ImportPreview>
@@ -103,6 +114,10 @@ export const electronApi = {
     window.api?.dbMarqueRename?.(id, nom) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
   dbMarqueRemove:  (id: number): Promise<{ ok: boolean; error?: string }> =>
     window.api?.dbMarqueRemove?.(id) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbAssurancesGet:  (): Promise<{ ok: boolean; config?: DbAssurConfig; error?: string }> =>
+    window.api?.dbAssurancesGet?.() ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbAssurancesSave: (cfg: DbAssurConfig): Promise<{ ok: boolean; config?: DbAssurConfig; error?: string }> =>
+    window.api?.dbAssurancesSave?.(cfg) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
   onDbChanged:     (cb: (p: { domaine: string }) => void): (() => void) =>
     window.api?.onDbChanged?.(cb) ?? (() => {}),
   importPickFile:  (): Promise<string | null> => window.api?.importPickFile?.() ?? Promise.resolve(null),

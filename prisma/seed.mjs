@@ -83,10 +83,17 @@ async function main() {
   await db.utilisateur.createMany({ data: UTILISATEURS })
 
   const assureur = await db.assureur.create({ data: { nom: 'POOL TPV VT - MOTO', coordonnees: '01 BP 2689 Lomé Togo tel : 221 70 92' } })
+  // Détail des primes DÉRIVÉ du tarif (CEDEAO 506 + Accessoires 2000 fixes,
+  // R.C./Individuelle au prorata) — la somme retombe TOUJOURS sur le tarif.
+  const derive = (tarif, taxe) => {
+    const reste = Math.max(0, tarif - taxe - 2000 - 506)
+    const rc = Math.round(reste * 5065 / (5065 + 3750))
+    return { rc, cedeao: 506, individuelle: reste - rc, accessoires: 2000 }
+  }
   await db.tarifAssurance.createMany({ data: [
-    { assureurId: assureur.id, categorieRang: 1, tarif: 13000, taxe: 679,  commissionPct: 20, rc: 5065, cedeao: 506, individuelle: 3750, accessoires: 2000 },
-    { assureurId: assureur.id, categorieRang: 2, tarif: 19500, taxe: 1047, commissionPct: 20, rc: 9000, cedeao: 506, individuelle: 6947, accessoires: 2000 },
-    { assureurId: assureur.id, categorieRang: 3, tarif: 13000, taxe: 679,  commissionPct: 20, rc: 5065, cedeao: 506, individuelle: 3750, accessoires: 2000 },
+    { assureurId: assureur.id, categorieRang: 1, tarif: 13000, taxe: 679,  commissionPct: 20, ...derive(13000, 679) },
+    { assureurId: assureur.id, categorieRang: 2, tarif: 19500, taxe: 1047, commissionPct: 20, ...derive(19500, 1047) },
+    { assureurId: assureur.id, categorieRang: 3, tarif: 13000, taxe: 679,  commissionPct: 20, ...derive(13000, 679) },
   ] })
 
   // Enregistrements

@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react'
+import { electronApi, type DbAssurConfig } from '@api/electron'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Configuration Assurances (menu Outils+Config.) — SOURCE UNIQUE des assureurs
-// et des tarifs d'assurance par type de véhicule (captures STCA du 21/07/2026) :
-// - mise en service : « Imprimer Facture + Cond. Part. + Assurances » OUI/NON,
-// - assureur(s) : nom + coordonnées + table des tarifs par catégorie,
-// - relations du modèle réel : Tarif brut = Tarif − Taxe ;
-//   Commission STCA = brut × % (part reversée par l'assureur à STCA —
-//   alimentera les rapports de revenus des partenaires).
-// Consommée par : la Facture (montant assurance) et le Feuillet N°3 (primes).
-// Persistée dans localStorage + synchro toutes fenêtres (storage + CustomEvent).
+// Configuration Assurances — MIGRÉE EN BASE (Phase 3, 25/07/2026).
+// Tables `assureur` + `tarif_assurance` (← TYPEASSURANCE + VEHASSURANCE) + le
+// flag « mise en service » (Parametre). Fin de la période hybride : la
+// réconciliation des tarifs avec les catégories est désormais faite dans le main
+// (referentiels.ts), plus ici.
+//
+// Modèle asynchrone : cache module (getters synchrones pour la Facture / le
+// Feuillet N°3) + useConfigAssurances réactif via db:changed('assurances').
+// Les fonctions de CALCUL restent pures (opèrent sur des objets TarifAssurance).
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Détail des primes constituant le tarif (imprimées sur le Feuillet N°3)
 export interface DetailPrimes {
   rc: number           // Responsabilité Civile
   cedeao: number       // Carte Brune CEDEAO
@@ -21,11 +21,11 @@ export interface DetailPrimes {
 }
 
 export interface TarifAssurance {
-  type: string          // catégorie : Voiture, Camion, Autre…
-  tarif: number         // prix TTC payé par le client (F CFA)
-  taxe: number          // part de taxes incluse
-  commissionPct: number // % STCA sur le tarif brut
-  detail?: DetailPrimes // saisi dans Config. Assurances — absent = dérivé proportionnellement
+  type: string
+  tarif: number
+  taxe: number
+  commissionPct: number
+  detail?: DetailPrimes
 }
 
 export interface Assureur {
@@ -36,15 +36,11 @@ export interface Assureur {
 }
 
 export interface ConfigAssurances {
-  imprimerAssurances: boolean // OUI/NON : imprimer Facture + Cond. Part. + Assurances
+  imprimerAssurances: boolean
   assureurs: Assureur[]
 }
 
-const LS_KEY = 'tcit_config_assurances'
-const LOCAL_EVENT = 'tcit:config-assurances-changed'
-
-// Tarifs en vigueur (mis à jour par l'utilisateur le 21/07/2026 : Voiture
-// 13 000, Camion 19 500 — les captures STCA montraient 12 000/18 500).
+// Repli d'affichage si la base est injoignable (les vraies valeurs viennent de la base)
 const DEFAUT: ConfigAssurances = {
   imprimerAssurances: true,
   assureurs: [
@@ -61,45 +57,48 @@ const DEFAUT: ConfigAssurances = {
   ],
 }
 
+// ── Cache module ─────────────────────────────────────────────────────────────
+let cache: ConfigAssurances = DEFAUT
+const abonnes = new Set<() => void>()
+let initialise = false
+
+async function rechargerCache(): Promise<void> {
+  const r = await electronApi.dbAssurancesGet()
+  if (r.ok && r.config) {
+    cache = r.config as ConfigAssurances
+    abonnes.forEach(fn => fn())
+  } else {
+    console.error('[assurancesStore] lecture base échouée :', r.error)
+  }
+}
+
+function assurerInit(): void {
+  if (initialise) return
+  initialise = true
+  void rechargerCache()
+  electronApi.onDbChanged(p => { if (p.domaine === 'assurances') void rechargerCache() })
+}
+assurerInit()
+
 export function getConfigAssurances(): ConfigAssurances {
-  try {
-    const raw = localStorage.getItem(LS_KEY)
-    if (raw) {
-      const p = JSON.parse(raw) as Partial<ConfigAssurances>
-      return {
-        imprimerAssurances: p.imprimerAssurances ?? DEFAUT.imprimerAssurances,
-        assureurs: p.assureurs && p.assureurs.length > 0 ? p.assureurs : DEFAUT.assureurs,
-      }
-    }
-  } catch { /* défauts */ }
-  return DEFAUT
+  assurerInit()
+  return cache
 }
 
-export function setConfigAssurances(cfg: ConfigAssurances): void {
-  localStorage.setItem(LS_KEY, JSON.stringify(cfg))
-  window.dispatchEvent(new CustomEvent(LOCAL_EVENT))
+/** Écrit toute la configuration en base. Retourne un message d'erreur, ou null. */
+export async function setConfigAssurances(cfg: ConfigAssurances): Promise<string | null> {
+  const r = await electronApi.dbAssurancesSave(cfg as DbAssurConfig)
+  if (!r.ok) return r.error ?? 'Écriture en base échouée.'
+  if (r.config) cache = r.config as ConfigAssurances
+  abonnes.forEach(fn => fn())
+  return null
 }
 
-// ── Calculs du modèle réel ───────────────────────────────────────────────────
-
-/** Tarif brut = Tarif − Taxe (ex. 12 000 − 679 = 11 321). */
+// ── Calculs du modèle réel (purs) ────────────────────────────────────────────
 export const brutDe = (t: TarifAssurance): number => t.tarif - t.taxe
-
-/** Commission STCA = brut × % (ex. 11 321 × 20 % = 2 264). */
 export const commissionDe = (t: TarifAssurance): number => Math.round(brutDe(t) * t.commissionPct / 100)
-
-/**
- * Montant à restituer à l'assureur = Tarif − Commission STCA
- * (ex. 12 000 − 2 264 = 9 736 ; 18 500 − 3 491 = 15 009 — capture réelle).
- * C'est la base de la fenêtre « Montant à restituer » du menu Assurances.
- */
 export const montantARestituerDe = (t: TarifAssurance): number => t.tarif - commissionDe(t)
 
-/**
- * Tarif applicable à un type de véhicule de l'application (Voiture, Camion,
- * Moto, Bus, Pick-up, Minibus…) : correspondance exacte, sinon « Autre »,
- * sinon la première ligne.
- */
 export function tarifPourType(typeVehicule: string): TarifAssurance {
   const tarifs = getConfigAssurances().assureurs[0]?.tarifs ?? DEFAUT.assureurs[0].tarifs
   const exact = tarifs.find(t => t.type.toLowerCase() === typeVehicule.toLowerCase())
@@ -107,14 +106,8 @@ export function tarifPourType(typeVehicule: string): TarifAssurance {
   return tarifs.find(t => t.type.toLowerCase() === 'autre') ?? tarifs[0]
 }
 
-// ── Primes du Feuillet N°3 (décomposition du modèle réel) ────────────────────
-// Référence véhicule léger (modèle imprimé) : RC 5 065 + CEDEAO 506 +
-// Individuelle 3 750 = nette 9 321 ; + Accessoires 2 000 + Taxes 679 = 12 000.
-// Pour une autre catégorie : accessoires fixes, taxes de la config, et
-// RC/CEDEAO/Individuelle répartis proportionnellement (sommes exactes).
-
+// Référence véhicule léger (modèle imprimé)
 const REF_PRIMES = { rc: 5065, cedeao: 506, individuelle: 3750, accessoires: 2000 }
-const REF_NETTE = REF_PRIMES.rc + REF_PRIMES.cedeao + REF_PRIMES.individuelle // 9 321
 
 export interface PrimesAssurance {
   rc: number
@@ -122,31 +115,19 @@ export interface PrimesAssurance {
   individuelle: number
   accessoires: number
   taxes: number
-  nette: number // rc + cedeao + individuelle
-  ttc: number   // nette + accessoires + taxes = tarif de la catégorie
+  nette: number
+  ttc: number
 }
 
-/**
- * Détail des primes d'une ligne de tarif : celui SAISI dans Config.
- * Assurances s'il existe, sinon dérivé de la référence.
- * Règle utilisateur (22/07/2026) : Taxe, CEDEAO et Accessoires sont des
- * montants FIXES — seules R.C. et Individuelle absorbent la différence.
- */
 export function detailDe(t: TarifAssurance): DetailPrimes {
   if (t.detail) return t.detail
   const accessoires = REF_PRIMES.accessoires
   const cedeao = REF_PRIMES.cedeao
-  const reste = Math.max(0, t.tarif - t.taxe - accessoires - cedeao) // R.C. + Individuelle
-  const refRcInd = REF_PRIMES.rc + REF_PRIMES.individuelle
-  const rc = Math.round(reste * REF_PRIMES.rc / refRcInd)
+  const reste = Math.max(0, t.tarif - t.taxe - accessoires - cedeao)
+  const rc = Math.round(reste * REF_PRIMES.rc / (REF_PRIMES.rc + REF_PRIMES.individuelle))
   return { rc, cedeao, individuelle: reste - rc, accessoires }
 }
 
-/**
- * Applique un nouveau Tarif TTC à une ligne : Taxe, CEDEAO et Accessoires
- * restent FIXES, seules R.C. et Individuelle se répartissent la différence
- * (au prorata de leurs valeurs courantes). Le tarif retourné = somme exacte.
- */
 export function appliquerTarif(t: TarifAssurance, nouveauTarif: number): TarifAssurance {
   const d = detailDe(t)
   const reste = Math.max(0, nouveauTarif - t.taxe - d.accessoires - d.cedeao)
@@ -166,19 +147,15 @@ export function primesPourType(typeVehicule: string): PrimesAssurance {
 
 /** Hook React : configuration synchronisée entre toutes les fenêtres. */
 export function useConfigAssurances(): ConfigAssurances {
-  const [cfg, setCfg] = useState<ConfigAssurances>(getConfigAssurances)
+  const [cfg, setCfg] = useState<ConfigAssurances>(cache)
 
   useEffect(() => {
-    const refresh = (): void => setCfg(getConfigAssurances())
-    const onStorage = (e: StorageEvent): void => {
-      if (e.key === LS_KEY) refresh()
-    }
-    window.addEventListener('storage', onStorage)
-    window.addEventListener(LOCAL_EVENT, refresh)
-    return () => {
-      window.removeEventListener('storage', onStorage)
-      window.removeEventListener(LOCAL_EVENT, refresh)
-    }
+    assurerInit()
+    const fn = (): void => setCfg(cache)
+    abonnes.add(fn)
+    fn()
+    void rechargerCache()
+    return () => { abonnes.delete(fn) }
   }, [])
 
   return cfg

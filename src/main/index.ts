@@ -6,6 +6,7 @@ import {
   categoriesList, categoriesSaveAll,
   destinationsList, destinationUpsert, destinationRemove, type DestinationInput,
   marquesList, marqueAdd, marqueRename, marqueRemove,
+  configAssurancesGet, configAssurancesSave, type ConfigAssurancesDto,
 } from './referentiels'
 
 const isDev = process.env['NODE_ENV'] === 'development' || !app.isPackaged
@@ -130,6 +131,14 @@ function setupMdiIPC(): void {
   })
   ipcMain.handle('db:marques:remove', async (_, id: number) => {
     try { await marqueRemove(id); return { ok: true } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:assurances:get', async () => {
+    try { return { ok: true, config: await configAssurancesGet() } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:assurances:save', async (_, cfg: ConfigAssurancesDto) => {
+    try { return { ok: true, config: await configAssurancesSave(cfg) } }
     catch (err) { return { ok: false, error: String(err) } }
   })
 

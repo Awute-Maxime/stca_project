@@ -43,7 +43,7 @@ export default function EditionAssureurWindow(): JSX.Element {
     window.dispatchEvent(new CustomEvent('mdi:close-self'))
   }
 
-  const valider = (): void => {
+  const valider = async (): Promise<void> => {
     if (!edition.nom.trim()) {
       notification.warning({ message: "Saisissez le nom de l'assurance ou du groupement.", placement: 'bottomRight' })
       return
@@ -53,7 +53,8 @@ export default function EditionAssureurWindow(): JSX.Element {
     const assureurs = existe
       ? cfg.assureurs.map(a => a.id === edition.id ? edition : a)
       : [...cfg.assureurs, edition]
-    setConfigAssurances({ ...cfg, assureurs })
+    const err = await setConfigAssurances({ ...cfg, assureurs })
+    if (err) { notification.error({ message: 'Enregistrement échoué', description: err, placement: 'bottomRight' }); return }
     notification.success({
       message: `✅ Assureur « ${edition.nom} » enregistré`,
       description: 'Les tarifs alimentent la Facture, le Feuillet N°3 et les rapports de revenus.',
@@ -292,7 +293,7 @@ export default function EditionAssureurWindow(): JSX.Element {
 
       {/* Valider / Quitter (capture) */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 16 }}>
-        <button onClick={valider} style={{
+        <button onClick={() => void valider()} style={{
           height: 32, padding: '0 26px', background: '#16A34A', color: '#fff',
           border: 'none', borderRadius: 5, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
         }}>Valider ✔</button>

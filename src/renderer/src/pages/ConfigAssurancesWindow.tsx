@@ -21,8 +21,9 @@ export default function ConfigAssurancesWindow(): JSX.Element {
   const [imprimer, setImprimer] = useState<boolean>(() => cfg.imprimerAssurances)
   const [selId, setSelId] = useState<number | null>(cfg.assureurs[0]?.id ?? null)
 
-  const enregistrerMiseEnService = (): void => {
-    setConfigAssurances({ ...cfg, imprimerAssurances: imprimer })
+  const enregistrerMiseEnService = async (): Promise<void> => {
+    const err = await setConfigAssurances({ ...cfg, imprimerAssurances: imprimer })
+    if (err) { notification.error({ message: 'Enregistrement échoué', description: err, placement: 'bottomRight' }); return }
     notification.success({
       message: '✅ Mise en service enregistrée',
       description: `Imprimer Facture + Cond. Part. + Assurances : ${imprimer ? 'OUI' : 'NON'}.`,
@@ -103,7 +104,7 @@ export default function ConfigAssurancesWindow(): JSX.Element {
               {v ? 'OUI' : 'NON'}
             </label>
           ))}
-          <button onClick={enregistrerMiseEnService} style={{
+          <button onClick={() => void enregistrerMiseEnService()} style={{
             marginLeft: 'auto', height: 30, padding: '0 18px', borderRadius: 5, cursor: 'pointer',
             border: 'none', background: '#16A34A', color: '#fff', fontSize: 12, fontWeight: 700,
           }}>Enregistrer ✔</button>

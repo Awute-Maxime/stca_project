@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { electronApi } from '@api/electron'
-import { getConfigAssurances, setConfigAssurances, type TarifAssurance } from './assurancesStore'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types de Véhicule — PREMIER DOMAINE MIGRÉ EN BASE (Phase 3, 25/07/2026).
@@ -14,9 +13,9 @@ import { getConfigAssurances, setConfigAssurances, type TarifAssurance } from '.
 //     toutes les fenêtres (remplace l'événement `storage` du localStorage),
 //   - le hook s'abonne à `db:changed` et recharge quand son domaine change.
 //
-// PÉRIODE HYBRIDE : Config. Assurances est encore sur localStorage — la
-// réconciliation des tarifs (1 ligne par type, ordre du rang) reste donc ici,
-// côté renderer, jusqu'à la migration du domaine assurances.
+// La RÉCONCILIATION des tarifs assurance (1 ligne par catégorie) est faite dans
+// le main (referentiels.ts, categoriesSaveAll → reconcilierTarifs), qui diffuse
+// aussi `db:changed('assurances')`. Plus de dépendance vers assurancesStore ici.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface TypeVehicule {
@@ -61,35 +60,8 @@ export async function setTypesVehicule(types: TypeVehicule[]): Promise<string | 
   const r = await electronApi.dbCategoriesSaveAll(ordonnes.map(t => ({ rang: t.rang, nom: t.nom })))
   if (!r.ok) return r.error ?? 'Écriture en base échouée.'
   cache = r.items ?? ordonnes
-  reconcilierAssurances(cache) // période hybride : assurances encore sur localStorage
+  // Le main réconcilie les tarifs assurance et diffuse db:changed('assurances').
   return null
-}
-
-// ── Lien SOURCE UNIQUE vers Config. Assurances (période hybride) ─────────────
-// La liste des types pilote les catégories de tarifs : pour chaque assureur on
-// garde une ligne de tarif par type, dans l'ordre du rang.
-const TARIF_DEFAUT = { tarif: 13000, taxe: 679, commissionPct: 20 }
-
-function reconcilierAssurances(types: TypeVehicule[]): void {
-  const cfg = getConfigAssurances()
-  let modifie = false
-
-  const assureurs = cfg.assureurs.map(a => {
-    const parNom = new Map(a.tarifs.map(t => [t.type.toLowerCase(), t] as const))
-    const tarifs: TarifAssurance[] = types.map(t => {
-      const exist = parNom.get(t.nom.toLowerCase())
-      if (exist) return { ...exist, type: t.nom } // resync du libellé
-      return { type: t.nom, ...TARIF_DEFAUT }
-    })
-    // Ajout, suppression, renommage OU réordonnancement → l'ordre des tarifs
-    // doit suivre le rang des types (comparaison de la séquence complète).
-    const avant = a.tarifs.map(t => t.type).join('|')
-    const apres = tarifs.map(t => t.type).join('|')
-    if (avant !== apres) modifie = true
-    return { ...a, tarifs }
-  })
-
-  if (modifie) setConfigAssurances({ ...cfg, assureurs })
 }
 
 /** Hook React : liste des types, synchronisée entre toutes les fenêtres. */

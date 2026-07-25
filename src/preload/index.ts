@@ -37,6 +37,8 @@ const api = {
   dbMarqueAdd: (nom: string): Promise<unknown> => ipcRenderer.invoke('db:marques:add', nom),
   dbMarqueRename: (id: number, nom: string): Promise<unknown> => ipcRenderer.invoke('db:marques:rename', { id, nom }),
   dbMarqueRemove: (id: number): Promise<unknown> => ipcRenderer.invoke('db:marques:remove', id),
+  dbAssurancesGet: (): Promise<unknown> => ipcRenderer.invoke('db:assurances:get'),
+  dbAssurancesSave: (cfg: unknown): Promise<unknown> => ipcRenderer.invoke('db:assurances:save', cfg),
   // Synchro multi-fenêtres : le main diffuse db:changed après chaque écriture
   onDbChanged: (cb: (p: { domaine: string }) => void): (() => void) => {
     const h = (_: unknown, data: { domaine: string }): void => cb(data)
