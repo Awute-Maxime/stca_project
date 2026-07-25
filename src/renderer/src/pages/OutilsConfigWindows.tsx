@@ -1,11 +1,11 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Input, Button, Tooltip, Modal, notification } from 'antd'
 import {
   CarOutlined, EnvironmentOutlined,
   PlusOutlined, EditOutlined, DeleteOutlined, PrinterOutlined, SaveOutlined, CheckOutlined,
 } from '@ant-design/icons'
 import { mockVehicules } from '@mock/vehicules'
-import { getTypesVehicule, setTypesVehicule, type TypeVehicule } from '@mock/typesVehiculeStore'
+import { useTypesVehicule, setTypesVehicule, type TypeVehicule } from '@mock/typesVehiculeStore'
 import { useDestinations, removeDestination, type DestinationParam } from '@mock/destinationsStore'
 import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
@@ -49,9 +49,17 @@ function PageHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: s
 const NB_LIGNES_GRILLE = 8 // lignes affichées (données + vides) — grille STCA
 
 export function TypesVehiculeWindow(): JSX.Element {
-  const [rows, setRows]   = useState<TypeVehicule[]>(() => getTypesVehicule())
+  const typesDb = useTypesVehicule()          // source = base de données (Phase 3)
+  const [rows, setRows]   = useState<TypeVehicule[]>(typesDb)
   const [newType, setNew] = useState('')
   const [dirty, setDirty] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  // Rafraîchit l'affichage depuis la base quand elle change (sauf en cours d'édition)
+  useEffect(() => {
+    if (!dirty) setRows(typesDb)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [typesDb])
 
   const renumeroter = (list: TypeVehicule[]): TypeVehicule[] =>
     list.map((t, i) => ({ ...t, rang: i + 1 }))
@@ -89,16 +97,21 @@ export function TypesVehiculeWindow(): JSX.Element {
     setNew('')
   }
 
-  const enregistrer = (): void => {
+  const enregistrer = async (): Promise<void> => {
     const propres = rows.map(t => ({ ...t, nom: t.nom.trim() })).filter(t => t.nom !== '')
     if (propres.length === 0) {
       notification.error({ message: 'Aucun type valide à enregistrer.', placement: 'bottomRight' })
       return
     }
     const finaux = renumeroter(propres)
-    setTypesVehicule(finaux)   // persiste + reconcilie Config. Assurances
-    setRows(finaux)
-    setDirty(false)
+    setSaving(true)
+    const err = await setTypesVehicule(finaux)   // écrit en BASE + reconcilie assurances
+    setSaving(false)
+    if (err) {
+      notification.error({ message: 'Enregistrement échoué', description: err, placement: 'bottomRight' })
+      return
+    }
+    setDirty(false)   // le db:changed rafraîchira l'affichage depuis la base
     notification.success({
       message: '✅ Types de véhicule enregistrés',
       description: `${finaux.length} type(s) — l'Enregistrement et Config. Assurances sont à jour.`,
@@ -189,7 +202,8 @@ export function TypesVehiculeWindow(): JSX.Element {
 
       {/* Boutons bas — Enregistrer + Fermer (fidèle : Fermer centré) */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: 10 }}>
-        <Button type="primary" icon={<SaveOutlined />} onClick={enregistrer} disabled={!dirty}
+        <Button type="primary" icon={<SaveOutlined />} onClick={() => void enregistrer()}
+          disabled={!dirty || saving} loading={saving}
           style={{ background: dirty ? C.green : undefined, borderColor: dirty ? C.green : undefined }}>
           Enregistrer
         </Button>

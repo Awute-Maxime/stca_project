@@ -29,6 +29,9 @@ declare global {
       mdiCloseId:      (id: string) => void
       printersList:    () => Promise<Array<{ name: string; isDefault: boolean }>>
       dbCounts:        () => Promise<{ ok: boolean; counts?: Record<string, number>; error?: string }>
+      dbCategoriesList:    () => Promise<{ ok: boolean; items?: Array<{ id: number; rang: number; nom: string }>; error?: string }>
+      dbCategoriesSaveAll: (items: { rang: number; nom: string }[]) => Promise<{ ok: boolean; items?: Array<{ id: number; rang: number; nom: string }>; error?: string }>
+      onDbChanged:     (cb: (p: { domaine: string }) => void) => (() => void)
       importPickFile:  () => Promise<string | null>
       importPreview:   (chemin: string) => Promise<ImportPreview>
       importRun:       (p: { chemin: string; mapping: Record<string, string | undefined>; delimiter: string }) => Promise<ImportReport>
@@ -55,6 +58,12 @@ export const electronApi = {
     window.api?.printersList?.() ?? Promise.resolve([]),
   dbCounts:        (): Promise<{ ok: boolean; counts?: Record<string, number>; error?: string }> =>
     window.api?.dbCounts?.() ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbCategoriesList:    (): Promise<{ ok: boolean; items?: Array<{ id: number; rang: number; nom: string }>; error?: string }> =>
+    window.api?.dbCategoriesList?.() ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbCategoriesSaveAll: (items: { rang: number; nom: string }[]): Promise<{ ok: boolean; items?: Array<{ id: number; rang: number; nom: string }>; error?: string }> =>
+    window.api?.dbCategoriesSaveAll?.(items) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  onDbChanged:     (cb: (p: { domaine: string }) => void): (() => void) =>
+    window.api?.onDbChanged?.(cb) ?? (() => {}),
   importPickFile:  (): Promise<string | null> => window.api?.importPickFile?.() ?? Promise.resolve(null),
   importPreview:   (chemin: string): Promise<ImportPreview> =>
     window.api?.importPreview?.(chemin) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),

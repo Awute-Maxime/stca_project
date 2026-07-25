@@ -2,6 +2,7 @@ import { app, shell, BrowserWindow, ipcMain, screen } from 'electron'
 import { join } from 'path'
 import { dbCounts, disconnectPrisma } from './db'
 import { pickCsvFile, previewCsv, runImport, type Mapping } from './import'
+import { categoriesList, categoriesSaveAll } from './referentiels'
 
 const isDev = process.env['NODE_ENV'] === 'development' || !app.isPackaged
 
@@ -88,6 +89,16 @@ function setupMdiIPC(): void {
     } catch (err) {
       return { ok: false, error: String(err) }
     }
+  })
+
+  // Phase 3 — référentiels en base (modèle : list / saveAll + db:changed)
+  ipcMain.handle('db:categories:list', async () => {
+    try { return { ok: true, items: await categoriesList() } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:categories:saveAll', async (_, items: { rang: number; nom: string }[]) => {
+    try { return { ok: true, items: await categoriesSaveAll(items) } }
+    catch (err) { return { ok: false, error: String(err) } }
   })
 
   // Assistant d'import de l'ancienne base STCA (CSV)

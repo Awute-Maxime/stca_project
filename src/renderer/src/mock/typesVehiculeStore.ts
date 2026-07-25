@@ -1,21 +1,22 @@
 import { useState, useEffect } from 'react'
+import { electronApi } from '@api/electron'
 import { getConfigAssurances, setConfigAssurances, type TarifAssurance } from './assurancesStore'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Types de Véhicule (menu Outils+Config. → « Liste des Types de Véhicules
-// (pour assurances) », capture STCA du 22/07/2026) — SOURCE UNIQUE des
-// catégories de véhicule de l'application. Confirmé par l'utilisateur : ce sont
-// EXACTEMENT les types sélectionnés dans le formulaire d'Enregistrement
-// (« Véhicule à assurer ») ET les catégories de tarifs de Config. Assurances.
+// Types de Véhicule — PREMIER DOMAINE MIGRÉ EN BASE (Phase 3, 25/07/2026).
+// La table `categorie_vehicule` (← CATVEH du vrai STCA : RANG + nom) est la
+// source unique ; le localStorage n'est plus utilisé pour ce domaine.
 //
-// Une seule liste maître pilote donc :
-//   1. le menu déroulant « Type de véhicule » de l'Enregistrement,
-//   2. les lignes de tarifs de la Configuration Assurances (lien automatique
-//      ci-dessous : reconcilierAssurances — ajouter un type crée sa ligne de
-//      tarif, en supprimer un la retire, l'ordre suit le rang).
+// MODÈLE ASYNCHRONE (à répliquer pour chaque domaine migré) :
+//   - cache module partagé + useTypesVehicule() : même API qu'avant pour les
+//     consommateurs (le hook rend d'abord le cache, se rafraîchit en fond),
+//   - écriture via IPC → le main écrit en base puis DIFFUSE `db:changed` à
+//     toutes les fenêtres (remplace l'événement `storage` du localStorage),
+//   - le hook s'abonne à `db:changed` et recharge quand son domaine change.
 //
-// Chaque type a un « Rang dans la combos » = ordre d'affichage dans les listes
-// déroulantes. Persistée dans localStorage + synchro toutes fenêtres.
+// PÉRIODE HYBRIDE : Config. Assurances est encore sur localStorage — la
+// réconciliation des tarifs (1 ligne par type, ordre du rang) reste donc ici,
+// côté renderer, jusqu'à la migration du domaine assurances.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface TypeVehicule {
@@ -24,50 +25,49 @@ export interface TypeVehicule {
   nom: string  // « Nom ou type de véhicule »
 }
 
-const LS_KEY = 'tcit_types_vehicule'
-const LOCAL_EVENT = 'tcit:types-vehicule-changed'
-
-// Types réels du STCA (capture) — alignés avec les catégories de tarifs déjà
-// présentes dans assurancesStore (Voiture, Camion, Autre).
+// Défauts utilisés uniquement si la base est injoignable (repli d'affichage)
 const DEFAUT: TypeVehicule[] = [
   { id: 1, rang: 1, nom: 'Voiture' },
   { id: 2, rang: 2, nom: 'Camion' },
   { id: 3, rang: 3, nom: 'Autre' },
 ]
 
-function trierParRang(types: TypeVehicule[]): TypeVehicule[] {
-  return [...types].sort((a, b) => a.rang - b.rang)
+// Cache module : dernier état connu, servi immédiatement aux nouveaux hooks
+let cache: TypeVehicule[] | null = null
+
+/** Lecture asynchrone depuis la base (met le cache à jour). */
+export async function chargerTypesVehicule(): Promise<TypeVehicule[]> {
+  const r = await electronApi.dbCategoriesList()
+  if (r.ok && r.items) {
+    cache = r.items
+    return r.items
+  }
+  console.error('[typesVehiculeStore] lecture base échouée :', r.error)
+  return cache ?? DEFAUT
 }
 
-export function getTypesVehicule(): TypeVehicule[] {
-  try {
-    const raw = localStorage.getItem(LS_KEY)
-    if (raw) {
-      const p = JSON.parse(raw) as TypeVehicule[]
-      if (Array.isArray(p) && p.length > 0) return trierParRang(p)
-    }
-  } catch { /* défauts */ }
-  return DEFAUT
+/** Dernier état connu, sans attendre (peut être le repli au tout premier appel). */
+export function typesVehiculeCache(): TypeVehicule[] {
+  return cache ?? DEFAUT
 }
 
-export function setTypesVehicule(types: TypeVehicule[]): void {
-  const ordonnes = trierParRang(types)
-  localStorage.setItem(LS_KEY, JSON.stringify(ordonnes))
-  reconcilierAssurances(ordonnes) // lien source unique → Config. Assurances
-  window.dispatchEvent(new CustomEvent(LOCAL_EVENT))
+/**
+ * Écriture asynchrone : la base est mise à jour, puis le main diffuse
+ * `db:changed` → toutes les fenêtres (y compris celle-ci) se rafraîchissent.
+ * Retourne un message d'erreur, ou null si OK.
+ */
+export async function setTypesVehicule(types: TypeVehicule[]): Promise<string | null> {
+  const ordonnes = [...types].sort((a, b) => a.rang - b.rang)
+  const r = await electronApi.dbCategoriesSaveAll(ordonnes.map(t => ({ rang: t.rang, nom: t.nom })))
+  if (!r.ok) return r.error ?? 'Écriture en base échouée.'
+  cache = r.items ?? ordonnes
+  reconcilierAssurances(cache) // période hybride : assurances encore sur localStorage
+  return null
 }
 
-/** Noms des types, dans l'ordre du rang — alimente les menus déroulants. */
-export function nomsTypesVehicule(): string[] {
-  return getTypesVehicule().map(t => t.nom)
-}
-
-// ── Lien SOURCE UNIQUE vers Config. Assurances ───────────────────────────────
+// ── Lien SOURCE UNIQUE vers Config. Assurances (période hybride) ─────────────
 // La liste des types pilote les catégories de tarifs : pour chaque assureur on
-// garde une ligne de tarif par type, dans l'ordre du rang. Les nouveaux types
-// reçoivent des valeurs par défaut ; les types retirés voient leur ligne
-// supprimée. La correspondance se fait par NOM (un renommage repart donc sur un
-// tarif par défaut — cas rare, l'utilisateur ressaisit la valeur si besoin).
+// garde une ligne de tarif par type, dans l'ordre du rang.
 const TARIF_DEFAUT = { tarif: 13000, taxe: 679, commissionPct: 20 }
 
 function reconcilierAssurances(types: TypeVehicule[]): void {
@@ -92,21 +92,20 @@ function reconcilierAssurances(types: TypeVehicule[]): void {
   if (modifie) setConfigAssurances({ ...cfg, assureurs })
 }
 
-/** Hook React : liste des types synchronisée entre toutes les fenêtres. */
+/** Hook React : liste des types, synchronisée entre toutes les fenêtres. */
 export function useTypesVehicule(): TypeVehicule[] {
-  const [types, setTypes] = useState<TypeVehicule[]>(getTypesVehicule)
+  const [types, setTypes] = useState<TypeVehicule[]>(typesVehiculeCache)
 
   useEffect(() => {
-    const refresh = (): void => setTypes(getTypesVehicule())
-    const onStorage = (e: StorageEvent): void => {
-      if (e.key === LS_KEY) refresh()
+    let vivant = true
+    const recharger = (): void => {
+      void chargerTypesVehicule().then(l => { if (vivant) setTypes(l) })
     }
-    window.addEventListener('storage', onStorage)
-    window.addEventListener(LOCAL_EVENT, refresh)
-    return () => {
-      window.removeEventListener('storage', onStorage)
-      window.removeEventListener(LOCAL_EVENT, refresh)
-    }
+    recharger() // chargement initial (ou rafraîchissement du cache)
+    const off = electronApi.onDbChanged(p => {
+      if (p.domaine === 'categories') recharger()
+    })
+    return () => { vivant = false; off() }
   }, [])
 
   return types

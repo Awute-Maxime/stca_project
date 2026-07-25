@@ -26,6 +26,17 @@ const api = {
   dbCounts: (): Promise<{ ok: boolean; counts?: Record<string, number>; error?: string }> =>
     ipcRenderer.invoke('db:counts'),
 
+  // Phase 3 — référentiels en base
+  dbCategoriesList: (): Promise<unknown> => ipcRenderer.invoke('db:categories:list'),
+  dbCategoriesSaveAll: (items: { rang: number; nom: string }[]): Promise<unknown> =>
+    ipcRenderer.invoke('db:categories:saveAll', items),
+  // Synchro multi-fenêtres : le main diffuse db:changed après chaque écriture
+  onDbChanged: (cb: (p: { domaine: string }) => void): (() => void) => {
+    const h = (_: unknown, data: { domaine: string }): void => cb(data)
+    ipcRenderer.on('db:changed', h)
+    return () => ipcRenderer.removeListener('db:changed', h)
+  },
+
   // Assistant d'import de l'ancienne base STCA (CSV)
   importPickFile: (): Promise<string | null> => ipcRenderer.invoke('import:pickFile'),
   importPreview: (chemin: string): Promise<unknown> => ipcRenderer.invoke('import:preview', chemin),
