@@ -91,7 +91,7 @@ export function FixerRefWindow(): JSX.Element {
     })
   }
 
-  const fermer = (): void => window.dispatchEvent(new CustomEvent('mdi:close-self'))
+  const fermer = (): void => { window.dispatchEvent(new CustomEvent('mdi:close-self')) }
 
   return (
     <div style={{ animation: 'formEnter 0.3s ease' }}>

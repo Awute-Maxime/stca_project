@@ -1,84 +1,82 @@
 import { useState, useEffect } from 'react'
-import { mockUtilisateurs, type MockUtilisateur } from './utilisateurs'
+import { electronApi, type DbUser, type DbUserInput } from '@api/electron'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Store utilisateurs partagé — même architecture que vehiculesStore :
-// liste complète persistée dans localStorage (initialisée depuis les mocks),
-// synchro toutes fenêtres via event storage + CustomEvent local.
-// Le LOGIN lit ce store : un utilisateur créé ici peut se connecter aussitôt.
-// Protection : impossible de supprimer/désactiver/rétrograder le DERNIER
-// administrateur actif (sinon verrouillage définitif hors de l'application).
+// Utilisateurs — MIGRÉ EN BASE (Phase 3, 25/07/2026).
+// Table `utilisateur` (mots de passe HACHÉS côté main, jamais renvoyés ici).
+// Le login et la garde admin sont vérifiés dans le main (referentiels.ts).
+// Le store ne manipule que des données SANS mot de passe (masque « •••••• »).
+//
+// Modèle asynchrone : cache module + useUtilisateurs réactif via
+// db:changed('utilisateurs'). add/update/remove passent par IPC.
+// Protection « dernier admin actif » appliquée dans le main.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const LS_KEY = 'tcit_utilisateurs'
-const LOCAL_EVENT = 'tcit:utilisateurs-changed'
+export type Utilisateur = DbUser
 
-function load(): MockUtilisateur[] {
-  try {
-    const raw = localStorage.getItem(LS_KEY)
-    if (raw) return JSON.parse(raw) as MockUtilisateur[]
-  } catch { /* liste de base */ }
-  return mockUtilisateurs.map(u => ({ ...u }))
+let cache: Utilisateur[] = []
+const abonnes = new Set<() => void>()
+let initialise = false
+
+async function rechargerCache(): Promise<void> {
+  const r = await electronApi.dbUsersList()
+  if (r.ok && r.items) {
+    cache = r.items
+    abonnes.forEach(fn => fn())
+  } else {
+    console.error('[utilisateursStore] lecture base échouée :', r.error)
+  }
 }
 
-function save(list: MockUtilisateur[]): void {
-  localStorage.setItem(LS_KEY, JSON.stringify(list))
-  window.dispatchEvent(new CustomEvent(LOCAL_EVENT))
+function assurerInit(): void {
+  if (initialise) return
+  initialise = true
+  void rechargerCache()
+  electronApi.onDbChanged(p => { if (p.domaine === 'utilisateurs') void rechargerCache() })
+}
+assurerInit()
+
+/** Liste courante (sans mot de passe) — cache synchrone. */
+export function getAllUtilisateurs(): Utilisateur[] {
+  assurerInit()
+  return cache
 }
 
-export function getAllUtilisateurs(): MockUtilisateur[] {
-  return load()
+/** Ajoute un utilisateur. Retourne un message d'erreur (login pris…), ou null. */
+export async function addUtilisateur(input: DbUserInput): Promise<string | null> {
+  const r = await electronApi.dbUsersAdd(input)
+  if (!r.ok) return r.error ?? 'Ajout échoué.'
+  await rechargerCache()
+  return r.error ?? null // erreur métier éventuelle (ex. login déjà pris)
 }
 
-/** true si cet utilisateur est le dernier admin ACTIF de la liste. */
-function estDernierAdminActif(list: MockUtilisateur[], id: number): boolean {
-  const u = list.find(x => x.id === id)
-  if (!u || !u.administrateur || !u.compteActif) return false
-  return list.filter(x => x.administrateur && x.compteActif).length <= 1
+/** Modifie un utilisateur. `changes.motDePasse` (si présent) sera haché côté main. */
+export async function updateUtilisateur(id: number, changes: Partial<DbUserInput>): Promise<string | null> {
+  const r = await electronApi.dbUsersUpdate(id, changes)
+  if (!r.ok) return r.error ?? 'Modification échouée.'
+  await rechargerCache()
+  return r.error ?? null // ex. « dernier administrateur actif »
 }
 
-const MSG_DERNIER_ADMIN =
-  "Impossible : c'est le dernier administrateur actif. Créez ou réactivez d'abord un autre administrateur."
-
-/** Ajoute un utilisateur (id auto). */
-export function addUtilisateur(u: Omit<MockUtilisateur, 'id'>): void {
-  const list = load()
-  list.push({ ...u, id: list.reduce((m, x) => Math.max(m, x.id), 0) + 1 })
-  save(list)
+/** Supprime un utilisateur. Retourne un message d'erreur, ou null. */
+export async function removeUtilisateur(id: number): Promise<string | null> {
+  const r = await electronApi.dbUsersRemove(id)
+  if (!r.ok) return r.error ?? 'Suppression échouée.'
+  await rechargerCache()
+  return r.error ?? null
 }
 
-/** Modifie un utilisateur. Retourne un message d'erreur, ou null si OK. */
-export function updateUtilisateur(id: number, changes: Partial<MockUtilisateur>): string | null {
-  const list = load()
-  const retireAdmin = changes.administrateur === false || changes.compteActif === false
-  if (retireAdmin && estDernierAdminActif(list, id)) return MSG_DERNIER_ADMIN
-  save(list.map(u => (u.id === id ? { ...u, ...changes, id } : u)))
-  return null
-}
-
-/** Supprime un utilisateur. Retourne un message d'erreur, ou null si OK. */
-export function removeUtilisateur(id: number): string | null {
-  const list = load()
-  if (estDernierAdminActif(list, id)) return MSG_DERNIER_ADMIN
-  save(list.filter(u => u.id !== id))
-  return null
-}
-
-/** Hook React : liste re-rendue à chaque changement (cette fenêtre ou une autre). */
-export function useUtilisateurs(): MockUtilisateur[] {
-  const [list, setList] = useState<MockUtilisateur[]>(load)
+/** Hook React : liste des utilisateurs, synchronisée entre toutes les fenêtres. */
+export function useUtilisateurs(): Utilisateur[] {
+  const [list, setList] = useState<Utilisateur[]>(cache)
 
   useEffect(() => {
-    const refresh = (): void => setList(load())
-    const onStorage = (e: StorageEvent): void => {
-      if (e.key === LS_KEY) refresh()
-    }
-    window.addEventListener('storage', onStorage)
-    window.addEventListener(LOCAL_EVENT, refresh)
-    return () => {
-      window.removeEventListener('storage', onStorage)
-      window.removeEventListener(LOCAL_EVENT, refresh)
-    }
+    assurerInit()
+    const fn = (): void => setList(cache)
+    abonnes.add(fn)
+    fn()
+    void rechargerCache()
+    return () => { abonnes.delete(fn) }
   }, [])
 
   return list

@@ -36,17 +36,9 @@ const MARQUES = [
   ['PEUGEOT', '308'], ['RENAULT', 'DUSTER'], ['VOLKSWAGEN', 'GOLF'], ['MITSUBISHI', 'PAJERO'],
 ]
 
-const UTILISATEURS = [
-  { login: 'Administrateur',   motDePasse: 'Admin2024', nom: 'Administrateur Système',  administrateur: true,  compteActif: true },
-  { login: 'Authority.Config', motDePasse: 'Conf#2024', nom: 'Authority Configuration', administrateur: true,  compteActif: true },
-  { login: 'awute',            motDePasse: 'Awmax',     nom: 'Awute Maxime',            administrateur: true,  compteActif: true },
-  { login: 'odette',           motDePasse: 'Ode7788',   nom: 'Odette Mensah',           administrateur: true,  compteActif: true },
-  { login: 'akilou',           motDePasse: 'aki',       nom: 'Akilou Koffi',            administrateur: false, compteActif: true },
-  { login: 'celestine',        motDePasse: 'celes',     nom: 'Celestine Atsu',          administrateur: false, compteActif: true },
-  { login: 'mathieu',          motDePasse: 'math4',     nom: 'Mathieu Agbo',            administrateur: false, compteActif: true },
-  { login: 'victor',           motDePasse: 'vict4',     nom: 'Victor Kponto',           administrateur: false, compteActif: true },
-]
-
+// Les utilisateurs ne sont PAS peuplés ici : l'app les amorce elle-même
+// (amorcerUtilisateurs, referentiels.ts) avec des mots de passe HACHÉS (scrypt).
+// AGENTS sert seulement à générer le champ nomUtilisateur des enregistrements.
 const AGENTS = ['awute', 'odette', 'akilou', 'celestine', 'mathieu', 'victor']
 const PRENOMS = ['Kofi', 'Ama', 'Yao', 'Afi', 'Kwame', 'Akosua', 'Komla', 'Adjoa', 'Sena', 'Essi', 'Mensah', 'Dossou', 'Amivi', 'Koffi']
 const NOMS    = ['MENSAH', 'KOFFI', 'DOSSOU', 'ATSU', 'AGBO', 'KPONTO', 'GBADAGO', 'AMEDE', 'SOW', 'ISSAH', 'KODJO', 'AGBEKO', 'LAWSON', 'ADJOVI']
@@ -71,7 +63,7 @@ async function main() {
   await db.categorieVehicule.deleteMany()
   await db.destination.deleteMany()
   await db.marqueModele.deleteMany()
-  await db.utilisateur.deleteMany()
+  await db.utilisateur.deleteMany() // l'app ré-amorce des utilisateurs hachés
   await db.parametre.deleteMany()
 
   // Référentiels
@@ -80,7 +72,7 @@ async function main() {
   // Le référentiel marque_modele n'est PAS peuplé ici : l'app l'amorce elle-même
   // (marquesList) avec la liste complète des marques au premier lancement.
   // MARQUES sert seulement à générer des libellés variés dans les enregistrements.
-  await db.utilisateur.createMany({ data: UTILISATEURS })
+  // Les utilisateurs sont amorcés par l'app (hachage scrypt), pas ici.
 
   const assureur = await db.assureur.create({ data: { nom: 'POOL TPV VT - MOTO', coordonnees: '01 BP 2689 Lomé Togo tel : 221 70 92' } })
   // Détail des primes DÉRIVÉ du tarif (CEDEAO 506 + Accessoires 2000 fixes,
@@ -142,7 +134,7 @@ async function main() {
   const actifs = await db.enregistrement.count({ where: { dateArchivage: null } })
   const archives = await db.enregistrement.count({ where: { NOT: { dateArchivage: null } } })
   console.log(`✅ Terminé : ${inseres} enregistrements (${actifs} actifs, ${archives} archivés)`)
-  console.log(`   Référentiels : ${CATEGORIES.length} catégories, ${DESTINATIONS.length} destinations, ${MARQUES.length} marques, ${UTILISATEURS.length} utilisateurs, 1 assureur (3 tarifs)`)
+  console.log(`   Référentiels : ${CATEGORIES.length} catégories, ${DESTINATIONS.length} destinations, ${MARQUES.length} marques (amorcés par l'app), 1 assureur (3 tarifs) — utilisateurs amorcés par l'app`)
 }
 
 main().catch(e => { console.error(e); process.exit(1) }).finally(() => db.$disconnect())

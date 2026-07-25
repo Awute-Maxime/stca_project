@@ -18,8 +18,8 @@ export default function MdpAdminGate({ titre, message, onOk, onClose }: {
   const [mdp, setMdp] = useState('')
   const [erreur, setErreur] = useState<string | null>(null)
 
-  const valider = (): void => {
-    if (estMdpAdminValide(mdp)) {
+  const valider = async (): Promise<void> => {
+    if (await estMdpAdminValide(mdp)) {
       onOk()
     } else {
       setErreur('Mot de passe incorrect.')
@@ -89,10 +89,10 @@ export default function MdpAdminGate({ titre, message, onOk, onClose }: {
               <label style={{ fontSize: 11.5, whiteSpace: 'nowrap', color: '#374151', fontWeight: 700 }}>» Mot de passe Admin. :</label>
               <input type="password" className="light-input" value={mdp}
                 onChange={e => { setMdp(e.target.value); setErreur(null) }}
-                onKeyDown={e => { if (e.key === 'Enter') valider() }}
+                onKeyDown={e => { if (e.key === 'Enter') void valider() }}
                 autoFocus
                 style={{ width: 130, padding: '4px 8px', fontSize: 13, height: 26 }} />
-              <button style={okBtn} onClick={valider}>OK ✔</button>
+              <button style={okBtn} onClick={() => void valider()}>OK ✔</button>
             </div>
             {erreur && (
               <div style={{ marginTop: 10, fontSize: 11, color: '#DC2626', fontWeight: 600 }}>⚠ {erreur}</div>

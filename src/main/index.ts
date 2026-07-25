@@ -7,6 +7,8 @@ import {
   destinationsList, destinationUpsert, destinationRemove, type DestinationInput,
   marquesList, marqueAdd, marqueRename, marqueRemove,
   configAssurancesGet, configAssurancesSave, type ConfigAssurancesDto,
+  usersList, userAuth, userAuthAdmin, userAdd, userUpdate, userRemove, type UtilisateurInput,
+  getMdpForcage, setMdpForcage, adminPasswordValid,
 } from './referentiels'
 
 const isDev = process.env['NODE_ENV'] === 'development' || !app.isPackaged
@@ -139,6 +141,44 @@ function setupMdiIPC(): void {
   })
   ipcMain.handle('db:assurances:save', async (_, cfg: ConfigAssurancesDto) => {
     try { return { ok: true, config: await configAssurancesSave(cfg) } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  // Utilisateurs (mots de passe hachés — vérification côté main)
+  ipcMain.handle('db:users:list', async () => {
+    try { return { ok: true, items: await usersList() } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:users:auth', async (_, p: { login: string; motDePasse: string }) => {
+    try { return { ok: true, user: await userAuth(p.login, p.motDePasse) } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:users:authAdmin', async (_, p: { login: string; motDePasse: string }) => {
+    try { return { ok: true, user: await userAuthAdmin(p.login, p.motDePasse) } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:users:add', async (_, input: UtilisateurInput) => {
+    try { return { ok: true, error: await userAdd(input) } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:users:update', async (_, p: { id: number; changes: Partial<UtilisateurInput> }) => {
+    try { return { ok: true, error: await userUpdate(p.id, p.changes) } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:users:remove', async (_, id: number) => {
+    try { return { ok: true, error: await userRemove(id) } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  // Garde administrateur (forçage + validation)
+  ipcMain.handle('db:admin:passwordValid', async (_, mdp: string) => {
+    try { return { ok: true, valide: await adminPasswordValid(mdp) } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:admin:getForcage', async () => {
+    try { return { ok: true, mdp: await getMdpForcage() } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:admin:setForcage', async (_, mdp: string) => {
+    try { await setMdpForcage(mdp); return { ok: true } }
     catch (err) { return { ok: false, error: String(err) } }
   })
 

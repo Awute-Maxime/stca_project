@@ -7,7 +7,7 @@ import { useWindowStore } from '@store/windowStore'
 const openWindow = (id: string): void => {
   useWindowStore.setState({
     windows: {
-      [id]: { id, title: 'Test Fenêtre', x: 100, y: 50, width: 400, height: 300, isOpen: true, isMinimized: false, zIndex: 1 }
+      [id]: { id, title: 'Test Fenêtre', x: 100, y: 50, defaultX: 100, defaultY: 50, width: 400, height: 300, isOpen: true, isMinimized: false, zIndex: 1 }
     }
   })
 }

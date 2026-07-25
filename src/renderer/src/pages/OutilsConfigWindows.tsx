@@ -119,7 +119,7 @@ export function TypesVehiculeWindow(): JSX.Element {
     })
   }
 
-  const fermer = (): void => window.dispatchEvent(new CustomEvent('mdi:close-self'))
+  const fermer = (): void => { window.dispatchEvent(new CustomEvent('mdi:close-self')) }
 
   // ── Styles table (modèle Config. Assurances) ───────────────────────────────
   // En-tête clair — même convention que nos autres tableaux (Liste, Archivage)

@@ -1,30 +1,27 @@
-import { getAllUtilisateurs } from './utilisateursStore'
+import { electronApi } from '@api/electron'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Mot de passe de forçage Administrateur (menu Outils+Config. → Clef
-// d'administration). Persisté dans localStorage — configurable via la fenêtre
-// « Configuration 'Mots de passe' Administrateur ».
+// Garde Administrateur — MIGRÉ EN BASE (Phase 3, 25/07/2026).
+// Le mot de passe de forçage vit dans la table `parametre` (clé mdp.forcage) et
+// la validation se fait dans le MAIN (mots de passe utilisateurs hachés).
+// Ces fonctions sont désormais ASYNCHRONES (aller-retour IPC).
 // ─────────────────────────────────────────────────────────────────────────────
 
-const LS_KEY = 'tcit_mdp_forcage'
-
-export function getMdpForcage(): string {
-  return localStorage.getItem(LS_KEY) ?? ''
+export async function getMdpForcage(): Promise<string> {
+  const r = await electronApi.dbAdminGetForcage()
+  return r.ok ? (r.mdp ?? '') : ''
 }
 
-export function setMdpForcage(mdp: string): void {
-  localStorage.setItem(LS_KEY, mdp)
+export async function setMdpForcage(mdp: string): Promise<void> {
+  await electronApi.dbAdminSetForcage(mdp)
 }
 
 /**
- * Un mot de passe donne accès aux fonctions d'Administrateur s'il correspond
- * au mot de passe de forçage configuré, OU au mot de passe d'un compte
- * administrateur actif (ex. awute) — ainsi l'accès reste possible tant que le
- * forçage n'a pas encore été configuré.
+ * true si le mot de passe correspond au forçage configuré OU au mot de passe
+ * d'un compte administrateur actif. Vérification côté main (hachage).
  */
-export function estMdpAdminValide(mdp: string): boolean {
+export async function estMdpAdminValide(mdp: string): Promise<boolean> {
   if (!mdp) return false
-  const forcage = getMdpForcage()
-  if (forcage && mdp === forcage) return true
-  return getAllUtilisateurs().some(u => u.administrateur && u.compteActif && u.motDePasse === mdp)
+  const r = await electronApi.dbAdminPasswordValid(mdp)
+  return r.ok ? !!r.valide : false
 }

@@ -3,7 +3,7 @@ import { LockOutlined, UserOutlined, EyeOutlined, EyeInvisibleOutlined, TeamOutl
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@store/authStore'
 import { electronApi } from '@api/electron'
-import { getAllUtilisateurs } from '@mock/utilisateursStore'
+import { useUtilisateurs } from '@mock/utilisateursStore'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 
 type DragCSS = React.CSSProperties & { WebkitAppRegion?: 'drag' | 'no-drag' }
@@ -18,8 +18,9 @@ export default function LoginPage(): JSX.Element {
   const passRef = useRef<HTMLInputElement>(null)
   const login    = useAuthStore(s => s.login)
   const navigate = useNavigate()
+  const utilisateurs = useUtilisateurs() // cache synchrone (sans mots de passe)
 
-  const isAdminUsername = getAllUtilisateurs().some(
+  const isAdminUsername = utilisateurs.some(
     u => u.login.toLowerCase() === username.toLowerCase() && u.administrateur && u.compteActif
   )
 
@@ -36,10 +37,8 @@ export default function LoginPage(): JSX.Element {
     setLoading(true)
     setError(null)
     try {
-      await new Promise(r => setTimeout(r, 380))
-      const found = getAllUtilisateurs().find(
-        u => u.login.toLowerCase() === username.toLowerCase() && u.motDePasse === password && u.compteActif
-      )
+      const r = await electronApi.dbUsersAuth(username, password) // vérification côté main (hachage)
+      const found = r.ok ? r.user : null
       if (found) {
         // Login de session partagé avec les fenêtres MDI (ex. « Archivé par »)
         localStorage.setItem('tcit_session_login', found.login)
@@ -61,10 +60,8 @@ export default function LoginPage(): JSX.Element {
     setLoading(true)
     setError(null)
     try {
-      await new Promise(r => setTimeout(r, 380))
-      const found = getAllUtilisateurs().find(
-        u => u.login.toLowerCase() === username.toLowerCase() && u.motDePasse === password && u.administrateur && u.compteActif
-      )
+      const r = await electronApi.dbUsersAuthAdmin(username, password) // admin actif requis
+      const found = r.ok ? r.user : null
       if (found) {
         // Ouvre UNIQUEMENT la fenêtre de gestion des utilisateurs — PAS
         // d'entrée dans l'application. La fenêtre de connexion reste ouverte

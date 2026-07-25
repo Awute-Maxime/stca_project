@@ -64,7 +64,7 @@ export default function EditionDestinationWindow(): JSX.Element {
     setTimeout(() => window.dispatchEvent(new CustomEvent('mdi:close-self')), 350)
   }
 
-  const fermer = (): void => window.dispatchEvent(new CustomEvent('mdi:close-self'))
+  const fermer = (): void => { window.dispatchEvent(new CustomEvent('mdi:close-self')) }
 
   // ── Styles ──────────────────────────────────────────────────────────────────
   const label: React.CSSProperties = { fontSize: 12, fontWeight: 700, color: C.blue, marginBottom: 4, display: 'block' }

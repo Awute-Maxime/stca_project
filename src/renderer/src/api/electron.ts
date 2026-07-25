@@ -1,3 +1,19 @@
+export interface DbUser {
+  id: number
+  login: string
+  nom: string
+  administrateur: boolean
+  compteActif: boolean
+  motDePasseMasque: string
+}
+export interface DbUserInput {
+  login: string
+  motDePasse: string
+  nom: string
+  administrateur: boolean
+  compteActif: boolean
+}
+
 export interface DbAssurTarif {
   type: string; tarif: number; taxe: number; commissionPct: number
   detail: { rc: number; cedeao: number; individuelle: number; accessoires: number }
@@ -69,6 +85,15 @@ declare global {
       dbMarqueRemove:  (id: number) => Promise<{ ok: boolean; error?: string }>
       dbAssurancesGet:  () => Promise<{ ok: boolean; config?: DbAssurConfig; error?: string }>
       dbAssurancesSave: (cfg: DbAssurConfig) => Promise<{ ok: boolean; config?: DbAssurConfig; error?: string }>
+      dbUsersList:      () => Promise<{ ok: boolean; items?: DbUser[]; error?: string }>
+      dbUsersAuth:      (login: string, motDePasse: string) => Promise<{ ok: boolean; user?: DbUser | null; error?: string }>
+      dbUsersAuthAdmin: (login: string, motDePasse: string) => Promise<{ ok: boolean; user?: DbUser | null; error?: string }>
+      dbUsersAdd:       (input: DbUserInput) => Promise<{ ok: boolean; error?: string | null }>
+      dbUsersUpdate:    (id: number, changes: Partial<DbUserInput>) => Promise<{ ok: boolean; error?: string | null }>
+      dbUsersRemove:    (id: number) => Promise<{ ok: boolean; error?: string | null }>
+      dbAdminPasswordValid: (mdp: string) => Promise<{ ok: boolean; valide?: boolean; error?: string }>
+      dbAdminGetForcage: () => Promise<{ ok: boolean; mdp?: string; error?: string }>
+      dbAdminSetForcage: (mdp: string) => Promise<{ ok: boolean; error?: string }>
       onDbChanged:     (cb: (p: { domaine: string }) => void) => (() => void)
       importPickFile:  () => Promise<string | null>
       importPreview:   (chemin: string) => Promise<ImportPreview>
@@ -118,6 +143,24 @@ export const electronApi = {
     window.api?.dbAssurancesGet?.() ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
   dbAssurancesSave: (cfg: DbAssurConfig): Promise<{ ok: boolean; config?: DbAssurConfig; error?: string }> =>
     window.api?.dbAssurancesSave?.(cfg) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbUsersList:      (): Promise<{ ok: boolean; items?: DbUser[]; error?: string }> =>
+    window.api?.dbUsersList?.() ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbUsersAuth:      (login: string, motDePasse: string): Promise<{ ok: boolean; user?: DbUser | null; error?: string }> =>
+    window.api?.dbUsersAuth?.(login, motDePasse) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbUsersAuthAdmin: (login: string, motDePasse: string): Promise<{ ok: boolean; user?: DbUser | null; error?: string }> =>
+    window.api?.dbUsersAuthAdmin?.(login, motDePasse) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbUsersAdd:       (input: DbUserInput): Promise<{ ok: boolean; error?: string | null }> =>
+    window.api?.dbUsersAdd?.(input) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbUsersUpdate:    (id: number, changes: Partial<DbUserInput>): Promise<{ ok: boolean; error?: string | null }> =>
+    window.api?.dbUsersUpdate?.(id, changes) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbUsersRemove:    (id: number): Promise<{ ok: boolean; error?: string | null }> =>
+    window.api?.dbUsersRemove?.(id) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbAdminPasswordValid: (mdp: string): Promise<{ ok: boolean; valide?: boolean; error?: string }> =>
+    window.api?.dbAdminPasswordValid?.(mdp) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbAdminGetForcage: (): Promise<{ ok: boolean; mdp?: string; error?: string }> =>
+    window.api?.dbAdminGetForcage?.() ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbAdminSetForcage: (mdp: string): Promise<{ ok: boolean; error?: string }> =>
+    window.api?.dbAdminSetForcage?.(mdp) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
   onDbChanged:     (cb: (p: { domaine: string }) => void): (() => void) =>
     window.api?.onDbChanged?.(cb) ?? (() => {}),
   importPickFile:  (): Promise<string | null> => window.api?.importPickFile?.() ?? Promise.resolve(null),

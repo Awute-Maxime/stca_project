@@ -18,8 +18,8 @@ export default function ClefAdminFlow({ onClose }: { onClose: () => void }): JSX
   const [nouveauMdp, setNouveauMdp] = useState('')
   const [erreur, setErreur] = useState<string | null>(null)
 
-  const validerSaisie = (): void => {
-    if (estMdpAdminValide(mdp)) {
+  const validerSaisie = async (): Promise<void> => {
+    if (await estMdpAdminValide(mdp)) {
       setErreur(null)
       setStep('config')
     } else {
@@ -28,12 +28,12 @@ export default function ClefAdminFlow({ onClose }: { onClose: () => void }): JSX
     }
   }
 
-  const validerConfig = (): void => {
+  const validerConfig = async (): Promise<void> => {
     if (!nouveauMdp.trim()) {
       setErreur('Saisissez le nouveau mot de passe de forçage.')
       return
     }
-    setMdpForcage(nouveauMdp.trim())
+    await setMdpForcage(nouveauMdp.trim())
     notification.success({
       message: '🔑 Mot de passe de forçage enregistré',
       description: "Il donne désormais accès aux fonctions d'Administrateur de TCIT.",
@@ -107,10 +107,10 @@ export default function ClefAdminFlow({ onClose }: { onClose: () => void }): JSX
                 <label style={{ fontSize: 11.5, whiteSpace: 'nowrap', color: '#374151', fontWeight: 700 }}>» Mot de passe Admin. :</label>
                 <input type="password" className="light-input" value={mdp}
                   onChange={e => { setMdp(e.target.value); setErreur(null) }}
-                  onKeyDown={e => { if (e.key === 'Enter') validerSaisie() }}
+                  onKeyDown={e => { if (e.key === 'Enter') void validerSaisie() }}
                   autoFocus
                   style={champ} />
-                <button style={okBtn} onClick={validerSaisie}>OK ✔</button>
+                <button style={okBtn} onClick={() => void validerSaisie()}>OK ✔</button>
               </div>
               {erreur && (
                 <div style={{ marginTop: 10, fontSize: 11, color: '#DC2626', fontWeight: 600 }}>⚠ {erreur}</div>
@@ -155,7 +155,7 @@ export default function ClefAdminFlow({ onClose }: { onClose: () => void }): JSX
               <label style={{ fontSize: 12, whiteSpace: 'nowrap', color: '#1E293B', fontWeight: 700 }}>» Mot de passe Admin. :</label>
               <input type="password" className="light-input" value={nouveauMdp}
                 onChange={e => { setNouveauMdp(e.target.value); setErreur(null) }}
-                onKeyDown={e => { if (e.key === 'Enter') validerConfig() }}
+                onKeyDown={e => { if (e.key === 'Enter') void validerConfig() }}
                 autoFocus
                 style={{ ...champ, width: 150 }} />
             </div>
@@ -168,7 +168,7 @@ export default function ClefAdminFlow({ onClose }: { onClose: () => void }): JSX
             <span style={{ fontSize: 26, lineHeight: 1 }}>⚠️</span>
             <div style={{ flex: 1 }} />
             <button style={usbBtn} onClick={ecrireCleUsb}>🔌 Ecrire Clé USB</button>
-            <button style={okBtn} onClick={validerConfig}>OK ✔</button>
+            <button style={okBtn} onClick={() => void validerConfig()}>OK ✔</button>
             <button style={annulerBtn} onClick={onClose}>Annuler 🚫</button>
           </div>
         </div>

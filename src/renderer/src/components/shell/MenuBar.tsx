@@ -103,13 +103,19 @@ export default function MenuBar({ utilisateurLogin, onMenuItemClick }: MenuBarPr
           TCIT : Enregistrement des Véhicules
         </div>
 
-        {/* Utilisateur — prototype: #tb-u */}
+        {/* Utilisateur — prototype: #tb-u — point vert = session connectée */}
         <span style={{
-          fontSize: 10,
-          color: 'rgba(255,255,255,0.5)',
+          display: 'inline-flex', alignItems: 'center',
+          fontSize: 12,
+          color: 'rgba(255,255,255,0.85)',
           marginRight: 10,
         }}>
-          utilisateur : <b>{utilisateurLogin}</b>
+          <span style={{
+            display: 'inline-block', width: 6, height: 6, borderRadius: '50%',
+            background: '#4ADE80', marginRight: 6, flexShrink: 0,
+            boxShadow: '0 0 4px #4ADE80',
+          }} />
+          utilisateur : <b style={{ marginLeft: 3 }}>{utilisateurLogin}</b>
         </span>
 
         {/* Boutons fenêtre — prototype: .wc */}

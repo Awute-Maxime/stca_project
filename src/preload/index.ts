@@ -39,6 +39,15 @@ const api = {
   dbMarqueRemove: (id: number): Promise<unknown> => ipcRenderer.invoke('db:marques:remove', id),
   dbAssurancesGet: (): Promise<unknown> => ipcRenderer.invoke('db:assurances:get'),
   dbAssurancesSave: (cfg: unknown): Promise<unknown> => ipcRenderer.invoke('db:assurances:save', cfg),
+  dbUsersList: (): Promise<unknown> => ipcRenderer.invoke('db:users:list'),
+  dbUsersAuth: (login: string, motDePasse: string): Promise<unknown> => ipcRenderer.invoke('db:users:auth', { login, motDePasse }),
+  dbUsersAuthAdmin: (login: string, motDePasse: string): Promise<unknown> => ipcRenderer.invoke('db:users:authAdmin', { login, motDePasse }),
+  dbUsersAdd: (input: unknown): Promise<unknown> => ipcRenderer.invoke('db:users:add', input),
+  dbUsersUpdate: (id: number, changes: unknown): Promise<unknown> => ipcRenderer.invoke('db:users:update', { id, changes }),
+  dbUsersRemove: (id: number): Promise<unknown> => ipcRenderer.invoke('db:users:remove', id),
+  dbAdminPasswordValid: (mdp: string): Promise<unknown> => ipcRenderer.invoke('db:admin:passwordValid', mdp),
+  dbAdminGetForcage: (): Promise<unknown> => ipcRenderer.invoke('db:admin:getForcage'),
+  dbAdminSetForcage: (mdp: string): Promise<unknown> => ipcRenderer.invoke('db:admin:setForcage', mdp),
   // Synchro multi-fenêtres : le main diffuse db:changed après chaque écriture
   onDbChanged: (cb: (p: { domaine: string }) => void): (() => void) => {
     const h = (_: unknown, data: { domaine: string }): void => cb(data)

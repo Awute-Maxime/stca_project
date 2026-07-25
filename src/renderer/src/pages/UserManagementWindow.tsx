@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import { Table, Checkbox, Modal, Input, Switch, Button, Tag, Popconfirm, Tooltip, notification } from 'antd'
 import {
-  UserAddOutlined, DeleteOutlined, EyeOutlined, EyeInvisibleOutlined,
+  UserAddOutlined, DeleteOutlined,
   TeamOutlined, LockOutlined, CheckCircleOutlined, StopOutlined, EditOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
-import { type MockUtilisateur } from '@mock/utilisateurs'
-import { useUtilisateurs, addUtilisateur, updateUtilisateur, removeUtilisateur } from '@mock/utilisateursStore'
+import { useUtilisateurs, addUtilisateur, updateUtilisateur, removeUtilisateur, type Utilisateur } from '@mock/utilisateursStore'
 
 // ── Palette ────────────────────────────────────────────────────────────────────
 const C = {
@@ -40,7 +39,7 @@ function PageHeader(): JSX.Element {
 }
 
 // ── Types locaux ───────────────────────────────────────────────────────────────
-type UserRow = MockUtilisateur
+type UserRow = Utilisateur
 
 interface AddModalState {
   login: string
@@ -60,8 +59,6 @@ export default function UserManagementWindow(): JSX.Element {
   const [addOpen, setAddOpen]     = useState(false)
   const [form, setForm]           = useState<AddModalState>(EMPTY_FORM)
   const [formErr, setFormErr]     = useState<string | null>(null)
-  const [showAllPass, setShowAllPass] = useState(false)
-  const [showPassIds, setShowPassIds] = useState<Set<number>>(new Set())
   // Édition du mot de passe d'un utilisateur existant
   const [pwdEdit, setPwdEdit] = useState<{ id: number; login: string } | null>(null)
   const [pwdValue, setPwdValue] = useState('')
@@ -71,48 +68,38 @@ export default function UserManagementWindow(): JSX.Element {
     if (err) notification.warning({ message: '🔒 Action refusée', description: err, placement: 'bottomRight' })
   }
 
-  // ── Mutations — écrites dans le store partagé ───────────────────────────────
-  const toggleAdmin = (id: number, val: boolean): void =>
-    guard(updateUtilisateur(id, { administrateur: val }))
+  // ── Mutations — écrites en BASE (asynchrones) ───────────────────────────────
+  const toggleAdmin = async (id: number, val: boolean): Promise<void> =>
+    guard(await updateUtilisateur(id, { administrateur: val }))
 
-  const toggleActif = (id: number, val: boolean): void =>
-    guard(updateUtilisateur(id, { compteActif: val }))
+  const toggleActif = async (id: number, val: boolean): Promise<void> =>
+    guard(await updateUtilisateur(id, { compteActif: val }))
 
-  const toggleShowPass = (id: number): void =>
-    setShowPassIds(prev => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
+  const deleteUser = async (id: number): Promise<void> =>
+    guard(await removeUtilisateur(id))
 
-  const deleteUser = (id: number): void =>
-    guard(removeUtilisateur(id))
-
-  const handleAdd = (): void => {
+  const handleAdd = async (): Promise<void> => {
     if (!form.login.trim()) { setFormErr("Le nom d'utilisateur est requis"); return }
     if (rows.some(u => u.login.toLowerCase() === form.login.toLowerCase())) {
       setFormErr("Ce nom d'utilisateur existe déjà"); return
     }
-    addUtilisateur({
+    const err = await addUtilisateur({
       login: form.login.trim(),
       motDePasse: form.motDePasse,
-      motDePasseMasque: '•'.repeat(form.motDePasse.length),
       nom: form.nom.trim() || form.login.trim(),
       administrateur: form.administrateur,
       compteActif: form.compteActif,
     })
+    if (err) { setFormErr(err); return }
     setAddOpen(false)
     setForm(EMPTY_FORM)
     setFormErr(null)
   }
 
-  const handlePwdSave = (): void => {
+  const handlePwdSave = async (): Promise<void> => {
     if (!pwdEdit) return
-    guard(updateUtilisateur(pwdEdit.id, {
-      motDePasse: pwdValue,
-      motDePasseMasque: '•'.repeat(pwdValue.length),
-    }))
+    const err = await updateUtilisateur(pwdEdit.id, { motDePasse: pwdValue })
+    if (err) { guard(err); return }
     notification.success({ message: `🔑 Mot de passe de « ${pwdEdit.login} » modifié`, placement: 'bottomRight' })
     setPwdEdit(null)
     setPwdValue('')
@@ -147,46 +134,32 @@ export default function UserManagementWindow(): JSX.Element {
       ),
     },
     {
-      title: 'Mot de passe', dataIndex: 'motDePasse', width: 160,
-      render: (v, row) => {
-        const visible = showAllPass || showPassIds.has(row.id)
-        return (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{
-              fontFamily: visible ? "'Segoe UI', sans-serif" : 'monospace',
-              fontSize: 12, color: visible ? '#1E293B' : C.muted,
-              letterSpacing: visible ? 0 : 2,
-            }}>
-              {v ? (visible ? v : '•'.repeat(Math.max(v.length, 4))) : <span style={{ color: '#D1D5DB', fontStyle: 'italic', fontSize: 11 }}>—</span>}
+      title: 'Mot de passe', dataIndex: 'motDePasseMasque', width: 160,
+      render: (mask, row) => (
+        // Mots de passe HACHÉS en base : ils ne sont jamais lisibles (sécurité).
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Tooltip title="Haché — non consultable">
+            <span style={{ fontFamily: 'monospace', fontSize: 12, color: C.muted, letterSpacing: 2 }}>
+              {mask || '••••••'}
             </span>
-            {v && (
-              <Tooltip title={visible ? 'Masquer' : 'Afficher'}>
-                <button
-                  onClick={() => toggleShowPass(row.id)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.muted, fontSize: 13, padding: 0, display: 'flex' }}
-                >
-                  {visible ? <EyeInvisibleOutlined /> : <EyeOutlined />}
-                </button>
-              </Tooltip>
-            )}
-            <Tooltip title="Modifier le mot de passe">
-              <button
-                onClick={() => { setPwdEdit({ id: row.id, login: row.login }); setPwdValue('') }}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.muted, fontSize: 12, padding: 0, display: 'flex' }}
-              >
-                <EditOutlined />
-              </button>
-            </Tooltip>
-          </div>
-        )
-      },
+          </Tooltip>
+          <Tooltip title="Modifier le mot de passe">
+            <button
+              onClick={() => { setPwdEdit({ id: row.id, login: row.login }); setPwdValue('') }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.muted, fontSize: 12, padding: 0, display: 'flex' }}
+            >
+              <EditOutlined />
+            </button>
+          </Tooltip>
+        </div>
+      ),
     },
     {
       title: 'Administrateur', dataIndex: 'administrateur', width: 110, align: 'center' as const,
       render: (v, row) => (
         <Checkbox
           checked={v}
-          onChange={e => toggleAdmin(row.id, e.target.checked)}
+          onChange={e => void toggleAdmin(row.id, e.target.checked)}
           style={{ accentColor: C.accent }}
         />
       ),
@@ -197,7 +170,7 @@ export default function UserManagementWindow(): JSX.Element {
         <Switch
           size="small"
           checked={v}
-          onChange={val => toggleActif(row.id, val)}
+          onChange={val => void toggleActif(row.id, val)}
           checkedChildren={<CheckCircleOutlined />}
           unCheckedChildren={<StopOutlined />}
           style={{ background: v ? C.green : '#D1D5DB' }}
@@ -210,7 +183,7 @@ export default function UserManagementWindow(): JSX.Element {
         <Popconfirm
           title="Supprimer cet utilisateur ?"
           description={`"${row.login}" sera supprimé définitivement.`}
-          onConfirm={() => deleteUser(row.id)}
+          onConfirm={() => void deleteUser(row.id)}
           okText="Supprimer"
           cancelText="Annuler"
           okButtonProps={{ danger: true }}
@@ -254,21 +227,6 @@ export default function UserManagementWindow(): JSX.Element {
           </Tag>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <Tooltip title={showAllPass ? 'Masquer tous les mots de passe' : 'Afficher tous les mots de passe'}>
-            <button
-              onClick={() => setShowAllPass(v => !v)}
-              style={{
-                height: 28, padding: '0 10px', border: `1px solid ${C.border}`,
-                borderRadius: 6, background: showAllPass ? `${C.accent}12` : '#fff',
-                color: showAllPass ? C.accent : C.muted,
-                fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5,
-                transition: 'all 0.15s',
-              }}
-            >
-              <LockOutlined style={{ fontSize: 12 }} />
-              {showAllPass ? 'Masquer' : 'Afficher'} MDP
-            </button>
-          </Tooltip>
           <Button
             type="primary"
             icon={<UserAddOutlined />}
@@ -301,7 +259,7 @@ export default function UserManagementWindow(): JSX.Element {
           </div>
         }
         open={addOpen}
-        onOk={handleAdd}
+        onOk={() => void handleAdd()}
         onCancel={() => setAddOpen(false)}
         okText="Créer"
         cancelText="Annuler"
@@ -367,7 +325,7 @@ export default function UserManagementWindow(): JSX.Element {
           </div>
         }
         open={pwdEdit !== null}
-        onOk={handlePwdSave}
+        onOk={() => void handlePwdSave()}
         onCancel={() => { setPwdEdit(null); setPwdValue('') }}
         okText="Enregistrer"
         cancelText="Annuler"
@@ -379,7 +337,7 @@ export default function UserManagementWindow(): JSX.Element {
           <Input.Password
             value={pwdValue}
             onChange={e => setPwdValue(e.target.value)}
-            onPressEnter={handlePwdSave}
+            onPressEnter={() => void handlePwdSave()}
             placeholder="Laisser vide = aucun mot de passe"
             size="small"
             autoFocus

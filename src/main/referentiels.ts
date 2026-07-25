@@ -1,4 +1,5 @@
 import { BrowserWindow } from 'electron'
+import { scryptSync, randomBytes, timingSafeEqual } from 'crypto'
 import { getPrisma } from './db'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -50,6 +51,7 @@ async function faireAmorcage(): Promise<void> {
       }),
     })
   }
+  await amorcerUtilisateurs()
 }
 
 // ── Catégories de véhicule (← CATVEH : rang + nom) ───────────────────────────
@@ -332,4 +334,155 @@ async function reconcilierTarifs(): Promise<void> {
     }
   }
   if (modifie) diffuserChangement('assurances')
+}
+
+// ── Utilisateurs (comptes de connexion) ──────────────────────────────────────
+// Mots de passe HACHÉS (scrypt + sel) — jamais renvoyés au renderer. Le login
+// et la garde admin passent par le main (vérification côté serveur).
+
+export interface UtilisateurDto {
+  id: number
+  login: string
+  nom: string
+  administrateur: boolean
+  compteActif: boolean
+  motDePasseMasque: string
+}
+export interface UtilisateurInput {
+  login: string
+  motDePasse: string
+  nom: string
+  administrateur: boolean
+  compteActif: boolean
+}
+
+function hacher(pwd: string): string {
+  const sel = randomBytes(16).toString('hex')
+  const hash = scryptSync(pwd, sel, 32).toString('hex')
+  return `${sel}:${hash}`
+}
+function verifier(pwd: string, stocke: string): boolean {
+  if (!stocke || !stocke.includes(':')) return false
+  const [sel, hash] = stocke.split(':')
+  const ref = Buffer.from(hash, 'hex')
+  const test = scryptSync(pwd, sel, 32)
+  return ref.length === test.length && timingSafeEqual(ref, test)
+}
+function toUserDto(u: { id: number; login: string; nom: string; administrateur: boolean; compteActif: boolean }): UtilisateurDto {
+  return { id: u.id, login: u.login, nom: u.nom, administrateur: u.administrateur, compteActif: u.compteActif, motDePasseMasque: '••••••' }
+}
+
+// Comptes de base (amorçage) — repris des mocks de l'app (mots de passe en clair
+// ici, HACHÉS à l'insertion). La source de vérité après amorçage = la base.
+const UTILISATEURS_DEFAUT: UtilisateurInput[] = [
+  { login: 'Administrateur',   motDePasse: 'Admin2024', nom: 'Administrateur Système',  administrateur: true,  compteActif: true  },
+  { login: 'Authority.Config', motDePasse: 'Conf#2024', nom: 'Authority Configuration', administrateur: true,  compteActif: true  },
+  { login: 'Odette',           motDePasse: 'Ode7788',   nom: 'Odette Mensah',           administrateur: true,  compteActif: true  },
+  { login: 'akilou',           motDePasse: 'aki',       nom: 'Akilou Koffi',            administrateur: false, compteActif: true  },
+  { login: 'aminou',           motDePasse: 'aminou',    nom: 'Aminou Sow',              administrateur: true,  compteActif: true  },
+  { login: 'awute',            motDePasse: 'Awmax',     nom: 'Awute Maxime',            administrateur: true,  compteActif: true  },
+  { login: 'awute2',           motDePasse: 'Awmax2',    nom: 'Awute Maxime 2',          administrateur: true,  compteActif: true  },
+  { login: 'celestine',        motDePasse: 'celes',     nom: 'Celestine Atsu',          administrateur: false, compteActif: true  },
+  { login: 'clemence',         motDePasse: 'clem4',     nom: 'Clemence Dossou',         administrateur: false, compteActif: false },
+  { login: 'emmanuel',         motDePasse: 'emmanuel',  nom: 'Emmanuel Kodjo',          administrateur: false, compteActif: true  },
+  { login: 'jeanlin',          motDePasse: 'jean99',    nom: 'Jeanlin Gbadago',         administrateur: true,  compteActif: true  },
+  { login: 'mathieu',          motDePasse: 'math4',     nom: 'Mathieu Agbo',            administrateur: false, compteActif: true  },
+  { login: 'mohamed',          motDePasse: 'moha4',     nom: 'Mohamed Issah',           administrateur: false, compteActif: false },
+  { login: 'nicole',           motDePasse: 'nico4',     nom: 'Nicole Amedé',            administrateur: false, compteActif: false },
+  { login: 'oliadmin',         motDePasse: 'Oli#2024',  nom: 'Olivier Admin',           administrateur: true,  compteActif: true  },
+  { login: 'victor',           motDePasse: 'vict4',     nom: 'Victor Kponto',           administrateur: false, compteActif: true  },
+  { login: 'victoradm',        motDePasse: 'Vict#2024', nom: 'Victor Administrateur',   administrateur: true,  compteActif: true  },
+]
+
+export async function amorcerUtilisateurs(): Promise<void> {
+  const db = getPrisma()
+  if (await db.utilisateur.count() > 0) return
+  await db.utilisateur.createMany({
+    data: UTILISATEURS_DEFAUT.map(u => ({
+      login: u.login, motDePasse: hacher(u.motDePasse), nom: u.nom,
+      administrateur: u.administrateur, compteActif: u.compteActif,
+    })),
+  })
+}
+
+export async function usersList(): Promise<UtilisateurDto[]> {
+  await amorcerReferentiels()
+  const rows = await getPrisma().utilisateur.findMany({ orderBy: { id: 'asc' } })
+  return rows.map(toUserDto)
+}
+
+/** Authentifie (login insensible à la casse, compte actif). user (sans mdp) ou null. */
+export async function userAuth(login: string, motDePasse: string): Promise<UtilisateurDto | null> {
+  await amorcerReferentiels()
+  const rows = await getPrisma().utilisateur.findMany()
+  const u = rows.find(x => x.login.toLowerCase() === login.trim().toLowerCase() && x.compteActif)
+  if (!u || !verifier(motDePasse, u.motDePasse)) return null
+  return toUserDto(u)
+}
+
+/** Comme userAuth mais exige le rôle administrateur (bouton Gestion utilisateurs). */
+export async function userAuthAdmin(login: string, motDePasse: string): Promise<UtilisateurDto | null> {
+  const dto = await userAuth(login, motDePasse)
+  return dto && dto.administrateur ? dto : null
+}
+
+const MSG_DERNIER_ADMIN =
+  "Impossible : c'est le dernier administrateur actif. Créez ou réactivez d'abord un autre administrateur."
+
+async function estDernierAdminActif(id: number): Promise<boolean> {
+  const rows = await getPrisma().utilisateur.findMany()
+  const u = rows.find(x => x.id === id)
+  if (!u || !u.administrateur || !u.compteActif) return false
+  return rows.filter(x => x.administrateur && x.compteActif).length <= 1
+}
+
+export async function userAdd(input: UtilisateurInput): Promise<string | null> {
+  if (!input.login.trim()) return 'Le login est obligatoire.'
+  const rows = await getPrisma().utilisateur.findMany()
+  if (rows.some(u => u.login.toLowerCase() === input.login.trim().toLowerCase())) return 'Ce login existe déjà.'
+  await getPrisma().utilisateur.create({
+    data: {
+      login: input.login.trim(), motDePasse: hacher(input.motDePasse), nom: input.nom,
+      administrateur: input.administrateur, compteActif: input.compteActif,
+    },
+  })
+  diffuserChangement('utilisateurs')
+  return null
+}
+
+export async function userUpdate(id: number, changes: Partial<UtilisateurInput>): Promise<string | null> {
+  const retireAdmin = changes.administrateur === false || changes.compteActif === false
+  if (retireAdmin && await estDernierAdminActif(id)) return MSG_DERNIER_ADMIN
+  const data: Record<string, unknown> = {}
+  if (changes.login !== undefined) data.login = changes.login.trim()
+  if (changes.nom !== undefined) data.nom = changes.nom
+  if (changes.administrateur !== undefined) data.administrateur = changes.administrateur
+  if (changes.compteActif !== undefined) data.compteActif = changes.compteActif
+  if (changes.motDePasse !== undefined && changes.motDePasse !== '') data.motDePasse = hacher(changes.motDePasse)
+  await getPrisma().utilisateur.update({ where: { id }, data })
+  diffuserChangement('utilisateurs')
+  return null
+}
+
+export async function userRemove(id: number): Promise<string | null> {
+  if (await estDernierAdminActif(id)) return MSG_DERNIER_ADMIN
+  await getPrisma().utilisateur.deleteMany({ where: { id } })
+  diffuserChangement('utilisateurs')
+  return null
+}
+
+// ── Mot de passe admin (forçage + garde des fonctions admin) ─────────────────
+export async function getMdpForcage(): Promise<string> {
+  return (await getParam('mdp.forcage')) ?? ''
+}
+export async function setMdpForcage(mdp: string): Promise<void> {
+  await setParam('mdp.forcage', mdp)
+}
+/** true si le mdp = forçage configuré OU mot de passe d'un admin actif. */
+export async function adminPasswordValid(mdp: string): Promise<boolean> {
+  if (!mdp) return false
+  const forcage = await getParam('mdp.forcage')
+  if (forcage && mdp === forcage) return true
+  const rows = await getPrisma().utilisateur.findMany()
+  return rows.some(u => u.administrateur && u.compteActif && verifier(mdp, u.motDePasse))
 }
