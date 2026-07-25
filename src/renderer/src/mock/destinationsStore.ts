@@ -1,26 +1,34 @@
 import { useState, useEffect } from 'react'
-import { mockDestinations, type MockDestination } from './destinations'
+import { electronApi } from '@api/electron'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Paramètres Destinations (menu Outils+Config., captures STCA du 22/07/2026) —
-// SOURCE UNIQUE des destinations (bureaux douaniers frontière) : code, tarif,
-// nom, lettre, n° d'immatriculation courant.
+// Paramètres Destinations — MIGRÉ EN BASE (Phase 3, 25/07/2026).
+// La table `destination` (← ZoneImportation + couleur de plaque TCIT) est la
+// source unique ; le localStorage n'est plus utilisé pour ce domaine.
 //
-// NOUVEAU dans TCIT : chaque destination porte la COULEUR de sa plaque
-// pré-imprimée (les plaques sont pré-fabriquées par couleur selon la
-// destination). Cette couleur est éditable ici et pilote toutes les pastilles
-// de l'app (Dashboard, Liste, Recherche, Enregistrement, Pointage, Analyse…) —
-// avant, la couleur était recopiée en dur dans 8 fichiers.
+// La couleur de plaque de chaque destination pilote toutes les pastilles de
+// l'app (Dashboard, Liste, Recherche, Enregistrement, Pointage, Analyse…).
 //
-// Persistée dans localStorage + synchro toutes fenêtres (storage + CustomEvent).
+// MODÈLE ASYNCHRONE (identique aux types de véhicule) :
+//   - un CACHE module (rempli au chargement + rafraîchi sur `db:changed`) permet
+//     de garder des getters SYNCHRONES (getDestinations/getDestColors/couleurDe)
+//     pour les nombreux appels hors composant (recherches par code, dropdowns),
+//   - les hooks useDestinations/useDestColors se ré-abonnent au cache et
+//     re-rendent quand il change (dans n'importe quelle fenêtre),
+//   - écriture via IPC → le main diffuse `db:changed` à toutes les fenêtres.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export interface DestinationParam extends MockDestination {
-  couleur: string // couleur de la plaque pré-imprimée liée à la destination
+export interface DestinationParam {
+  code: string
+  nom: string
+  lettre: string
+  tarif: number
+  numImmatActuel: number
+  couleur: string
+  contact?: string | null
+  description?: string | null
 }
 
-// Palette des couleurs de plaques standard proposée dans le formulaire
-// (l'utilisateur peut aussi saisir une couleur personnalisée).
 export const PALETTE_PLAQUES: { nom: string; hex: string }[] = [
   { nom: 'Rouge',  hex: '#DC2626' },
   { nom: 'Vert',   hex: '#16A34A' },
@@ -31,89 +39,97 @@ export const PALETTE_PLAQUES: { nom: string; hex: string }[] = [
   { nom: 'Gris',   hex: '#94A3B8' },
   { nom: 'Noir',   hex: '#1F2937' },
 ]
-
-// Association couleur↔destination actuelle (reprise des DEST_COLORS codés en
-// dur jusqu'ici) — sert de valeur par défaut avant toute personnalisation.
-const COULEURS_DEFAUT: Record<string, string> = {
-  AFO: '#DC2626', CK: '#DC2626', KA: '#DC2626', KE: '#DC2626', TO: '#DC2626',
-  KP: '#16A34A', KW: '#16A34A', NO: '#16A34A',
-  'S/C': '#FFD700', POL: '#94A3B8',
-}
 export const COULEUR_FALLBACK = '#2563EB'
 
-const LS_KEY = 'tcit_destinations'
-const LOCAL_EVENT = 'tcit:destinations-changed'
+// Repli d'affichage si la base est injoignable (les vraies valeurs viennent de la base)
+const DEFAUT: DestinationParam[] = [
+  { code: 'AFO', nom: 'Afolé',         lettre: 'C', tarif: 10000, numImmatActuel: 7388, couleur: '#DC2626' },
+  { code: 'CK',  nom: 'Cinkassé',      lettre: 'T', tarif: 10000, numImmatActuel: 7467, couleur: '#DC2626' },
+  { code: 'KA',  nom: 'Kambolé',       lettre: 'E', tarif: 10000, numImmatActuel: 2182, couleur: '#DC2626' },
+  { code: 'KE',  nom: 'Kétao',         lettre: 'C', tarif: 10000, numImmatActuel: 3177, couleur: '#DC2626' },
+  { code: 'KP',  nom: 'Kpadapé',       lettre: 'C', tarif: 10000, numImmatActuel: 4419, couleur: '#16A34A' },
+  { code: 'KW',  nom: 'Kwodjoviakope', lettre: 'C', tarif: 10000, numImmatActuel: 6637, couleur: '#16A34A' },
+  { code: 'NO',  nom: 'Noépé',         lettre: 'A', tarif: 10000, numImmatActuel: 3910, couleur: '#16A34A' },
+  { code: 'TO',  nom: 'Tohoum',        lettre: 'C', tarif: 10000, numImmatActuel: 7490, couleur: '#DC2626' },
+  { code: 'S/C', nom: 'Sanvi condji',  lettre: 'A', tarif: 10000, numImmatActuel: 8039, couleur: '#FFD700' },
+  { code: 'POL', nom: 'Réexportation', lettre: 'A', tarif: 10000, numImmatActuel: 3,    couleur: '#94A3B8' },
+]
 
-const DEFAUT: DestinationParam[] = mockDestinations.map(d => ({
-  ...d,
-  couleur: COULEURS_DEFAUT[d.code] ?? COULEUR_FALLBACK,
-}))
+// ── Cache module partagé ─────────────────────────────────────────────────────
+let cache: DestinationParam[] = DEFAUT
+const abonnes = new Set<() => void>() // hooks à re-rendre quand le cache change
+let initialise = false
 
+async function rechargerCache(): Promise<void> {
+  const r = await electronApi.dbDestinationsList()
+  if (r.ok && r.items) {
+    cache = r.items
+    abonnes.forEach(fn => fn())
+  } else {
+    console.error('[destinationsStore] lecture base échouée :', r.error)
+  }
+}
+
+/** Amorçage unique : charge la base + s'abonne à db:changed pour ce domaine. */
+function assurerInit(): void {
+  if (initialise) return
+  initialise = true
+  void rechargerCache()
+  electronApi.onDbChanged(p => { if (p.domaine === 'destinations') void rechargerCache() })
+}
+assurerInit()
+
+// ── Getters synchrones (servent le cache) ────────────────────────────────────
 export function getDestinations(): DestinationParam[] {
-  try {
-    const raw = localStorage.getItem(LS_KEY)
-    if (raw) {
-      const p = JSON.parse(raw) as DestinationParam[]
-      if (Array.isArray(p) && p.length > 0) {
-        // Migration douce : garantir une couleur sur chaque ligne
-        return p.map(d => ({ ...d, couleur: d.couleur ?? COULEURS_DEFAUT[d.code] ?? COULEUR_FALLBACK }))
-      }
-    }
-  } catch { /* défauts */ }
-  return DEFAUT
+  assurerInit()
+  return cache
 }
 
-export function setDestinations(list: DestinationParam[]): void {
-  localStorage.setItem(LS_KEY, JSON.stringify(list))
-  window.dispatchEvent(new CustomEvent(LOCAL_EVENT))
-}
-
-/** Ajoute ou met à jour une destination (clé = code, insensible à la casse). */
-export function upsertDestination(d: DestinationParam): void {
-  const list = getDestinations()
-  const i = list.findIndex(x => x.code.toLowerCase() === d.code.toLowerCase())
-  if (i >= 0) list[i] = d
-  else list.push(d)
-  setDestinations(list)
-}
-
-export function removeDestination(code: string): void {
-  setDestinations(getDestinations().filter(d => d.code.toLowerCase() !== code.toLowerCase()))
-}
-
-/** Table couleur par code — remplace les DEST_COLORS codés en dur. */
 export function getDestColors(): Record<string, string> {
   const m: Record<string, string> = {}
-  for (const d of getDestinations()) m[d.code] = d.couleur
+  for (const d of cache) m[d.code] = d.couleur
   return m
 }
 
-/** Couleur de plaque d'une destination (avec repli). */
 export function couleurDe(code: string): string {
-  return getDestinations().find(d => d.code === code)?.couleur ?? COULEUR_FALLBACK
+  return cache.find(d => d.code === code)?.couleur ?? COULEUR_FALLBACK
 }
 
-/** Hook React : liste des destinations synchronisée entre toutes les fenêtres. */
+// ── Écritures asynchrones (retournent un message d'erreur, ou null si OK) ─────
+export async function upsertDestination(d: DestinationParam): Promise<string | null> {
+  const r = await electronApi.dbDestinationUpsert({
+    code: d.code.trim().toUpperCase(),
+    nom: d.nom, lettre: d.lettre, tarif: d.tarif, numImmatActuel: d.numImmatActuel, couleur: d.couleur,
+  })
+  if (!r.ok) return r.error ?? 'Écriture en base échouée.'
+  await rechargerCache()
+  return null
+}
+
+export async function removeDestination(code: string): Promise<string | null> {
+  const r = await electronApi.dbDestinationRemove(code)
+  if (!r.ok) return r.error ?? 'Suppression en base échouée.'
+  await rechargerCache()
+  return null
+}
+
+// ── Hooks réactifs ───────────────────────────────────────────────────────────
 export function useDestinations(): DestinationParam[] {
-  const [dests, setDests] = useState<DestinationParam[]>(getDestinations)
+  const [dests, setDests] = useState<DestinationParam[]>(cache)
 
   useEffect(() => {
-    const refresh = (): void => setDests(getDestinations())
-    const onStorage = (e: StorageEvent): void => {
-      if (e.key === LS_KEY) refresh()
-    }
-    window.addEventListener('storage', onStorage)
-    window.addEventListener(LOCAL_EVENT, refresh)
-    return () => {
-      window.removeEventListener('storage', onStorage)
-      window.removeEventListener(LOCAL_EVENT, refresh)
-    }
+    assurerInit()
+    const fn = (): void => setDests(cache)
+    abonnes.add(fn)
+    fn()                  // synchro immédiate avec le cache courant
+    void rechargerCache() // et on rafraîchit au montage
+    return () => { abonnes.delete(fn) }
   }, [])
 
   return dests
 }
 
-/** Hook React : table couleur par code, réactive (pastilles de destination). */
+/** Table couleur par code, réactive (pastilles de destination). */
 export function useDestColors(): Record<string, string> {
   const dests = useDestinations()
   const m: Record<string, string> = {}

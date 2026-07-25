@@ -2,7 +2,10 @@ import { app, shell, BrowserWindow, ipcMain, screen } from 'electron'
 import { join } from 'path'
 import { dbCounts, disconnectPrisma } from './db'
 import { pickCsvFile, previewCsv, runImport, type Mapping } from './import'
-import { categoriesList, categoriesSaveAll } from './referentiels'
+import {
+  categoriesList, categoriesSaveAll,
+  destinationsList, destinationUpsert, destinationRemove, type DestinationInput,
+} from './referentiels'
 
 const isDev = process.env['NODE_ENV'] === 'development' || !app.isPackaged
 
@@ -98,6 +101,18 @@ function setupMdiIPC(): void {
   })
   ipcMain.handle('db:categories:saveAll', async (_, items: { rang: number; nom: string }[]) => {
     try { return { ok: true, items: await categoriesSaveAll(items) } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:destinations:list', async () => {
+    try { return { ok: true, items: await destinationsList() } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:destinations:upsert', async (_, d: DestinationInput) => {
+    try { return { ok: true, item: await destinationUpsert(d) } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:destinations:remove', async (_, code: string) => {
+    try { await destinationRemove(code); return { ok: true } }
     catch (err) { return { ok: false, error: String(err) } }
   })
 

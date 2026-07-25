@@ -38,7 +38,7 @@ export default function EditionDestinationWindow(): JSX.Element {
   const [numImmat, setNumImmat] = useState<number>(dest?.numImmatActuel ?? 0)
   const [couleur,  setCouleur]  = useState(dest?.couleur ?? COULEUR_FALLBACK)
 
-  const valider = (): void => {
+  const valider = async (): Promise<void> => {
     const codeT = code.trim().toUpperCase()
     if (!codeT) { notification.error({ message: 'Le code destination est obligatoire.', placement: 'bottomRight' }); return }
     if (!nom.trim()) { notification.error({ message: 'Le nom de la destination est obligatoire.', placement: 'bottomRight' }); return }
@@ -47,7 +47,7 @@ export default function EditionDestinationWindow(): JSX.Element {
       notification.error({ message: `Le code « ${codeT} » existe déjà.`, placement: 'bottomRight' })
       return
     }
-    upsertDestination({
+    const err = await upsertDestination({
       code: codeT,
       tarif: tarif || 0,
       nom: nom.trim(),
@@ -55,6 +55,7 @@ export default function EditionDestinationWindow(): JSX.Element {
       numImmatActuel: numImmat || 0,
       couleur,
     })
+    if (err) { notification.error({ message: 'Enregistrement échoué', description: err, placement: 'bottomRight' }); return }
     notification.success({
       message: estNouveau ? '✅ Destination créée' : '✅ Destination modifiée',
       description: `${codeT} — ${nom.trim()} · plaque ${couleur}`,
@@ -158,7 +159,7 @@ export default function EditionDestinationWindow(): JSX.Element {
 
         {/* Boutons */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 6 }}>
-          <button onClick={valider} style={{
+          <button onClick={() => void valider()} style={{
             height: 36, padding: '0 26px', borderRadius: 6, cursor: 'pointer', border: 'none',
             background: C.green, color: '#fff', fontSize: 13, fontWeight: 700,
           }}>✓ Valider</button>

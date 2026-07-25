@@ -59,3 +59,76 @@ export async function categoriesSaveAll(
   diffuserChangement('categories')
   return db.categorieVehicule.findMany({ orderBy: { rang: 'asc' } })
 }
+
+// ── Destinations (← ZoneImportation + couleur de plaque TCIT) ────────────────
+
+export interface DestinationDto {
+  id: number
+  code: string
+  nom: string
+  lettre: string
+  tarif: number
+  numImmatActuel: number
+  couleur: string
+  contact: string | null
+  description: string | null
+}
+
+export interface DestinationInput {
+  code: string
+  nom: string
+  lettre: string
+  tarif: number
+  numImmatActuel: number
+  couleur: string
+}
+
+const DESTINATIONS_DEFAUT = [
+  { code: 'AFO', nom: 'Afolé',         lettre: 'C', tarif: 10000, numImmatActuel: 7388, couleur: '#DC2626' },
+  { code: 'CK',  nom: 'Cinkassé',      lettre: 'T', tarif: 10000, numImmatActuel: 7467, couleur: '#DC2626' },
+  { code: 'KA',  nom: 'Kambolé',       lettre: 'E', tarif: 10000, numImmatActuel: 2182, couleur: '#DC2626' },
+  { code: 'KE',  nom: 'Kétao',         lettre: 'C', tarif: 10000, numImmatActuel: 3177, couleur: '#DC2626' },
+  { code: 'KP',  nom: 'Kpadapé',       lettre: 'C', tarif: 10000, numImmatActuel: 4419, couleur: '#16A34A' },
+  { code: 'KW',  nom: 'Kwodjoviakope', lettre: 'C', tarif: 10000, numImmatActuel: 6637, couleur: '#16A34A' },
+  { code: 'NO',  nom: 'Noépé',         lettre: 'A', tarif: 10000, numImmatActuel: 3910, couleur: '#16A34A' },
+  { code: 'TO',  nom: 'Tohoum',        lettre: 'C', tarif: 10000, numImmatActuel: 7490, couleur: '#DC2626' },
+  { code: 'S/C', nom: 'Sanvi condji',  lettre: 'A', tarif: 10000, numImmatActuel: 8039, couleur: '#FFD700' },
+  { code: 'POL', nom: 'Réexportation', lettre: 'A', tarif: 10000, numImmatActuel: 3,    couleur: '#94A3B8' },
+]
+
+export async function destinationsList(): Promise<DestinationDto[]> {
+  const db = getPrisma()
+  let liste = await db.destination.findMany({ orderBy: { id: 'asc' } })
+  if (liste.length === 0) {
+    await db.destination.createMany({ data: DESTINATIONS_DEFAUT })
+    liste = await db.destination.findMany({ orderBy: { id: 'asc' } })
+  }
+  return liste
+}
+
+/** Crée ou met à jour une destination (clé métier = code). */
+export async function destinationUpsert(d: DestinationInput): Promise<DestinationDto> {
+  const db = getPrisma()
+  const code = d.code.trim()
+  if (!code) throw new Error('Le code destination est obligatoire.')
+  const data = {
+    nom: d.nom.trim(),
+    lettre: (d.lettre ?? '').trim(),
+    tarif: Math.round(d.tarif) || 0,
+    numImmatActuel: Math.round(d.numImmatActuel) || 0,
+    couleur: d.couleur,
+  }
+  const res = await db.destination.upsert({
+    where: { code },
+    create: { code, ...data },
+    update: data,
+  })
+  diffuserChangement('destinations')
+  return res
+}
+
+export async function destinationRemove(code: string): Promise<void> {
+  const db = getPrisma()
+  await db.destination.deleteMany({ where: { code } })
+  diffuserChangement('destinations')
+}

@@ -256,8 +256,9 @@ export function ParamDestinationsWindow(): JSX.Element {
       title: 'Supprimer cette destination ?',
       content: `« ${d.code} — ${d.nom} » sera retirée des paramètres de destination.`,
       okText: 'Supprimer', okType: 'danger', cancelText: 'Annuler',
-      onOk: () => {
-        removeDestination(d.code)
+      onOk: async () => {
+        const err = await removeDestination(d.code)
+        if (err) { notification.error({ message: 'Suppression échouée', description: err, placement: 'bottomRight' }); return }
         notification.success({ message: `Destination « ${d.code} » supprimée.`, placement: 'bottomRight' })
       },
     })

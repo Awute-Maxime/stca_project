@@ -30,6 +30,9 @@ const api = {
   dbCategoriesList: (): Promise<unknown> => ipcRenderer.invoke('db:categories:list'),
   dbCategoriesSaveAll: (items: { rang: number; nom: string }[]): Promise<unknown> =>
     ipcRenderer.invoke('db:categories:saveAll', items),
+  dbDestinationsList: (): Promise<unknown> => ipcRenderer.invoke('db:destinations:list'),
+  dbDestinationUpsert: (d: unknown): Promise<unknown> => ipcRenderer.invoke('db:destinations:upsert', d),
+  dbDestinationRemove: (code: string): Promise<unknown> => ipcRenderer.invoke('db:destinations:remove', code),
   // Synchro multi-fenêtres : le main diffuse db:changed après chaque écriture
   onDbChanged: (cb: (p: { domaine: string }) => void): (() => void) => {
     const h = (_: unknown, data: { domaine: string }): void => cb(data)
