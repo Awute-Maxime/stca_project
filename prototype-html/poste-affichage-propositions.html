@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCIT — Poste d'affichage Immatriculation (maquette)</title>
+<style>
+  :root{
+    --navy:#1B3A6B; --navy-deep:#0F2547; --accent:#2563EB; --gold:#F59E0B;
+    --rouge:#DC2626; --vert:#16A34A; --jaune:#EAB308; --gris:#94A3B8;
+    --bg:#EAEEF5; --paper:#FFFFFF; --panel:#F7F9FD;
+    --ink:#1B3A6B; --muted:#64748B; --line:#E2E8F0; --line-soft:#EDF1F8;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:'Segoe UI',system-ui,sans-serif;
+    background:var(--bg); color:var(--ink); overflow:hidden;
+    display:flex; flex-direction:column; align-items:center;
+    padding:18px; gap:14px;
+  }
+
+  /* Barre de contrôle de la maquette (n'existera pas dans l'app) */
+  .demo-bar{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    background:#fff; border:1px solid var(--line); border-radius:10px;
+    padding:8px 12px; font-size:12.5px; color:var(--muted); width:100%; max-width:1180px;
+    box-shadow:0 2px 8px rgba(27,58,107,0.05);
+  }
+  .demo-bar b{color:var(--navy);}
+  .demo-bar button{
+    background:#fff; color:var(--navy); border:1px solid var(--line); border-radius:7px;
+    padding:6px 12px; font-size:12.5px; cursor:pointer; font-weight:600;
+  }
+  .demo-bar button.on{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .demo-bar .sp{flex:1;}
+
+  /* ── L'écran d'affichage lui-même ─────────────────────────────── */
+  .screen{
+    width:100%; max-width:1180px; flex:1;
+    background:var(--paper);
+    border:1.5px solid var(--accent); border-radius:16px;
+    box-shadow:0 24px 60px rgba(27,58,107,0.16);
+    display:flex; flex-direction:column; overflow:hidden; position:relative;
+  }
+
+  /* Trait drapeau subtil (comme le login) : dégradé continu, bords fondus, reflet glissant */
+  .flag{
+    height:3px; position:relative; overflow:hidden; flex-shrink:0;
+    background:linear-gradient(90deg,#0a7d3e 0%,#2fa24a 22%,#e7c400 48%,#e19a1e 60%,#d21034 84%,#c60d30 100%);
+    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14%,#000 86%,transparent 100%);
+    mask-image:linear-gradient(90deg,transparent 0,#000 14%,#000 86%,transparent 100%);
+    opacity:0.7;
+  }
+  .flag::after{
+    content:""; position:absolute; top:0; left:-40%; width:40%; height:100%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,0.85),transparent);
+    animation:flagShine 5s ease-in-out infinite;
+  }
+  @keyframes flagShine{
+    0%,72%{left:-40%;} 88%{left:110%;} 100%{left:110%;}
+  }
+  @media (prefers-reduced-motion:reduce){ .flag::after{animation:none; display:none;} }
+
+  /* En-tête — bleu nuit, comme la barre de titre de l'app principale */
+  .head{
+    display:flex; align-items:center; gap:14px;
+    padding:15px 24px 14px;
+    background:linear-gradient(135deg,#16305c,var(--navy) 55%,#22467e);
+    color:#fff;
+  }
+  .brand{display:flex; align-items:center; gap:11px;}
+  .logo{
+    width:40px; height:40px; border-radius:10px; flex-shrink:0;
+    background:#fff; color:var(--navy);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:15px; letter-spacing:0.5px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.22);
+  }
+  .brand h1{font-size:16px; font-weight:800; letter-spacing:1px; color:#fff;}
+  .brand span{font-size:11px; color:rgba(255,255,255,0.65); letter-spacing:0.4px;}
+  .head .sp{flex:1;}
+  .pill{
+    display:flex; align-items:center; gap:7px; font-size:12.5px;
+    background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); font-weight:600;
+    padding:7px 13px; border-radius:20px; color:#fff;
+  }
+  .dot{width:8px;height:8px;border-radius:50%;background:#34D399;box-shadow:0 0 0 3px rgba(52,211,153,0.25);}
+  .dot.off{background:#F87171;box-shadow:0 0 0 3px rgba(248,113,113,0.25);}
+  .clock{font-variant-numeric:tabular-nums; font-weight:700;}
+
+  /* Corps — fond blanc dégradé pour faire ressortir les cartes (effet 3D) */
+  .body{
+    flex:1; display:flex; flex-direction:column; padding:20px 22px 22px; gap:16px; min-height:0;
+    background:
+      radial-gradient(900px 380px at 78% -6%, rgba(37,99,235,0.06), transparent 62%),
+      linear-gradient(158deg,#FBFCFE 0%,#EEF3FB 52%,#E7EEF9 100%);
+  }
+
+  /* Carte véhicule courant (le héros) */
+  .current{
+    background:linear-gradient(180deg,#ffffff,#fbfdff);
+    border:1px solid #dbe4f2; border-radius:14px; position:relative; overflow:hidden;
+    box-shadow:0 14px 34px rgba(27,58,107,0.14), 0 2px 6px rgba(27,58,107,0.06); flex-shrink:0;
+    display:grid; grid-template-columns:1fr auto; gap:8px;
+    padding:20px 24px 20px 28px;
+  }
+  .current .destband{position:absolute; left:0; top:0; bottom:0; width:8px;}
+  .current .lbl{font-size:11.5px; font-weight:800; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase;}
+  .plate{
+    font-weight:800; line-height:1; margin:8px 0 2px; white-space:nowrap;
+    font-size:clamp(40px, 7.2vw, 84px); letter-spacing:1px; color:var(--navy);
+  }
+  .plate small{color:var(--accent); font-size:1em;}
+  .meta-row{display:flex; align-items:center; gap:26px; flex-wrap:wrap; margin-top:14px;}
+  .meta{display:flex; flex-direction:column; gap:2px;}
+  .meta .k{font-size:10.5px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:0.7px;}
+  .meta .v{font-size:18px; font-weight:800; color:var(--navy);}
+  .meta .v.mono{font-family:'Consolas',monospace; letter-spacing:1px;}
+  .destbadge{
+    display:inline-flex; flex-direction:column; align-items:center; align-self:start;
+    padding:10px 18px; border-radius:12px; font-weight:800; font-size:24px; color:#fff;
+    box-shadow:0 6px 16px rgba(0,0,0,0.14);
+  }
+  .destbadge small{font-size:10px; font-weight:700; opacity:0.92; letter-spacing:1px; margin-top:1px;}
+  .rightcol{display:flex; flex-direction:column; align-items:flex-end; justify-content:space-between; gap:12px;}
+  .age{font-size:13px; color:var(--muted); font-weight:700;}
+  .btn-done{
+    border:none; cursor:pointer; padding:12px 20px; border-radius:11px;
+    background:linear-gradient(135deg,var(--vert),#12813d); color:#fff;
+    font-weight:800; font-size:15px; box-shadow:0 8px 18px rgba(22,163,74,0.28);
+    display:flex; align-items:center; gap:8px;
+  }
+
+  /* File d'attente — encadrée en panneau distinct */
+  .queue-wrap{
+    flex:1; display:flex; flex-direction:column; min-height:0;
+    border:1px solid #D7E0EF; border-radius:14px;
+    background:rgba(255,255,255,0.35);
+    padding:14px 14px 10px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.7);
+  }
+  .queue-head{
+    display:flex; align-items:center; gap:10px; margin-bottom:12px; padding:0 2px;
+    font-size:12.5px; color:var(--navy); font-weight:800; letter-spacing:0.6px; text-transform:uppercase;
+  }
+  .queue-head .count{
+    background:var(--gold); color:#3a2a00; font-weight:800; font-size:14px;
+    padding:3px 13px; border-radius:20px; text-transform:none; letter-spacing:0;
+    box-shadow:0 2px 6px rgba(245,158,11,0.30);
+  }
+  .queue{list-style:none; display:flex; flex-direction:column; gap:8px; overflow-y:auto; min-height:0; padding-right:4px;}
+  .row{
+    display:grid; grid-template-columns:8px 1.4fr 0.8fr 1.35fr 0.95fr auto;
+    align-items:center; gap:16px;
+    background:#fff; border:1px solid #E4EAF4;
+    border-radius:11px; padding:12px 14px 12px 0; transition:transform .14s, box-shadow .14s;
+    overflow:hidden; box-shadow:0 5px 14px rgba(27,58,107,0.07);
+  }
+  .row:hover{box-shadow:0 10px 24px rgba(27,58,107,0.12); transform:translateY(-1px);}
+  .row .rband{width:8px; align-self:stretch; border-radius:0;}
+  .row .rplate{font-weight:800; font-size:20px; letter-spacing:0.5px; color:var(--navy); white-space:nowrap;}
+  .row .rplate small{color:var(--accent);}
+  .row .k{font-size:9.5px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;}
+  .row .v{font-size:14px; color:#334155; font-weight:600;}
+  .row .v.mono{font-family:'Consolas',monospace;}
+  .rdest{display:inline-flex; padding:4px 11px; border-radius:8px; font-weight:800; font-size:14px; color:#fff;}
+  .row .rage{font-size:12.5px; color:var(--muted); font-weight:700; text-align:right; white-space:nowrap;}
+  .row .rdone{
+    cursor:pointer; width:38px; height:38px; border-radius:10px;
+    background:rgba(22,163,74,0.10); color:var(--vert); font-size:17px; font-weight:800;
+    border:1px solid rgba(22,163,74,0.28);
+  }
+  .row .rdone:hover{background:var(--vert); color:#fff;}
+
+  /* Mode réduit : on masque la file, le héros grandit */
+  .screen.reduit .queue-wrap{display:none;}
+  .screen.reduit .current{flex:1; align-content:center;}
+  .screen.reduit .plate{font-size:clamp(52px, 9.5vw, 116px);}
+  .waiting-hint{display:none;}
+  .screen.reduit .waiting-hint{
+    display:flex; align-items:center; gap:8px; margin-top:18px;
+    font-size:14px; color:var(--muted); font-weight:700;
+  }
+  .screen.reduit .waiting-hint .count{background:var(--gold); color:#3a2a00; padding:2px 10px; border-radius:20px; font-weight:800;}
+
+  /* Footer — bleu nuit comme la barre de statut de l'app principale */
+  .foot{
+    display:flex; align-items:center; gap:14px; padding:10px 24px;
+    font-size:11.5px; color:rgba(255,255,255,0.72);
+    background:linear-gradient(135deg,#16305c,var(--navy) 55%,#22467e);
+  }
+  .foot .sp{flex:1;}
+  .foot .net{display:inline-flex; align-items:center; gap:6px; color:#fff; font-weight:600;}
+  .foot .net i{width:6px;height:6px;border-radius:50%;background:#34D399;font-style:normal;box-shadow:0 0 0 3px rgba(52,211,153,0.25);}
+  .caption{font-size:12px;color:var(--muted);text-align:center;max-width:1180px;line-height:1.5;}
+</style>
+</head>
+<body>
+
+  <div class="demo-bar">
+    <b>Maquette</b> — bascule les modes :
+    <button id="b-reduit" onclick="setMode('reduit')">▲ Mode réduit</button>
+    <button id="b-deroule" class="on" onclick="setMode('deroule')">▼ Mode déroulé</button>
+    <span class="sp"></span>
+    <button onclick="toggleConn()">Simuler perte réseau</button>
+  </div>
+
+  <div class="screen deroule" id="screen">
+    <!-- En-tête -->
+    <div class="head">
+      <div class="brand">
+        <div class="logo">TG</div>
+        <div>
+          <h1>TCIT · POSTE PLAQUES</h1>
+          <span>Affichage Immatriculation + Tri</span>
+        </div>
+      </div>
+      <div class="sp"></div>
+      <div class="pill"><span class="dot" id="conn-dot"></span><span id="conn-txt">Guichet Principal connecté</span></div>
+      <div class="pill clock" id="clock">10:42:07</div>
+    </div>
+
+    <!-- Corps -->
+    <div class="body">
+
+      <!-- Véhicule courant (héros) -->
+      <div class="current">
+        <div class="destband" style="background:var(--rouge)"></div>
+        <div>
+          <div class="lbl">Dernier véhicule enregistré</div>
+          <div class="plate">TG WZ <small>C 1847</small> KE</div>
+          <div class="meta-row">
+            <div class="meta"><span class="k">N° de Tri</span><span class="v mono">021094</span></div>
+            <div class="meta"><span class="k">Marque / Modèle</span><span class="v">TOYOTA COROLLA</span></div>
+            <div class="meta"><span class="k">N° Châssis</span><span class="v mono">2T3P1RFV7KW054154</span></div>
+            <div class="meta"><span class="k">Guichet · Agent</span><span class="v">Principal · awute</span></div>
+          </div>
+          <div class="waiting-hint"><span class="count">3</span> véhicules en attente — déroulez pour voir la file</div>
+        </div>
+        <div class="rightcol">
+          <div class="destbadge" style="background:var(--rouge)">KE<small>DESTINATION</small></div>
+          <div class="age">⏱ il y a 12 s</div>
+          <button class="btn-done">✓ Plaque traitée</button>
+        </div>
+      </div>
+
+      <!-- File d'attente -->
+      <div class="queue-wrap">
+        <div class="queue-head">File d'attente <span class="count">3 en attente</span></div>
+        <ul class="queue">
+          <li class="row">
+            <div class="rband" style="background:var(--rouge)"></div>
+            <div><div class="k">Immatriculation</div><div class="rplate">TG WZ <small>E 2184</small> KA</div></div>
+            <div><div class="k">N° Tri</div><div class="v mono">019822</div></div>
+            <div><div class="k">Marque · Châssis</div><div class="v">TOYOTA HIACE · <span class="mono">…6R21884</span></div></div>
+            <div><div class="k">Guichet</div><div class="v">Guichet 2 · odette</div></div>
+            <div style="display:flex;align-items:center;gap:12px;justify-content:flex-end;padding-right:12px;">
+              <span class="rdest" style="background:var(--rouge)">KA</span>
+              <span class="rage">il y a 2 min</span>
+              <button class="rdone" title="Plaque traitée">✓</button>
+            </div>
+          </li>
+          <li class="row">
+            <div class="rband" style="background:var(--vert)"></div>
+            <div><div class="k">Immatriculation</div><div class="rplate">TG WZ <small>C 3180</small> NO</div></div>
+            <div><div class="k">N° Tri</div><div class="v mono">018745</div></div>
+            <div><div class="k">Marque · Châssis</div><div class="v">LAND CRUISER · <span class="mono">…KW03120</span></div></div>
+            <div><div class="k">Guichet</div><div class="v">Principal · akilou</div></div>
+            <div style="display:flex;align-items:center;gap:12px;justify-content:flex-end;padding-right:12px;">
+              <span class="rdest" style="background:var(--vert)">NO</span>
+              <span class="rage">il y a 5 min</span>
+              <button class="rdone" title="Plaque traitée">✓</button>
+            </div>
+          </li>
+          <li class="row">
+            <div class="rband" style="background:var(--vert)"></div>
+            <div><div class="k">Immatriculation</div><div class="rplate">TG WZ <small>C 4423</small> KP</div></div>
+            <div><div class="k">N° Tri</div><div class="v mono">017556</div></div>
+            <div><div class="k">Marque · Châssis</div><div class="v">MERCEDES ACTROS · <span class="mono">…9920A1</span></div></div>
+            <div><div class="k">Guichet</div><div class="v">Guichet 2 · victor</div></div>
+            <div style="display:flex;align-items:center;gap:12px;justify-content:flex-end;padding-right:12px;">
+              <span class="rdest" style="background:var(--vert)">KP</span>
+              <span class="rage">il y a 8 min</span>
+              <button class="rdone" title="Plaque traitée">✓</button>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Footer (drapeau subtil sur son bord supérieur) -->
+    <div class="flag"></div>
+    <div class="foot">
+      <span class="net"><i></i> 192.168.0.25:8000</span>
+      <span class="sp"></span>
+      <span>TCIT — Togolaise de Contrôle et d'Immatriculation Transit</span>
+    </div>
+  </div>
+
+  <div class="caption">
+    Maquette de discussion — mode <b>déroulé</b> (file complète) et <b>réduit</b> (juste le dernier véhicule en très grand).
+    Couleurs des badges = couleurs de plaques par destination. Le bouton « ✓ Plaque traitée » retire le véhicule de la file.
+  </div>
+
+<script>
+  function setMode(m){
+    const s=document.getElementById('screen');
+    s.classList.toggle('reduit', m==='reduit');
+    s.classList.toggle('deroule', m==='deroule');
+    document.getElementById('b-reduit').classList.toggle('on', m==='reduit');
+    document.getElementById('b-deroule').classList.toggle('on', m==='deroule');
+  }
+  let conn=true;
+  function toggleConn(){
+    conn=!conn;
+    document.getElementById('conn-dot').classList.toggle('off',!conn);
+    document.getElementById('conn-txt').textContent = conn ? 'Guichet Principal connecté' : 'Aucun guichet connecté';
+  }
+  setInterval(()=>{
+    document.getElementById('clock').textContent=new Date().toLocaleTimeString('fr-FR');
+  },1000);
+</script>
+</body>
+</html>
