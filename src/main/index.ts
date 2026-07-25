@@ -5,6 +5,7 @@ import { pickCsvFile, previewCsv, runImport, type Mapping } from './import'
 import {
   categoriesList, categoriesSaveAll,
   destinationsList, destinationUpsert, destinationRemove, type DestinationInput,
+  marquesList, marqueAdd, marqueRename, marqueRemove,
 } from './referentiels'
 
 const isDev = process.env['NODE_ENV'] === 'development' || !app.isPackaged
@@ -113,6 +114,22 @@ function setupMdiIPC(): void {
   })
   ipcMain.handle('db:destinations:remove', async (_, code: string) => {
     try { await destinationRemove(code); return { ok: true } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:marques:list', async () => {
+    try { return { ok: true, items: await marquesList() } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:marques:add', async (_, nom: string) => {
+    try { return { ok: true, item: await marqueAdd(nom) } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:marques:rename', async (_, p: { id: number; nom: string }) => {
+    try { return { ok: true, item: await marqueRename(p.id, p.nom) } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:marques:remove', async (_, id: number) => {
+    try { await marqueRemove(id); return { ok: true } }
     catch (err) { return { ok: false, error: String(err) } }
   })
 

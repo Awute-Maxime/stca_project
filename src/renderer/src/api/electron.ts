@@ -54,6 +54,10 @@ declare global {
       dbDestinationsList:  () => Promise<{ ok: boolean; items?: DbDestination[]; error?: string }>
       dbDestinationUpsert: (d: DbDestinationInput) => Promise<{ ok: boolean; item?: DbDestination; error?: string }>
       dbDestinationRemove: (code: string) => Promise<{ ok: boolean; error?: string }>
+      dbMarquesList:   () => Promise<{ ok: boolean; items?: Array<{ id: number; nom: string }>; error?: string }>
+      dbMarqueAdd:     (nom: string) => Promise<{ ok: boolean; item?: { id: number; nom: string }; error?: string }>
+      dbMarqueRename:  (id: number, nom: string) => Promise<{ ok: boolean; item?: { id: number; nom: string }; error?: string }>
+      dbMarqueRemove:  (id: number) => Promise<{ ok: boolean; error?: string }>
       onDbChanged:     (cb: (p: { domaine: string }) => void) => (() => void)
       importPickFile:  () => Promise<string | null>
       importPreview:   (chemin: string) => Promise<ImportPreview>
@@ -91,6 +95,14 @@ export const electronApi = {
     window.api?.dbDestinationUpsert?.(d) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
   dbDestinationRemove: (code: string): Promise<{ ok: boolean; error?: string }> =>
     window.api?.dbDestinationRemove?.(code) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbMarquesList:   (): Promise<{ ok: boolean; items?: Array<{ id: number; nom: string }>; error?: string }> =>
+    window.api?.dbMarquesList?.() ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbMarqueAdd:     (nom: string): Promise<{ ok: boolean; item?: { id: number; nom: string }; error?: string }> =>
+    window.api?.dbMarqueAdd?.(nom) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbMarqueRename:  (id: number, nom: string): Promise<{ ok: boolean; item?: { id: number; nom: string }; error?: string }> =>
+    window.api?.dbMarqueRename?.(id, nom) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbMarqueRemove:  (id: number): Promise<{ ok: boolean; error?: string }> =>
+    window.api?.dbMarqueRemove?.(id) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
   onDbChanged:     (cb: (p: { domaine: string }) => void): (() => void) =>
     window.api?.onDbChanged?.(cb) ?? (() => {}),
   importPickFile:  (): Promise<string | null> => window.api?.importPickFile?.() ?? Promise.resolve(null),

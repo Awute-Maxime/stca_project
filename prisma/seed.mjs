@@ -77,7 +77,9 @@ async function main() {
   // Référentiels
   await db.categorieVehicule.createMany({ data: CATEGORIES })
   await db.destination.createMany({ data: DESTINATIONS })
-  await db.marqueModele.createMany({ data: MARQUES.map(([marque, modele]) => ({ marque, modele, libelle: `${marque} ${modele}` })) })
+  // Le référentiel marque_modele n'est PAS peuplé ici : l'app l'amorce elle-même
+  // (marquesList) avec la liste complète des marques au premier lancement.
+  // MARQUES sert seulement à générer des libellés variés dans les enregistrements.
   await db.utilisateur.createMany({ data: UTILISATEURS })
 
   const assureur = await db.assureur.create({ data: { nom: 'POOL TPV VT - MOTO', coordonnees: '01 BP 2689 Lomé Togo tel : 221 70 92' } })

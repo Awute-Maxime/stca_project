@@ -27,19 +27,20 @@ export default function FichierMarquesPage(): JSX.Element {
     if (!item) return
     setDialogMode('edit'); setDialogValue(item.nom); setDialogFootNote(item.nom); setDialogOpen(true)
   }
-  const doDelete = (): void => {
+  const doDelete = async (): Promise<void> => {
     if (!checkSel()) return
     const item = marques.find(m => m.id === selectedId)
     if (!item) return
     if (!confirm(`Supprimer "${item.nom}" ?`)) return
-    removeMarque(item.id) // suppression réelle — synchro modal Enregistrement inclus
+    const err = await removeMarque(item.id) // suppression réelle en base — synchro toutes fenêtres
+    if (err) { notification.error({ message: err, placement: 'bottomRight' }); return }
     setSelectedId(null)
     notification.success({ message: '✅ Supprimé', placement: 'bottomRight' })
   }
-  const dialogValidate = (): void => {
+  const dialogValidate = async (): Promise<void> => {
     const val = dialogValue.trim()
     if (!val) return
-    const err = dialogMode === 'add' ? addMarque(val) : renameMarque(selectedId!, val)
+    const err = dialogMode === 'add' ? await addMarque(val) : await renameMarque(selectedId!, val)
     if (err) {
       notification.warning({ message: err, placement: 'bottomRight' })
       return
@@ -112,7 +113,7 @@ export default function FichierMarquesPage(): JSX.Element {
           style={btnStyle('#B0C4DE', 'linear-gradient(to bottom, #fff, #E8EEF4)', '#1E293B')}>
           🖊 Modifier
         </button>
-        <button onClick={doDelete}
+        <button onClick={() => void doDelete()}
           style={btnStyle('#B0C4DE', 'linear-gradient(to bottom, #fff, #E8EEF4)', '#DC2626', { fontWeight: 600 })}>
           ➖ Supprimer
         </button>
@@ -152,11 +153,11 @@ export default function FichierMarquesPage(): JSX.Element {
               </div>
               <input className="light-input" value={dialogValue}
                 onChange={e => setDialogValue(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') dialogValidate(); if (e.key === 'Escape') setDialogOpen(false) }}
+                onKeyDown={e => { if (e.key === 'Enter') void dialogValidate(); if (e.key === 'Escape') setDialogOpen(false) }}
                 autoFocus
                 style={{ width: '100%', boxSizing: 'border-box', padding: '4px 6px', fontSize: 12, display: 'block', height: 26 }} />
               <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 14 }}>
-                <button onClick={dialogValidate} style={{
+                <button onClick={() => void dialogValidate()} style={{
                   padding: '4px 20px', background: '#2563EB', color: '#fff',
                   border: '1px solid #1D4ED8', borderRadius: 3, fontSize: 12, fontWeight: 700, cursor: 'pointer',
                 }}>✓ Valider</button>
