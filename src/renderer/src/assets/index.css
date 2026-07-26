@@ -245,3 +245,51 @@ button:active { transform: translateY(0.5px); }
 @keyframes jaugeFill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .jauge-fill { transform-origin: left center; animation: jaugeFill 0.8s cubic-bezier(0.25, 0.85, 0.3, 1) both; }
 @media (prefers-reduced-motion: reduce) { .jauge-fill { animation: none; } }
+
+/* ── Autocomplétion Marque / Modèle ────────────────────────────────────────── */
+@keyframes acOpen { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+ul.ac-hist {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 50;
+  margin: 4px 0 0; padding: 4px; list-style: none;
+  background: #fff; border: 1px solid #E2E8F0; border-radius: 9px;
+  box-shadow: 0 14px 34px rgba(27, 58, 107, 0.18);
+  max-height: 244px; overflow-y: auto;
+  animation: acOpen 0.14s ease-out both;
+}
+ul.ac-hist li {
+  display: flex; align-items: center; gap: 7px;
+  padding: 6px 9px; border-radius: 6px; font-size: 12px; color: #1E293B;
+  cursor: pointer; transition: background 0.1s;
+}
+ul.ac-hist li.actif { background: #EFF4FF; }
+ul.ac-hist li b { color: #2563EB; }
+ul.ac-hist li .ico { font-size: 11px; opacity: 0.7; flex-shrink: 0; }
+@media (prefers-reduced-motion: reduce) { ul.ac-hist { animation: none; } }
+
+/* Bouton « gérer les marques » : effet VERRE (glass) + 🚗 qui saute au survol */
+.btn-gestion {
+  flex-shrink: 0; width: 30px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid rgba(37, 99, 235, 0.28); border-radius: 6px; cursor: pointer;
+  background: rgba(37, 99, 235, 0.12);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.1s;
+}
+.btn-gestion:hover {
+  background: rgba(37, 99, 235, 0.22); border-color: rgba(37, 99, 235, 0.5);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28);
+}
+.btn-gestion:active { transform: scale(0.9); }
+.btn-gestion:disabled { opacity: 0.5; cursor: default; }
+.btn-gestion .ico { font-size: 12px; display: inline-block; }
+.btn-gestion:hover .ico { animation: vroomHop 0.55s cubic-bezier(0.3, 0.8, 0.3, 1.5); }
+@keyframes vroomHop {
+  0% { transform: translateY(0) rotate(0) scale(1); }
+  35% { transform: translateY(-3px) rotate(-12deg) scale(1.18); }
+  70% { transform: translateY(0) rotate(7deg) scale(1.1); }
+  100% { transform: translateY(0) rotate(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) { .btn-gestion:hover .ico { animation: none; } }
+
+.hist-row { transition: background 0.12s; }
+.hist-row:hover { background: #F8FAFF; }

@@ -14,7 +14,12 @@ export const WINDOW_REGISTRY: Record<string, WindowConfig> = {
   rechercheChassis:         { title: 'Recherche par N° Chassis (VIN)',                     defaultX: 240, defaultY: 154, width: 720, height: 540 },
 
   // ── Menu Fichier ───────────────────────────────────────────────
-  'fichier.marques':                { title: 'Liste des Marques / Modèles de véhicules',        defaultX: 240, defaultY: 134, width: 800, height: 620 },
+  'fichier.marques':                { title: 'Liste des Marques / Modèles de véhicules',        defaultX: 240, defaultY: 134, width: 640, height: 520 },
+  'historique.nom':                 { title: 'Historique — Noms & Prénoms',                     defaultX: 260, defaultY: 150, width: 520, height: 480 },
+  'historique.pays':                { title: 'Historique — Pays',                               defaultX: 270, defaultY: 158, width: 520, height: 480 },
+  'historique.parc':                { title: 'Historique — Parcs de provenance',                defaultX: 280, defaultY: 166, width: 520, height: 480 },
+  'historique.transit':             { title: 'Historique — Maisons de transit',                 defaultX: 290, defaultY: 174, width: 520, height: 480 },
+  'historique.chassis':             { title: 'Historique — Préfixes de châssis',                defaultX: 300, defaultY: 182, width: 560, height: 480 },
 
   // ── Menu Enregistrements ───────────────────────────────────────
   'enregistrements.listeChassis':       { title: 'Liste Véhicules Enregistrés par N°Chassis (VIN)', defaultX: 200, defaultY: 124, width: 940, height: 660 },

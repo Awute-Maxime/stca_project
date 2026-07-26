@@ -14,7 +14,18 @@ const items: MenuProps['items'] = [
     key: 'fichier',
     label: 'Fichier',
     children: [
-      { key: 'fichier.marques', label: 'Marques et modèles de véhicules' },
+      {
+        key: 'fichier.historiques',
+        label: 'Gestion des Historiques de Saisie',
+        children: [
+          { key: 'fichier.marques', label: '🚗  Marques & Modèles' },
+          { key: 'historique.nom', label: '👤  Noms & Prénoms' },
+          { key: 'historique.pays', label: '🌍  Pays' },
+          { key: 'historique.parc', label: '🅿️  Parcs de provenance' },
+          { key: 'historique.transit', label: '🏢  Maisons de transit' },
+          { key: 'historique.chassis', label: '🔩  Préfixes de châssis' },
+        ],
+      },
       { type: 'divider' },
       { key: 'fichier.fermerSession', label: 'Fermer la session' },
       { key: 'fichier.quitter', label: 'Quitter' },

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCIT — Styles de petits boutons (formulaire)</title>
+<style>
+  :root{
+    --navy:#1B3A6B; --accent:#2563EB; --accent2:#4F86F7; --bg:#EAEEF5;
+    --paper:#fff; --line:#E2E8F0; --muted:#64748B; --gold:#F59E0B;
+    --green:#16A34A; --red:#DC2626;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--navy);padding:26px;}
+  h1{font-size:19px;letter-spacing:.3px;margin-bottom:4px;}
+  .sub{font-size:12.5px;color:var(--muted);margin-bottom:22px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;max-width:1080px;}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px;
+    box-shadow:0 4px 14px rgba(27,58,107,.06);}
+  .demo{display:flex;align-items:center;gap:10px;height:52px;margin-bottom:10px;}
+  /* faux champ pour le contexte */
+  .field{flex:1;height:28px;border:1px solid #CBD5E1;border-radius:6px;background:#fff;position:relative;
+    display:flex;align-items:center;padding:0 8px;font-size:11px;color:#94A3B8;}
+  .name{font-size:12.5px;font-weight:800;}
+  .desc{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.45;}
+  .tag{display:inline-block;font-size:9.5px;font-weight:700;color:var(--accent);background:#EFF4FF;
+    padding:1px 7px;border-radius:20px;margin-top:8px;}
+
+  /* Base bouton icône */
+  .b{width:26px;height:26px;display:flex;align-items:center;justify-content:center;border:none;
+    border-radius:7px;cursor:pointer;font-size:13px;flex-shrink:0;background:none;}
+  .b .i{display:inline-block;line-height:1;}
+
+  /* 1 · Pastille douce (actuel) */
+  .s1{background:linear-gradient(135deg,#E0ECFF,#EEF4FF);transition:background .18s,box-shadow .18s,transform .1s;}
+  .s1:hover{background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 4px 12px rgba(37,99,235,.4);}
+  .s1:hover .i{animation:hop .55s cubic-bezier(.3,.8,.3,1.5);}
+  .s1:active{transform:scale(.88);}
+
+  /* 2 · Contour qui se remplit */
+  .s2{border:1.5px solid var(--accent);color:var(--accent);background:#fff;transition:.18s;}
+  .s2:hover{background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.3);}
+  .s2:hover .i{transform:scale(1.12);}
+  .s2 .i{transition:transform .18s;}
+
+  /* 3 · Plein bleu qui se soulève */
+  .s3{background:linear-gradient(135deg,var(--accent),#1d4ed8);color:#fff;transition:.15s;
+    box-shadow:0 2px 6px rgba(37,99,235,.35);}
+  .s3:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(37,99,235,.45);}
+  .s3:active{transform:translateY(0);}
+
+  /* 4 · Verre / glassmorphism */
+  .s4{background:rgba(37,99,235,.12);backdrop-filter:blur(6px);border:1px solid rgba(37,99,235,.25);
+    color:var(--accent);transition:.2s;}
+  .s4:hover{background:rgba(37,99,235,.22);border-color:rgba(37,99,235,.5);box-shadow:0 6px 16px rgba(37,99,235,.25);}
+  .s4:hover .i{transform:rotate(-8deg) scale(1.12);}
+  .s4 .i{transition:transform .2s;}
+
+  /* 5 · Neumorphique (relief doux) */
+  .s5{background:#EEF2F9;color:var(--navy);box-shadow:3px 3px 7px #cdd6e6, -3px -3px 7px #ffffff;transition:.16s;}
+  .s5:hover{box-shadow:inset 2px 2px 5px #cdd6e6, inset -2px -2px 5px #ffffff;color:var(--accent);}
+  .s5:active{box-shadow:inset 3px 3px 6px #cdd6e6;}
+
+  /* 6 · Cercle minimal (scale + couleur) */
+  .s6{border-radius:50%;background:#F1F5F9;color:var(--muted);transition:.16s;}
+  .s6:hover{background:var(--accent);color:#fff;transform:scale(1.15) rotate(8deg);}
+
+  /* 7 · Dégradé lumineux (glow pulsant) */
+  .s7{background:linear-gradient(135deg,#6366F1,#2563EB,#06B6D4);background-size:200% 200%;color:#fff;
+    transition:.2s;box-shadow:0 3px 10px rgba(37,99,235,.4);}
+  .s7:hover{animation:shine 1.4s ease infinite, glow 1.2s ease-in-out infinite;}
+  .s7:hover .i{transform:scale(1.15);}
+  .s7 .i{transition:transform .2s;}
+
+  /* 8 · Pastille dorée (accent chaud) */
+  .s8{background:linear-gradient(135deg,#FEF3C7,#FDE68A);color:#92400E;transition:.18s;}
+  .s8:hover{background:linear-gradient(135deg,var(--gold),#D97706);color:#fff;box-shadow:0 4px 12px rgba(245,158,11,.45);}
+  .s8:hover .i{animation:hop .5s cubic-bezier(.3,.8,.3,1.5);}
+
+  /* 9 · Fantôme minimal (souligné) */
+  .s9{background:none;color:var(--muted);transition:.15s;position:relative;}
+  .s9:hover{color:var(--accent);}
+  .s9:hover .i{transform:translateY(-2px);}
+  .s9 .i{transition:transform .15s;}
+  .s9::after{content:'';position:absolute;left:6px;right:6px;bottom:3px;height:2px;border-radius:2px;
+    background:var(--accent);transform:scaleX(0);transition:transform .18s;}
+  .s9:hover::after{transform:scaleX(1);}
+
+  @keyframes hop{0%{transform:translateY(0) rotate(0) scale(1);}35%{transform:translateY(-3px) rotate(-12deg) scale(1.18);}70%{transform:translateY(0) rotate(7deg) scale(1.1);}100%{transform:translateY(0) rotate(0) scale(1);}}
+  @keyframes shine{0%{background-position:0% 50%;}100%{background-position:200% 50%;}}
+  @keyframes glow{0%,100%{box-shadow:0 3px 10px rgba(37,99,235,.4);}50%{box-shadow:0 3px 18px rgba(37,99,235,.75);}}
+
+  .hint{margin-top:20px;font-size:12px;color:var(--muted);}
+</style>
+</head>
+<body>
+  <h1>Styles de petits boutons — formulaire d'enregistrement</h1>
+  <div class="sub">Passe la souris sur chaque bouton pour voir l'animation. Dis-moi le(s) numéro(s) que tu préfères.</div>
+
+  <div class="grid">
+    <div class="card"><div class="demo"><div class="field">Champ…</div><button class="b s1"><span class="i">🚗</span></button></div><div class="name">1 · Pastille douce</div><div class="desc">Fond bleu clair → bleu plein au survol, l'icône saute.</div><span class="tag">actuel</span></div>
+
+    <div class="card"><div class="demo"><div class="field">Champ…</div><button class="b s2"><span class="i">🚗</span></button></div><div class="name">2 · Contour qui se remplit</div><div class="desc">Bordure bleue vide → se remplit de bleu au survol.</div></div>
+
+    <div class="card"><div class="demo"><div class="field">Champ…</div><button class="b s3"><span class="i">🚗</span></button></div><div class="name">3 · Plein bleu, soulevé</div><div class="desc">Toujours bleu, se soulève avec une ombre au survol.</div></div>
+
+    <div class="card"><div class="demo"><div class="field">Champ…</div><button class="b s4"><span class="i">🚗</span></button></div><div class="name">4 · Verre (glass)</div><div class="desc">Translucide et flouté, très premium ; l'icône pivote.</div><span class="tag">premium</span></div>
+
+    <div class="card"><div class="demo"><div class="field">Champ…</div><button class="b s5"><span class="i">🚗</span></button></div><div class="name">5 · Relief doux</div><div class="desc">Effet « bouton physique » qui s'enfonce au clic.</div></div>
+
+    <div class="card"><div class="demo"><div class="field">Champ…</div><button class="b s6"><span class="i">🚗</span></button></div><div class="name">6 · Cercle minimal</div><div class="desc">Rond discret, grossit et pivote au survol.</div></div>
+
+    <div class="card"><div class="demo"><div class="field">Champ…</div><button class="b s7"><span class="i">🚗</span></button></div><div class="name">7 · Dégradé lumineux</div><div class="desc">Dégradé animé + halo pulsant. Très vivant.</div><span class="tag">fun</span></div>
+
+    <div class="card"><div class="demo"><div class="field">Champ…</div><button class="b s8"><span class="i">🚗</span></button></div><div class="name">8 · Pastille dorée</div><div class="desc">Accent chaud (or), l'icône saute au survol.</div></div>
+
+    <div class="card"><div class="demo"><div class="field">Champ…</div><button class="b s9"><span class="i">🚗</span></button></div><div class="name">9 · Fantôme souligné</div><div class="desc">Ultra minimal, un trait bleu se dessine au survol.</div></div>
+  </div>
+
+  <div class="hint">💡 On peut aussi mélanger : un style pour les boutons « ouvrir une fenêtre » et un autre pour les boutons « aide (?) » ou « réinitialiser ».</div>
+</body>
+</html>

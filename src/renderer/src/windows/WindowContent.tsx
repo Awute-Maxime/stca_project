@@ -17,6 +17,7 @@ import OpsParticulieresPage from '@pages/OpsParticulieresPage'
 import RechercheWindow from '@pages/RechercheWindow'
 import { CopyrightWindow, VersionWindow, IdReseauWindow } from '@pages/InfoWindows'
 import FichierMarquesPage from '@pages/FichierMarquesPage'
+import GestionHistoriqueWindow from '@pages/GestionHistoriqueWindow'
 import ArchivagePage from '@pages/ArchivagePage'
 import PointagePage from '@pages/PointagePage'
 import ExportPage from '@pages/ExportPage'
@@ -51,6 +52,16 @@ export function renderWindowContent(id: string): JSX.Element {
     // ── Menu Fichier ───────────────────────────────────────────────
     case 'fichier.marques':
       return <FichierMarquesPage />
+    case 'historique.nom':
+      return <GestionHistoriqueWindow domaine="nom" />
+    case 'historique.pays':
+      return <GestionHistoriqueWindow domaine="pays" />
+    case 'historique.parc':
+      return <GestionHistoriqueWindow domaine="parc" />
+    case 'historique.transit':
+      return <GestionHistoriqueWindow domaine="transit" />
+    case 'historique.chassis':
+      return <GestionHistoriqueWindow domaine="chassis" />
 
     // ── Menu Enregistrements ───────────────────────────────────────
     case 'enregistrements.listeChassis':

@@ -10,7 +10,9 @@ import {
 import dayjs from 'dayjs'
 import { addVehicule, updateVehicule, getAllVehicules, prochainNumImmat } from '@mock/vehiculesStore'
 import { WinAlert } from '@components/WinDialogs'
-import { useMarques } from '@mock/marquesStore'
+import { useMarques, addMarque } from '@mock/marquesStore'
+import AutoCompleteHistorique from '@components/AutoCompleteHistorique'
+import { useHistorique, addHistorique, CHASSIS_PREFIXE_LEN } from '@mock/historiquesStore'
 import { useTypesVehicule } from '@mock/typesVehiculeStore'
 import { useDestColors, getDestinations } from '@mock/destinationsStore'
 import { CarteGrisePrintDirect, type CarteGriseData } from '@components/documents/CarteGrise'
@@ -71,11 +73,22 @@ interface HistoryInputProps {
   maxLength?: number
   disabled?: boolean
   uppercase?: boolean
+  /** Normalisation appliquée à la sortie du champ (on blur) — ex. MAJUSCULES, Capitalisation. */
+  normaliser?: (v: string) => string
 }
+
+// ── Normalisation des saisies (uniformisation en base) ───────────────────────
+/** « jean  dupont » → « JEAN DUPONT » (trim + espaces réduits + majuscules). */
+const enMajuscules = (v: string): string => v.trim().replace(/\s+/g, ' ').toUpperCase()
+/** « burkina  faso » → « Burkina Faso » (chaque mot capitalisé). */
+const enCapitalise = (v: string): string =>
+  v.trim().replace(/\s+/g, ' ').toLowerCase().replace(/(^|[\s\-'])(\p{L})/gu, (_m, sep, c) => sep + c.toUpperCase())
+/** Ne garde que les chiffres. */
+const chiffresSeuls = (v: string): string => v.replace(/\D/g, '')
 
 function HistoryInput({
   fieldKey, history, value, onChange, className, placeholder,
-  style, maxLength, disabled, uppercase,
+  style, maxLength, disabled, uppercase, normaliser,
 }: HistoryInputProps): JSX.Element {
   const listId = `tcit_h_${fieldKey}`
 
@@ -108,6 +121,7 @@ function HistoryInput({
         className={className}
         value={value}
         onChange={e => onChange(uppercase ? e.target.value.toUpperCase() : e.target.value)}
+        onBlur={() => { if (normaliser && value) onChange(normaliser(value)) }}
         placeholder={placeholder}
         style={inputStyle}
         list={listId}
@@ -321,15 +335,20 @@ export default function EnregistrementPage(): JSX.Element {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // ── Historiques par champ ─────────────────────────────────────────────────
-  const nomHist      = useFieldHistory('nomAcheteur')
-  const residHist    = useFieldHistory('paysResidence')
-  const destPaysHist = useFieldHistory('paysDestination')
-  const transitHist  = useFieldHistory('maisonTransit')
-  const triHist      = useFieldHistory('numTri')
-  const chassisHist  = useFieldHistory('chassis')
-  const marqueHist   = useFieldHistory('marqueModele')
-  const descHist     = useFieldHistory('description')
+  // ── Historiques de saisie (store centralisé, synchro inter-fenêtres) ───────
+  const nomOpts     = useHistorique('nom')
+  const paysOpts    = useHistorique('pays')     // partagé Résidence + Destination
+  const parcOpts    = useHistorique('parc')     // champ « parc de provenance »
+  const transitOpts = useHistorique('transit')
+  const chassisOpts = useHistorique('chassis')  // préfixes de 11 caractères
+  const marquesRef  = useMarques()              // référentiel Marques (fichier)
+  const triHist     = useFieldHistory('numTri') // inchangé (pas dans le périmètre)
+
+  // Ouvre une fenêtre de gestion (MDI) depuis le registre
+  const ouvrirGestion = (id: string): void => {
+    const c = WINDOW_REGISTRY[id]
+    if (c) electronApi.mdiOpen({ id, x: c.defaultX, y: c.defaultY, width: c.width, height: c.height })
+  }
 
   // ── Progression (4 critères) ──────────────────────────────────────────────
   const progress = [
@@ -397,13 +416,14 @@ export default function EnregistrementPage(): JSX.Element {
     setLoading(true)
 
     // Persistance des historiques
-    nomHist.add(nomAcheteur)
-    residHist.add(paysResidence)
-    destPaysHist.add(paysDestination)
-    transitHist.add(maisonTransit)
-    if (numTri)       triHist.add(numTri)
-    if (chassis)      chassisHist.add(chassis)
-    if (marqueModele) marqueHist.add(marqueModele)
+    addHistorique('nom', nomAcheteur)
+    addHistorique('pays', paysResidence)
+    addHistorique('pays', paysDestination)
+    addHistorique('parc', description) // champ « parc de provenance »
+    addHistorique('transit', maisonTransit)
+    if (numTri)   triHist.add(numTri)
+    if (chassis)  addHistorique('chassis', chassis.slice(0, CHASSIS_PREFIXE_LEN)) // on mémorise le préfixe (début répétitif du VIN)
+    if (marqueModele) void addMarque(marqueModele) // ajout auto au fichier Marques (dédoublonne)
 
     // Ajout réel en BASE — le main attribue la référence et la retourne.
     // Synchronise Liste, Dashboard, etc. via db:changed('enregistrements').
@@ -451,19 +471,6 @@ export default function EnregistrementPage(): JSX.Element {
   const destNom = destination
     ? (getDestinations().find(d => d.code === destination)?.nom ?? '')
     : ''
-
-  // Bouton rappel marque dans le menu déroulant
-  const marqueMenuItems: MenuProps['items'] = marqueHist.history.slice(0, 12).map((h, i) => ({
-    key: i,
-    label: (
-      <span
-        style={{ fontSize: 11, display: 'block' }}
-        onMouseDown={e => { e.preventDefault(); setMarqueModele(h) }}
-      >
-        {h}
-      </span>
-    ),
-  }))
 
   const DEST_COLORS = useDestColors()
 
@@ -577,17 +584,22 @@ export default function EnregistrementPage(): JSX.Element {
           <legend style={LEG}>Coordonnées Acheteur</legend>
           <div style={R}>
             <span style={LBL_SM}>Nom et prénom :</span>
-            <HistoryInput fieldKey="nomAcheteur" history={nomHist.history} value={nomAcheteur}
-              onChange={setNomAcheteur} className="light-input" placeholder="Nom et prénom de l'acheteur"
-              style={{ flex: 1, height: 26 }} disabled={saved} />
+            <AutoCompleteHistorique value={nomAcheteur} onChange={setNomAcheteur} options={nomOpts}
+              normaliser={enMajuscules} placeholder="Nom et prénom de l'acheteur" icone="👤"
+              style={{ height: 26 }} disabled={saved}
+              onOpenGestion={() => ouvrirGestion('historique.nom')} />
           </div>
           <div style={R}>
             <span style={LBL_SM}>Pays Résidence :</span>
-            <HistoryInput fieldKey="paysResidence" history={residHist.history} value={paysResidence}
-              onChange={setPaysResidence} className="light-input" style={{ flex: 1, height: 26 }} disabled={saved} />
+            <AutoCompleteHistorique value={paysResidence} onChange={setPaysResidence} options={paysOpts}
+              normaliser={enCapitalise} placeholder="Pays de résidence" icone="🌍"
+              style={{ height: 26 }} disabled={saved}
+              onOpenGestion={() => ouvrirGestion('historique.pays')} />
             <span style={{ fontSize: 11, color: '#475569', whiteSpace: 'nowrap', marginLeft: 12 }}>Pays Destination :</span>
-            <HistoryInput fieldKey="paysDestination" history={destPaysHist.history} value={paysDestination}
-              onChange={setPaysDestination} className="light-input" style={{ flex: 1, height: 26 }} disabled={saved} />
+            <AutoCompleteHistorique value={paysDestination} onChange={setPaysDestination} options={paysOpts}
+              normaliser={enCapitalise} placeholder="Pays de destination" icone="🌍"
+              style={{ height: 26 }} disabled={saved}
+              onOpenGestion={() => ouvrirGestion('historique.pays')} />
           </div>
         </fieldset>
 
@@ -605,10 +617,10 @@ export default function EnregistrementPage(): JSX.Element {
               <option value="">—</option>
               {typesVehicule.map(t => <option key={t.id} value={t.nom}>{t.nom}</option>)}
             </select>
-            <HistoryInput fieldKey="description" history={descHist.history} value={description}
-              onChange={setDescription} className="light-input" placeholder="Description / informations complémentaires"
-              style={{ flex: 1, height: 26 }} disabled={saved} />
-            <button type="button" style={QBTN} title="Aide">?</button>
+            <AutoCompleteHistorique value={description} onChange={setDescription} options={parcOpts}
+              normaliser={enCapitalise} placeholder="Nom du parc de provenance du véhicule" icone="🅿️"
+              style={{ height: 26 }} disabled={saved}
+              onOpenGestion={() => ouvrirGestion('historique.parc')} />
           </div>
           {/* À Destination de + Montant */}
           <div style={R}>
@@ -635,21 +647,22 @@ export default function EnregistrementPage(): JSX.Element {
           {/* Marque - Modèle + N° de Tri */}
           <div style={R}>
             <span style={LBL}>Marque - Modèle :</span>
-            <HistoryInput fieldKey="marqueModele" history={marqueHist.history} value={marqueModele}
-              onChange={setMarqueModele} className="light-input" style={{ flex: 1, height: 26 }} disabled={saved} />
-            <button type="button" style={QBTN} title="Choisir dans la liste des marques" disabled={saved}
-              onClick={() => setMarqueModalOpen(true)}>?</button>
+            <AutoCompleteHistorique value={marqueModele} onChange={setMarqueModele}
+              options={marquesRef.map(m => m.nom)} transformSaisie={v => v.toUpperCase()} normaliser={enMajuscules}
+              placeholder="Marque et modèle du véhicule" icone="🚗"
+              style={{ height: 26 }} disabled={saved}
+              onOpenGestion={() => ouvrirGestion('fichier.marques')} />
             <span style={{ fontSize: 11, color: '#475569', whiteSpace: 'nowrap', marginLeft: 12 }}>N° de Tri :</span>
             <HistoryInput fieldKey="numTri" history={triHist.history} value={numTri} onChange={setNumTri}
-              className="light-input" style={{ width: 140, height: 26 }} disabled={saved} />
+              normaliser={chiffresSeuls} className="light-input" style={{ width: 140, height: 26 }} disabled={saved} />
           </div>
           {/* Transit (maison) + Date N° Tri */}
           <div style={R}>
             <span style={LBL}>Transit (maison) :</span>
-            <HistoryInput fieldKey="maisonTransit" history={transitHist.history} value={maisonTransit}
-              onChange={setMaisonTransit} className="light-input" style={{ flex: 1, height: 26 }} disabled={saved} />
-            <button type="button" style={QBTN} title="Choisir dans la liste des parcs" disabled={saved}
-              onClick={() => setParcModalOpen(true)}>?</button>
+            <AutoCompleteHistorique value={maisonTransit} onChange={setMaisonTransit} options={transitOpts}
+              normaliser={enCapitalise} placeholder="Maison de transit" icone="🏢"
+              style={{ height: 26 }} disabled={saved}
+              onOpenGestion={() => ouvrirGestion('historique.transit')} />
             <span style={{ fontSize: 11, color: '#475569', whiteSpace: 'nowrap', marginLeft: 12 }}>Date N° Tri :</span>
             <input className="light-input" type="date" value={dateTri.format('YYYY-MM-DD')}
               onChange={e => setDateTri(dayjs(e.target.value))}
@@ -658,16 +671,11 @@ export default function EnregistrementPage(): JSX.Element {
           {/* N° de Châssis */}
           <div style={{ ...R, marginBottom: 0 }}>
             <span style={LBL}>N° de Châssis :</span>
-            <div style={{ position: 'relative', flex: 1 }}>
-              <input className="light-input" value={chassis}
-                onChange={e => setChassis(e.target.value.toUpperCase())}
-                placeholder="Ex : ZFA29000000302873" maxLength={17}
-                style={{ height: 26, paddingRight: 36 }} disabled={saved} />
-              <span style={{
-                position: 'absolute', right: 7, top: '50%', transform: 'translateY(-50%)',
-                fontSize: 9, color: '#9CA3AF', pointerEvents: 'none',
-              }}>{chassis.length}/17</span>
-            </div>
+            <AutoCompleteHistorique value={chassis} onChange={setChassis} options={chassisOpts}
+              transformSaisie={v => v.replace(/\s+/g, '').toUpperCase()} maxLength={17}
+              placeholder="Ex : ZFA29000000302873 — le début est proposé" icone="🔩"
+              style={{ height: 26 }} disabled={saved}
+              onOpenGestion={() => ouvrirGestion('historique.chassis')} />
             <input className="light-input" style={{ width: 130, background: '#F1F5F9', color: '#94A3B8', height: 26 }}
               placeholder="(N° série)" readOnly />
           </div>
