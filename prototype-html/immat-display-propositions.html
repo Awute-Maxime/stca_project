@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCIT — Affichage N° Immatriculation (3 propositions)</title>
+<style>
+  :root{
+    --navy:#1B3A6B; --navy2:#0F2547; --accent:#2563EB; --gold:#F59E0B;
+    --bg:#F8FAFF; --line:#E2E8F0; --muted:#64748B; --ink:#1E293B;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:#EAEEF5;color:var(--navy);padding:26px;}
+  h1{font-size:19px;margin-bottom:4px;}
+  .sub{font-size:12.5px;color:var(--muted);margin-bottom:24px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:22px;max-width:1120px;}
+  .card{background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:0 4px 16px rgba(27,58,107,.07);}
+  .card h2{font-size:14px;margin-bottom:3px;}
+  .card .d{font-size:11.5px;color:var(--muted);margin-bottom:18px;line-height:1.5;}
+  .state-label{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin:14px 0 8px;}
+
+  /* ─────────── P1 · Plaque réaliste ─────────── */
+  .p1{
+    background:#fff; border:3px solid var(--navy); border-radius:10px;
+    padding:14px 18px; text-align:center; position:relative;
+    box-shadow:0 6px 16px rgba(27,58,107,.14);
+  }
+  .p1 .lbl{position:absolute;top:6px;left:12px;font-size:8.5px;font-weight:800;color:var(--navy);letter-spacing:1px;opacity:.55;}
+  .p1 .num{
+    font-family:'Arial Narrow','Segoe UI',sans-serif; font-weight:800;
+    font-size:38px; letter-spacing:5px; color:var(--navy); line-height:1.15; margin-top:8px;
+  }
+  .p1 .num small{font-size:20px;letter-spacing:3px;color:#334155;}
+  .p1.att .num{color:#B45309;font-size:26px;letter-spacing:3px;}
+
+  /* ─────────── P2 · Carte premium ─────────── */
+  .p2{
+    background:linear-gradient(160deg,#fff,#EEF3FB);
+    border:1px solid #DCE4F2; border-radius:14px; padding:16px 20px; position:relative; overflow:hidden;
+    box-shadow:0 10px 26px rgba(27,58,107,.12);
+  }
+  .p2::after{content:'';position:absolute;left:0;bottom:0;height:4px;width:100%;
+    background:linear-gradient(90deg,var(--accent),var(--gold));}
+  .p2 .lbl{font-size:10px;font-weight:800;color:var(--gold);letter-spacing:2px;text-transform:uppercase;}
+  .p2 .num{
+    font-family:'Segoe UI',sans-serif; font-weight:800; font-size:34px; letter-spacing:3px;
+    color:var(--navy); line-height:1.1; margin-top:6px;
+  }
+  .p2 .num b{color:var(--accent);}
+  .p2 .st{font-size:10.5px;color:#16A34A;font-weight:700;margin-top:6px;}
+  .p2.att .num{color:#94A3B8;font-size:26px;}
+  .p2.att .st{color:#B45309;}
+
+  /* ─────────── P3 · Afficheur digital ─────────── */
+  .p3{
+    background:radial-gradient(120% 120% at 80% 0%, #16305c, var(--navy2));
+    border:1px solid #24406e; border-radius:14px; padding:16px 20px; position:relative; overflow:hidden;
+    box-shadow:0 10px 26px rgba(15,37,71,.35), inset 0 0 30px rgba(0,0,0,.25);
+  }
+  .p3 .lbl{font-size:10px;font-weight:700;color:#8fb3ff;letter-spacing:2px;text-transform:uppercase;}
+  .p3 .num{
+    font-family:'Consolas','Courier New',monospace; font-weight:800; font-size:34px; letter-spacing:4px;
+    color:var(--gold); line-height:1.1; margin-top:6px;
+    text-shadow:0 0 10px rgba(245,158,11,.55), 0 0 22px rgba(245,158,11,.28);
+  }
+  .p3 .st{font-size:10.5px;color:#34D399;font-weight:700;margin-top:6px;letter-spacing:.5px;}
+  .p3.att .num{color:#5b7bb5;text-shadow:none;font-size:26px;}
+  .p3.att .st{color:#e0a63a;}
+  .p3 .scan{position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(245,158,11,.5),transparent);animation:scan 3s ease-in-out infinite;}
+  @keyframes scan{0%{top:8%}50%{top:92%}100%{top:8%}}
+</style>
+</head>
+<body>
+  <h1>Affichage du N° d'Immatriculation — 3 propositions</h1>
+  <div class="sub">Bordures pleines (plus de traits discontinus), typographies variées. Chaque bloc montre l'état <b>rempli</b> et l'état <b>en attente</b>. Dis-moi le numéro que tu préfères.</div>
+
+  <div class="grid">
+
+    <!-- P1 -->
+    <div class="card">
+      <h2>1 · Plaque réaliste</h2>
+      <div class="d">Style « vraie plaque » : bordure pleine bleu marine, police condensée espacée. Évoque la plaque physique.</div>
+      <div class="state-label">Rempli</div>
+      <div class="p1"><span class="lbl">N° IMMAT</span><div class="num"><small>TG WZ</small> T 7574 <small>CK</small></div></div>
+      <div class="state-label">En attente</div>
+      <div class="p1 att"><span class="lbl">N° IMMAT</span><div class="num">EN ATTENTE</div></div>
+    </div>
+
+    <!-- P2 -->
+    <div class="card">
+      <h2>2 · Carte premium</h2>
+      <div class="d">Carte dégradée douce, liseré accent-or en bas, chiffre en bleu marine/accent. Élégant et lisible.</div>
+      <div class="state-label">Rempli</div>
+      <div class="p2"><div class="lbl">N° Immatriculation</div><div class="num">TG WZ <b>T 7574</b> CK</div><div class="st">✓ Attribué</div></div>
+      <div class="state-label">En attente</div>
+      <div class="p2 att"><div class="lbl">N° Immatriculation</div><div class="num">— / —</div><div class="st">En attente de saisie</div></div>
+    </div>
+
+    <!-- P3 -->
+    <div class="card">
+      <h2>3 · Afficheur digital</h2>
+      <div class="d">Écran sombre « compteur », chiffre doré lumineux monospace + ligne de scan. Look moderne/tech.</div>
+      <div class="state-label">Rempli</div>
+      <div class="p3"><div class="scan"></div><div class="lbl">N° Immat</div><div class="num">TG WZ T 7574 CK</div><div class="st">● ATTRIBUÉ</div></div>
+      <div class="state-label">En attente</div>
+      <div class="p3 att"><div class="scan"></div><div class="lbl">N° Immat</div><div class="num">— — — —</div><div class="st">● EN ATTENTE</div></div>
+    </div>
+
+  </div>
+</body>
+</html>

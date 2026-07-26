@@ -474,6 +474,12 @@ export default function EnregistrementPage(): JSX.Element {
 
   const DEST_COLORS = useDestColors()
 
+  // Récapitulatif financier : Montant STCA + Assurance (tarif de la catégorie) = Total facture
+  const montantStca    = montant ?? 0
+  const montantAssur   = typeVehicule ? tarifPourType(typeVehicule).tarif : 0
+  const totalFacture   = montantStca + montantAssur
+  const fmtF = (n: number): string => `${n.toLocaleString('fr-FR')} F`
+
   const R: CSSProperties = { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }
   const LBL: CSSProperties = { fontSize: 11, color: '#475569', whiteSpace: 'nowrap', width: 130, flexShrink: 0 }
   const LBL_SM: CSSProperties = { ...LBL, width: 110 }
@@ -485,6 +491,8 @@ export default function EnregistrementPage(): JSX.Element {
     <div style={{
       display: 'flex', flexDirection: 'column', height: '100%',
       userSelect: 'none',
+      // Agrandissement proportionnel +20% (mêmes proportions, tout plus grand)
+      zoom: 1.2,
       animation: 'formEnter 0.35s cubic-bezier(0.16,1,0.3,1)',
       background: '#F8FAFF',
     }}>
@@ -554,24 +562,38 @@ export default function EnregistrementPage(): JSX.Element {
         <DatePicker value={date} onChange={v => v && setDate(v)} format="DD/MM/YYYY" size="small"
           style={{ width: 136, height: 26 }} allowClear={false} disabled={saved} />
         <div style={{ flex: 1 }} />
+        {/* Affichage N° Immatriculation — style « plaque réaliste » (bordure pleine).
+            En attente : contour gris, fond transparent. Défini : couleur de la
+            destination (bordure légèrement transparente + fond très léger tinté). */}
         <div style={{
-          width: 220, minHeight: 72, padding: '10px 8px', whiteSpace: 'nowrap',
-          border: '2px dashed rgba(245,158,11,0.45)', borderRadius: 8,
-          background: immatGenere ? `${DEST_COLORS[destination ?? ''] ?? C.gold}28` : 'rgba(245,158,11,0.04)',
-          textAlign: 'center',
+          minWidth: 246, minHeight: 72, padding: '12px 18px', whiteSpace: 'nowrap',
+          border: `3px solid ${immatGenere ? `${DEST_COLORS[destination ?? ''] ?? '#1B3A6B'}CC` : '#94A3B8'}`,
+          borderRadius: 10,
+          background: immatGenere ? `${DEST_COLORS[destination ?? ''] ?? '#1B3A6B'}14` : 'transparent',
+          textAlign: 'center', position: 'relative',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          borderColor: immatGenere ? `${DEST_COLORS[destination ?? ''] ?? C.gold}77` : 'rgba(245,158,11,0.45)',
+          boxShadow: immatGenere ? '0 6px 16px rgba(27,58,107,0.14)' : 'none',
+          transition: 'border-color 0.3s, background 0.3s',
         }}>
-          <div style={{ fontSize: 9, color: 'rgba(180,115,0,0.8)', textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 4 }}>N° Immat</div>
+          <span style={{
+            position: 'absolute', top: 6, left: 12,
+            fontSize: 8.5, fontWeight: 800, color: '#1B3A6B', letterSpacing: 1, opacity: 0.55,
+          }}>N° IMMAT</span>
           {immatGenere ? (
-            <div style={{ fontSize: 20, fontWeight: 900, color: C.blue, fontFamily: "'Courier New', monospace", letterSpacing: 3, margin: '2px 0' }}>
-              {immatGenere}
+            <div key={immatGenere} style={{
+              fontFamily: "'Arial Narrow', 'Segoe UI', sans-serif", fontWeight: 800,
+              fontSize: 27, letterSpacing: 4, color: '#1B3A6B', lineHeight: 1.15, marginTop: 8,
+              animation: 'immatReveal 0.4s ease',
+            }}>
+              <span style={{ fontSize: 15, letterSpacing: 2.5, color: '#334155' }}>TG WZ</span>{' '}
+              {immatGenere[0]} {immatGenere.slice(1)}{' '}
+              <span style={{ fontSize: 15, letterSpacing: 2.5, color: '#334155' }}>{destination}</span>
             </div>
           ) : (
-            <>
-              <div style={{ fontSize: 11, color: 'rgba(180,115,0,0.45)', letterSpacing: 2, margin: '2px 0' }}>— / —</div>
-              <div style={{ fontSize: 10.5, color: 'rgba(180,115,0,0.6)', letterSpacing: 1 }}>EN ATTENTE</div>
-            </>
+            <div style={{
+              fontFamily: "'Arial Narrow', 'Segoe UI', sans-serif", fontWeight: 800,
+              fontSize: 21, letterSpacing: 3, color: '#94A3B8', marginTop: 8,
+            }}>EN ATTENTE</div>
           )}
         </div>
       </div>
@@ -664,9 +686,8 @@ export default function EnregistrementPage(): JSX.Element {
               style={{ height: 26 }} disabled={saved}
               onOpenGestion={() => ouvrirGestion('historique.transit')} />
             <span style={{ fontSize: 11, color: '#475569', whiteSpace: 'nowrap', marginLeft: 12 }}>Date N° Tri :</span>
-            <input className="light-input" type="date" value={dateTri.format('YYYY-MM-DD')}
-              onChange={e => setDateTri(dayjs(e.target.value))}
-              style={{ width: 140, height: 26 }} disabled={saved} />
+            <DatePicker value={dateTri} onChange={v => v && setDateTri(v)} format="DD/MM/YYYY" size="small"
+              allowClear={false} disabled={saved} style={{ width: 140, height: 26 }} />
           </div>
           {/* N° de Châssis */}
           <div style={{ ...R, marginBottom: 0 }}>
@@ -674,7 +695,8 @@ export default function EnregistrementPage(): JSX.Element {
             <AutoCompleteHistorique value={chassis} onChange={setChassis} options={chassisOpts}
               transformSaisie={v => v.replace(/\s+/g, '').toUpperCase()} maxLength={17}
               placeholder="Ex : ZFA29000000302873 — le début est proposé" icone="🔩"
-              style={{ height: 26 }} disabled={saved}
+              inputClass="light-input--chassis"
+              style={{ height: 36 }} disabled={saved}
               onOpenGestion={() => ouvrirGestion('historique.chassis')} />
             <input className="light-input" style={{ width: 130, background: '#F1F5F9', color: '#94A3B8', height: 26 }}
               placeholder="(N° série)" readOnly />
@@ -697,8 +719,8 @@ export default function EnregistrementPage(): JSX.Element {
 
         {/* ── Bas : ancienne immat + recycler ──────────────────────────── */}
         <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
-          <div style={{ flex: 1, border: '1px solid #CBD5E1', borderRadius: 5, padding: '7px 12px' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 11, color: '#475569', marginBottom: 5 }}>
+          <div style={{ flex: 1, border: '1px solid #CBD5E1', borderRadius: 5, padding: '7px 12px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 11, color: '#475569', marginBottom: 6 }}>
               <Checkbox checked={saisirAncienne} onChange={e => setSaisirAncienne(e.target.checked)} disabled={saved} />
               Saisir l&apos;ancienne immatriculation
             </label>
@@ -708,7 +730,7 @@ export default function EnregistrementPage(): JSX.Element {
                 onChange={e => setAncienneImmat(e.target.value)} style={{ flex: 1, height: 26, background: saisirAncienne ? '#fff' : '#F9FAFB' }} />
             </div>
           </div>
-          <div style={{ width: 200, border: '1px solid #CBD5E1', borderRadius: 5, padding: '7px 12px' }}>
+          <div style={{ width: 180, border: '1px solid #CBD5E1', borderRadius: 5, padding: '7px 12px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div style={{ fontSize: 10, fontWeight: 600, color: '#475569', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
               Recycler &apos;Plaque Perdue&apos;
             </div>
@@ -716,6 +738,22 @@ export default function EnregistrementPage(): JSX.Element {
               <Checkbox checked={!recycler} onChange={e => setRecycler(!e.target.checked)} disabled={saved} />
               NON
             </label>
+          </div>
+
+          {/* ── Récapitulatif financier (compact, 2 lignes — même hauteur que les autres) ─── */}
+          <div style={{
+            width: 250, border: '1px solid #DCE4F2', borderRadius: 5, padding: '7px 13px',
+            background: '#fff', boxShadow: '0 4px 12px rgba(27,58,107,0.08)',
+            display: 'flex', flexDirection: 'column', justifyContent: 'center',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, color: '#475569', marginBottom: 5 }}>
+              <span>STCA <b style={{ color: '#1E293B', fontVariantNumeric: 'tabular-nums' }}>{fmtF(montantStca)}</b></span>
+              <span>Assur. <b style={{ color: '#1E293B', fontVariantNumeric: 'tabular-nums' }}>{montantAssur ? fmtF(montantAssur) : '—'}</b></span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', borderTop: '1px solid #E2E8F0', paddingTop: 5 }}>
+              <span style={{ fontSize: 10.5, fontWeight: 800, color: '#1B3A6B', textTransform: 'uppercase', letterSpacing: 0.3 }}>Total facture</span>
+              <span style={{ fontSize: 17, fontWeight: 800, color: '#16A34A', fontVariantNumeric: 'tabular-nums' }}>{fmtF(totalFacture)}</span>
+            </div>
           </div>
         </div>
 
@@ -727,22 +765,24 @@ export default function EnregistrementPage(): JSX.Element {
           display: 'flex', justifyContent: 'flex-end', gap: 8,
           padding: '9px 14px', borderTop: '1px solid #E2E8F0', background: '#F8FAFF', flexShrink: 0,
         }}>
-          <button onClick={handleReset} style={{
+          <button onClick={handleReset} className="btn-reset" style={{
             height: 32, padding: '0 16px', background: '#F8FAFF', color: '#64748B',
             border: '1px solid #D1D5DB', borderRadius: 5, fontSize: 12, cursor: 'pointer',
-          }}>Réinitialiser</button>
+            display: 'flex', alignItems: 'center', gap: 6,
+          }}><span className="btn-ico" role="img" aria-label="réinitialiser">🔄</span> Réinitialiser</button>
           {/* Annuler = fermer la fenêtre — prototype : closeWin('enregistrement') */}
-          <button onClick={() => window.dispatchEvent(new CustomEvent('mdi:close-self'))} style={{
+          <button onClick={() => window.dispatchEvent(new CustomEvent('mdi:close-self'))} className="btn-annuler" style={{
             height: 32, padding: '0 16px', background: '#F8FAFF', color: '#DC2626',
             border: '1px solid #DC2626', borderRadius: 5, fontSize: 12, cursor: 'pointer',
-          }}>Annuler</button>
-          <button onClick={handleEnregistrer} disabled={loading || !formReady} style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+          }}><span className="btn-ico" role="img" aria-label="annuler">✖️</span> Annuler</button>
+          <button onClick={handleEnregistrer} disabled={loading || !formReady} className="btn-save" style={{
             height: 32, padding: '0 22px', background: loading || !formReady ? '#9CA3AF' : '#2563EB',
             color: '#fff', border: 'none', borderRadius: 5, fontSize: 12, fontWeight: 700,
             cursor: loading || !formReady ? 'default' : 'pointer',
             display: 'flex', alignItems: 'center', gap: 6,
           }}>
-            {loading ? '⟳ Enregistrement...' : '💾 Enregistrer'}
+            {loading ? '⟳ Enregistrement...' : <><span className="btn-ico" role="img" aria-label="enregistrer">💾</span> Enregistrer</>}
           </button>
         </div>
       )}

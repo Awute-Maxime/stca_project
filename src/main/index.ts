@@ -372,8 +372,8 @@ function createWindow(): void {
 
   ipcMain.on('window:resize-for-main', () => {
     const { width, height } = screen.getPrimaryDisplay().workAreaSize
-    const w = Math.max(Math.round(width  * 0.8), 1024)
-    const h = Math.max(Math.round(height * 0.8),  700)
+    const w = Math.max(Math.round(width  * 0.85), 1024)
+    const h = Math.max(Math.round(height * 0.85),  700)
     win.setResizable(true)
     win.setMinimumSize(1024, 700)
     win.setSize(w, h)

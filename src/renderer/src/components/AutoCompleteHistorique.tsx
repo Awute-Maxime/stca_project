@@ -16,6 +16,7 @@ interface Props {
   style?: CSSProperties
   placeholder?: string
   icone?: string
+  inputClass?: string
   maxLength?: number
   transformSaisie?: (v: string) => string
   normaliser?: (v: string) => string
@@ -26,7 +27,7 @@ const MAX_SUGGESTIONS = 8
 
 export default function AutoCompleteHistorique({
   value, onChange, options, disabled, style, placeholder,
-  icone = '📌', maxLength, transformSaisie, normaliser, onOpenGestion,
+  icone = '📌', inputClass, maxLength, transformSaisie, normaliser, onOpenGestion,
 }: Props): JSX.Element {
   const [open, setOpen] = useState(false)
   const [hi, setHi] = useState(0)
@@ -72,7 +73,7 @@ export default function AutoCompleteHistorique({
     <div ref={wrapRef} style={{ display: 'flex', alignItems: 'center', gap: 6, flex }}>
       <div style={{ position: 'relative', flex: 1, display: 'flex' }}>
         <input
-          className="light-input"
+          className={inputClass ? `light-input ${inputClass}` : 'light-input'}
           value={value}
           disabled={disabled}
           placeholder={placeholder}

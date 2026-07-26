@@ -68,7 +68,11 @@ export default function MdiWindowHost(): JSX.Element {
 
   return (
     <ConfigProvider locale={frFR} theme={appAntdTheme}>
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', background: '#FFFFFF' }}>
+      <div style={{
+        display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', background: '#FFFFFF',
+        // Fin liseré bleu nuit tout autour de la fenêtre (signature TCIT, comme la principale)
+        ...(id === 'enregistrement' ? { border: '1.5px solid #1B3A6B' } : {}),
+      }}>
 
         {/* ── Title bar — même bleu que la sidebar MainScreen ────────── */}
         <div style={{

@@ -74,13 +74,16 @@ input[type='radio'] {
   accent-color: #2563EB;
 }
 
-/* ── Champs date : indicateur calendrier discret ──── */
+/* ── Champs date natifs : indicateur calendrier discret (inchangé) ──── */
 input[type='date']::-webkit-calendar-picker-indicator {
-  cursor: pointer;
-  opacity: 0.55;
-  transition: opacity 0.15s ease;
+  cursor: pointer; opacity: 0.55; transition: opacity 0.15s ease;
 }
 input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
+
+/* DatePicker Ant Design : icône calendrier BLEUE + rebond animé au survol */
+.ant-picker .ant-picker-suffix { color: #2563EB; transition: transform 0.2s cubic-bezier(0.2, 0.7, 0.3, 1.5); display: inline-flex; }
+.ant-picker:hover .ant-picker-suffix { transform: scale(1.22) rotate(-6deg); }
+@media (prefers-reduced-motion: reduce) { .ant-picker:hover .ant-picker-suffix { transform: none; } }
 
 /* ── Lignes de tableau : survol adouci ────────────── */
 tbody tr { transition: background 0.12s ease; }
@@ -177,7 +180,8 @@ input.light-input {
   background: #fff;
   border: 1px solid #D1D5DB;
   border-radius: 4px; padding: 0 8px;
-  color: #1E293B; outline: none;
+  /* Texte SAISI plus présent : foncé + semi-gras (le placeholder reste léger) */
+  color: #0F172A; font-weight: 600; outline: none;
   transition: border-color 0.18s, box-shadow 0.18s;
   font-family: 'Segoe UI', sans-serif;
   box-sizing: border-box;
@@ -186,13 +190,31 @@ input.light-input:focus {
   border-color: #2563EB;
   box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
 }
-input.light-input::placeholder { color: #9CA3AF; }
+/* Survol : la bordure s'éclaire en bleu + légère ombre (transition douce) */
+input.light-input:hover:not(:focus):not([disabled]):not([readonly]) {
+  border-color: #93B4F5;
+  box-shadow: 0 2px 7px rgba(37,99,235,0.12);
+}
+/* Le champ châssis garde sa teinte rouge au survol */
+input.light-input--chassis:hover:not(:focus) {
+  border-color: #F87171;
+  box-shadow: 0 2px 7px rgba(220,38,38,0.14);
+}
+input.light-input::placeholder { color: #9CA3AF; font-weight: 400; }
 input.light-input[disabled]    { background: #F3F4F6; color: #9CA3AF; cursor: default; }
 input.light-input--clickable   { cursor: pointer; }
 input.light-input--clickable:hover { border-color: #2563EB; }
 input.light-input--req         { background: #EFF6FF; }
 input.light-input--warm        { background: #FFFEF0 !important; }
-input.light-input--chassis     { font-family: 'Courier New', monospace; letter-spacing: 1px; color: #1B3A6B; }
+/* N° de Châssis : info critique → champ plus GRAND et bien plus évident que les
+   autres (texte rouge, gras, monospace agrandi + fond et bord teintés rouge). */
+input.light-input--chassis {
+  font-family: 'Courier New', monospace; letter-spacing: 1.5px;
+  color: #DC2626; font-weight: 800; font-size: 17px;
+  background: #FEF2F2; border-color: #FCA5A5;
+}
+input.light-input--chassis:focus { border-color: #DC2626; box-shadow: 0 0 0 3px rgba(220,38,38,0.14); }
+input.light-input--chassis::placeholder { color: #B0838A; font-weight: 400; font-size: 12px; letter-spacing: normal; font-family: 'Segoe UI', sans-serif; }
 input.light-input--amount      { color: #16A34A; font-weight: 700; background: #F0FDF4 !important; }
 input.light-input--ref         { color: #2563EB; font-weight: 700; background: #EFF6FF !important; letter-spacing: 1px; }
 
@@ -293,3 +315,19 @@ ul.ac-hist li .ico { font-size: 11px; opacity: 0.7; flex-shrink: 0; }
 
 .hist-row { transition: background 0.12s; }
 .hist-row:hover { background: #F8FAFF; }
+
+/* Icônes animées des boutons du formulaire (au survol) */
+.btn-reset .btn-ico, .btn-annuler .btn-ico, .btn-save .btn-ico { display: inline-block; }
+.btn-reset:hover:not(:disabled) .btn-ico  { animation: spinIco 0.55s ease; }
+.btn-annuler:hover:not(:disabled) .btn-ico { animation: shakeIco 0.45s ease; }
+.btn-save:hover .btn-ico                   { animation: vroomHop 0.55s cubic-bezier(0.3, 0.8, 0.3, 1.5); }
+@keyframes spinIco { to { transform: rotate(360deg); } }
+@keyframes shakeIco {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  20% { transform: translateX(-2px) rotate(-12deg); }
+  50% { transform: translateX(2px) rotate(10deg); }
+  80% { transform: translateX(-1px) rotate(-6deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn-reset:hover .btn-ico, .btn-annuler:hover .btn-ico, .btn-save:hover .btn-ico { animation: none; }
+}
