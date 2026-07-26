@@ -1,11 +1,11 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Input, Button, Radio, Alert, Divider, notification } from 'antd'
 import {
   LockOutlined, CheckCircleOutlined, WarningOutlined,
   NumberOutlined, ToolOutlined,
 } from '@ant-design/icons'
-import { getAllVehicules, getRefCompteur, setRefCompteur } from '@mock/vehiculesStore'
-import { getAllArchives } from '@mock/archivesStore'
+import { getAllVehicules } from '@mock/vehiculesStore'
+import { electronApi } from '@api/electron'
 
 // ── Palette commune ───────────────────────────────────────────────────────────
 const C = {
@@ -51,39 +51,37 @@ function InfoRow({ label, value, mono = false }: { label: string; value: React.R
 const fmtRef = (n: number): string => String(n).padStart(6, '0')
 
 export function FixerRefWindow(): JSX.Element {
-  const [compteur, setCompteur] = useState(getRefCompteur)
-  const [saisie, setSaisie] = useState(() => String(getRefCompteur()))
+  // Compteur + max réel (actifs ET archivés) lus en BASE.
+  const [compteur, setCompteur] = useState(0)
+  const [maxBase, setMaxBase]   = useState(0)
+  const [saisie, setSaisie]     = useState('')
+  const [charge, setCharge]     = useState(false)
+  const nbActifs = getAllVehicules().length
 
-  // Photo de la base : actifs + ARCHIVÉS (une référence archivée reste prise !)
-  const base = useMemo(() => {
-    const actifs = getAllVehicules()
-    const archives = getAllArchives()
-    const refs = [...actifs, ...archives]
-      .map(v => parseInt(v.ref, 10))
-      .filter(n => !isNaN(n))
-    return {
-      refs,
-      max: refs.reduce((m, n) => Math.max(m, n), 0),
-      nbActifs: actifs.length,
-      nbArchives: archives.length,
-    }
-  }, [compteur])
+  const rafraichir = (): void => {
+    void electronApi.dbEnregRefCompteurGet().then(r => {
+      if (!r.ok) return
+      setCompteur(r.compteur ?? 0)
+      setMaxBase(r.maxBase ?? 0)
+      setCharge(prev => { if (!prev) setSaisie(String(r.compteur ?? 0)); return true })
+    })
+  }
+  useEffect(rafraichir, [])
 
   const val = parseInt(saisie, 10)
   const valide = /^\d+$/.test(saisie.trim()) && !isNaN(val) && val >= 0 && val <= 999999
 
-  // ── CONTRÔLE AUTOMATIQUE (ce que le vrai STCA demande de faire à la main) ──
-  // Toute référence existante SUPÉRIEURE au compteur sera ré-attribuée par les
-  // prochains enregistrements → doublon. On les détecte et on bloque.
-  const collisions = valide ? base.refs.filter(n => n > val).sort((a, b) => a - b) : []
-  const bloque = valide && collisions.length > 0
-  const ecart = valide ? val - base.max : 0
-  const prochain = valide ? Math.max(val, base.max) + 1 : base.max + 1
+  // ── CONTRÔLE AUTOMATIQUE ──────────────────────────────────────────────────
+  // Choisir une valeur SOUS la plus haute référence existante ré-attribuerait des
+  // numéros déjà pris → doublon. On refuse tout ce qui est < max réel en base.
+  const bloque = valide && val < maxBase
+  const ecart = valide ? val - maxBase : 0
+  const prochain = valide ? Math.max(val, maxBase) + 1 : maxBase + 1
 
-  const valider = (): void => {
-    if (!valide || bloque) return
-    setRefCompteur(val)
-    setCompteur(val)
+  const valider = async (): Promise<void> => {
+    if (!valide || bloque || !charge) return
+    await electronApi.dbEnregRefCompteurSet(val)
+    rafraichir()
     notification.success({
       message: '✅ N° de référence fixé',
       description: `Compteur = ${fmtRef(val)} · prochain enregistrement : ${fmtRef(val + 1)}`,
@@ -118,11 +116,11 @@ export function FixerRefWindow(): JSX.Element {
 
       <div style={{ background: C.bg, border: '1px solid #DDEAFF', borderRadius: 8, padding: '10px 14px', marginBottom: 12 }}>
         <InfoRow label="N° de référence en cours" value={fmtRef(compteur)} mono />
-        <InfoRow label="N° le plus élevé réellement utilisé" value={fmtRef(base.max)} mono />
+        <InfoRow label="N° le plus élevé réellement utilisé" value={fmtRef(maxBase)} mono />
         <div style={{ borderBottom: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', fontSize: 12 }}>
-          <span style={{ color: C.muted }}>Enregistrements contrôlés</span>
+          <span style={{ color: C.muted }}>Base active</span>
           <span style={{ fontWeight: 600, color: C.blue }}>
-            {base.nbActifs} actif(s) + {base.nbArchives} archivé(s)
+            {nbActifs} enregistrement(s) actif(s)
           </span>
         </div>
       </div>
@@ -143,21 +141,21 @@ export function FixerRefWindow(): JSX.Element {
           />
           <Button
             size="large"
-            onClick={() => setSaisie(String(base.max))}
-            disabled={valide && val === base.max}
+            onClick={() => setSaisie(String(maxBase))}
+            disabled={valide && val === maxBase}
             title="Caler le compteur sur la dernière référence réellement utilisée (actifs + archivés)"
           >
             ↺ Réaligner
           </Button>
         </div>
-        {compteur < base.max && (
+        {charge && compteur < maxBase && (
           <div style={{
             marginTop: 8, padding: '7px 10px', borderRadius: 6,
             background: '#FFFBEB', border: '1px solid #FDE68A',
             fontSize: 11, color: '#92400E', lineHeight: 1.45,
           }}>
             ⚠ Le compteur enregistré (<strong>{fmtRef(compteur)}</strong>) est <strong>en retard</strong> sur
-            la base (<strong>{fmtRef(base.max)}</strong>) — typique après une restauration de sauvegarde.
+            la base (<strong>{fmtRef(maxBase)}</strong>) — typique après une restauration de sauvegarde.
             Cliquez <strong>↺ Réaligner</strong> puis <strong>Valider</strong>.
           </div>
         )}
@@ -172,16 +170,12 @@ export function FixerRefWindow(): JSX.Element {
 
       {bloque && (
         <Alert type="error" showIcon icon={<WarningOutlined />}
-          message={`Refusé : ${collisions.length} référence(s) existante(s) seraient ré-attribuées`}
+          message="Refusé : des références supérieures sont déjà utilisées"
           description={
             <span style={{ fontSize: 11 }}>
-              Les prochains enregistrements repartiraient à {fmtRef(val + 1)} alors que ces
-              références sont déjà prises :{' '}
-              <strong style={{ fontFamily: 'Courier New, monospace' }}>
-                {collisions.slice(0, 6).map(fmtRef).join(', ')}
-                {collisions.length > 6 ? `… (+${collisions.length - 6})` : ''}
-              </strong>
-              . Minimum autorisé : <strong>{fmtRef(base.max)}</strong>.
+              En dessous de la plus haute référence existante, les prochains enregistrements
+              créeraient des <strong>doublons</strong>. Minimum autorisé :{' '}
+              <strong style={{ fontFamily: 'Courier New, monospace' }}>{fmtRef(maxBase)}</strong>.
             </span>
           }
           style={{ marginBottom: 10, fontSize: 11 }} />
@@ -197,12 +191,12 @@ export function FixerRefWindow(): JSX.Element {
       {valide && !bloque && ecart > 0 && (
         <Alert type="warning" showIcon
           message={`Saut de ${ecart} numéro(s) dans la numérotation`}
-          description={`Autorisé, mais les n° ${fmtRef(base.max + 1)} à ${fmtRef(val)} resteront inutilisés. Prochain enregistrement : ${fmtRef(prochain)}.`}
+          description={`Autorisé, mais les n° ${fmtRef(maxBase + 1)} à ${fmtRef(val)} resteront inutilisés. Prochain enregistrement : ${fmtRef(prochain)}.`}
           style={{ marginBottom: 10, fontSize: 11 }} />
       )}
 
       <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 14 }}>
-        <Button type="primary" onClick={valider} disabled={!valide || bloque}
+        <Button type="primary" onClick={() => void valider()} disabled={!valide || bloque || !charge}
           style={{ background: !valide || bloque ? undefined : C.green, borderColor: !valide || bloque ? undefined : C.green, minWidth: 120 }}>
           ✓ Valider
         </Button>

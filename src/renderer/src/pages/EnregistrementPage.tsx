@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { DatePicker, Modal, Input, Checkbox, Radio, Dropdown, notification } from 'antd'
 import type { MenuProps } from 'antd'
@@ -8,14 +8,14 @@ import {
   PrinterOutlined, PlusOutlined,
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
-import { addVehicule, updateVehicule, nextRef, nextId, countAddedForDest, getAllVehicules } from '@mock/vehiculesStore'
-import { getAllArchives } from '@mock/archivesStore'
+import { addVehicule, updateVehicule, getAllVehicules, prochainNumImmat } from '@mock/vehiculesStore'
 import { WinAlert } from '@components/WinDialogs'
 import { useMarques } from '@mock/marquesStore'
 import { useTypesVehicule } from '@mock/typesVehiculeStore'
 import { useDestColors, getDestinations } from '@mock/destinationsStore'
 import { CarteGrisePrintDirect, type CarteGriseData } from '@components/documents/CarteGrise'
-import { FacturePrintDirect, type FactureData, MONTANT_ASSURANCE_FACTURE } from '@components/documents/Facture'
+import { FacturePrintDirect, type FactureData } from '@components/documents/Facture'
+import { tarifPourType, primesPourType } from '@mock/assurancesStore'
 import { FicheIdPrintDirect, type FicheIdData } from '@components/documents/FicheId'
 import { Feuillet3PrintDirect, type Feuillet3Data } from '@components/documents/Feuillet3'
 import { Feuillet1PrintDirect, type Feuillet1Data } from '@components/documents/Feuillet1'
@@ -341,14 +341,14 @@ export default function EnregistrementPage(): JSX.Element {
   const progressCount = progress.filter(Boolean).length
   const formReady     = progressCount === 4
 
-  const handleDestinationChange = (code: string): void => {
+  const handleDestinationChange = async (code: string): Promise<void> => {
     const dest = getDestinations().find(d => d.code === code)
     if (dest) {
-      // Compteur incrémenté des enregistrements déjà ajoutés pour cette destination
-      const num = String(dest.numImmatActuel + 1 + countAddedForDest(code)).padStart(4, '0')
-      setImmatGenere(`${dest.lettre}${num}`)
       setMontant(MONTANT_FIXE)
       setDestination(code)
+      // Prochain N° IMMAT = max(base référentiel, max réel en base) + 1 (anti-doublon)
+      const num = String(await prochainNumImmat(code, dest.numImmatActuel)).padStart(4, '0')
+      setImmatGenere(`${dest.lettre}${num}`)
     }
   }
 
@@ -365,11 +365,20 @@ export default function EnregistrementPage(): JSX.Element {
   // ── Détection d'un N° de châssis déjà enregistré (actifs ET archivés) ───────
   // Un châssis déjà présent = anomalie à faire régler par l'administrateur.
   // On exclut l'enregistrement en cours de modification (son propre châssis).
-  const chassisDuplique = useMemo(() => {
+  // Détection en base (vin unique) : actifs via le cache, archives via requête.
+  const [chassisDuplique, setChassisDuplique] = useState<{ ref: string; immat: string } | null>(null)
+  useEffect(() => {
     const ch = chassis.trim().toUpperCase()
-    if (ch.length < 5) return null
-    const tous = [...getAllVehicules(), ...getAllArchives()]
-    return tous.find(v => (v.chassis ?? '').trim().toUpperCase() === ch && v.ref !== savedRef) ?? null
+    if (ch.length < 5) { setChassisDuplique(null); return }
+    const actif = getAllVehicules().find(v => (v.chassis ?? '').trim().toUpperCase() === ch && v.ref !== savedRef)
+    if (actif) { setChassisDuplique({ ref: actif.ref, immat: actif.immat }); return }
+    let annule = false
+    void electronApi.dbArchivesRechercher(ch).then(r => {
+      if (annule) return
+      const arch = (r.items ?? []).find(v => v.chassis.trim().toUpperCase() === ch && v.ref !== savedRef)
+      setChassisDuplique(arch ? { ref: arch.ref, immat: arch.immat } : null)
+    })
+    return () => { annule = true }
   }, [chassis, savedRef])
 
   const handleEnregistrer = async (): Promise<void> => {
@@ -396,14 +405,9 @@ export default function EnregistrementPage(): JSX.Element {
     if (chassis)      chassisHist.add(chassis)
     if (marqueModele) marqueHist.add(marqueModele)
 
-    // Simulation sauvegarde DB
-    await new Promise(r => setTimeout(r, 600))
-
-    // Ajout réel au store partagé — synchronise Liste, Dashboard, etc. (toutes fenêtres)
-    const ref = nextRef()
-    addVehicule({
-      id: nextId(),
-      ref,
+    // Ajout réel en BASE — le main attribue la référence et la retourne.
+    // Synchronise Liste, Dashboard, etc. via db:changed('enregistrements').
+    const ref = await addVehicule({
       date: dayjs().format('YYYY-MM-DD HH:mm'),
       immat: immatGenere ?? '',
       chassis,
@@ -415,11 +419,16 @@ export default function EnregistrementPage(): JSX.Element {
       paysResidence,
       paysDestination,
       parc: maisonTransit, // colonne « Sortant du parc » = maison de transit (cf. STCA II réel)
-      agent: 'awute',
+      agent: localStorage.getItem('tcit_session_login') ?? 'awute',
       recyclerPlaque: false, // nouveau véhicule = pas encore sorti
       numTri,
       dateTri: dateTri.format('YYYY-MM-DD'),
     })
+    if (!ref) {
+      setAlerteChassis(<>L&apos;enregistrement a échoué (doublon châssis/immatriculation ou erreur base). Réessayez ou voyez l&apos;administrateur.</>)
+      setLoading(false)
+      return
+    }
     setSavedRef(ref)
 
     // Envoi vers le poste d'affichage (émetteur dans le main : bufferise hors ligne,
@@ -744,7 +753,7 @@ export default function EnregistrementPage(): JSX.Element {
             // Sauvegarde réelle : surcharge par réf dans le store partagé →
             // Liste, Dashboard, Recherche, etc. se synchronisent automatiquement
             if (savedRef) {
-              updateVehicule(savedRef, {
+              void updateVehicule(savedRef, {
                 nomAcheteur, paysResidence, paysDestination,
                 marqueModele, chassis,
                 typeVehicule: typeVehicule ?? '',
@@ -796,7 +805,8 @@ export default function EnregistrementPage(): JSX.Element {
           marque: marqueModele,
           natureVeh: typeVehicule ?? '',
           montantStca: montant ?? MONTANT_FIXE,
-          montantAssurance: MONTANT_ASSURANCE_FACTURE,
+          // Tarif de la catégorie du véhicule — Configuration Assurances (source unique)
+          montantAssurance: tarifPourType(typeVehicule ?? '').tarif,
         }}
         ficheId={{
           nom: nomAcheteur,
@@ -822,6 +832,8 @@ export default function EnregistrementPage(): JSX.Element {
           chassis,
           immatStac: immatGenere ? 'TG WZ ' + immatGenere[0] + ' ' + immatGenere.slice(1) + ' ' + (destination ?? '') : '',
           mention: '',
+          // Primes de la catégorie du véhicule — Configuration Assurances (source unique)
+          primes: primesPourType(typeVehicule ?? ''),
         }}
         feuillet1={{
           nom: nomAcheteur,

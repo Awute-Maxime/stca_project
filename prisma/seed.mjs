@@ -44,6 +44,7 @@ const PRENOMS = ['Kofi', 'Ama', 'Yao', 'Afi', 'Kwame', 'Akosua', 'Komla', 'Adjoa
 const NOMS    = ['MENSAH', 'KOFFI', 'DOSSOU', 'ATSU', 'AGBO', 'KPONTO', 'GBADAGO', 'AMEDE', 'SOW', 'ISSAH', 'KODJO', 'AGBEKO', 'LAWSON', 'ADJOVI']
 const PARCS   = ['TP1', 'TP2', 'TP3', 'Parc Baguida', 'Parc Hédzranawoé', 'Parc Port Autonome']
 const VILLES  = ['Lomé', 'Kara', 'Aného', 'Sokodé', 'Kpalimé', 'Atakpamé', 'Dapaong', 'Tsévié']
+const PAYS_DEST = ['Burkina Faso', 'Ghana', 'Niger', 'Bénin', 'Mali', 'Côte d\'Ivoire', 'Nigeria']
 
 // Générateur pseudo-aléatoire déterministe (résultats reproductibles)
 let graine = 123456789
@@ -113,6 +114,8 @@ async function main() {
       marqueModele: `${marque} ${modele}`,
       vin: 'SEED' + String(i).padStart(13, '0'),
       numTri: 'T' + String(1000 + i).padStart(5, '0'),
+      dateTri: dateEnreg,
+      paysDestination: pick(PAYS_DEST),
       numImmatriculation: `${dest.lettre}${String(numImm).padStart(4, '0')}`,
       montant: 10000,
       dateEnreg,

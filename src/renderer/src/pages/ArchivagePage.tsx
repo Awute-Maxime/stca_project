@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Table, Input, DatePicker, Button, Modal, Alert, Tabs, notification } from 'antd'
 import {
   SearchOutlined, InboxOutlined, RollbackOutlined,
@@ -56,12 +56,14 @@ export default function ArchivagePage(): JSX.Element {
 
   const sessionLogin = localStorage.getItem('tcit_session_login') ?? 'Administrateur'
 
-  // Éligibles (3 ans et plus) — affichés AUTOMATIQUEMENT, du plus ancien au plus récent
-  const eligibles = useMemo(
-    () => vehiculesArchivables(seuil.format('YYYY-MM-DD'))
-      .sort((a, b) => dayjs(a.date).valueOf() - dayjs(b.date).valueOf()),
-    [seuil, actifs] // eslint-disable-line react-hooks/exhaustive-deps
-  )
+  // Éligibles (3 ans et plus) — chargés depuis la base (requête à la demande),
+  // du plus ancien au plus récent. Rechargés quand la base active change.
+  const [eligibles, setEligibles] = useState<MockVehicule[]>([])
+  useEffect(() => {
+    void vehiculesArchivables(seuil.format('YYYY-MM-DD')).then(list =>
+      setEligibles([...list].sort((a, b) => dayjs(a.date).valueOf() - dayjs(b.date).valueOf()))
+    )
+  }, [seuil, actifs])
 
   // Sous-ensemble de la période choisie (bornée par le seuil d'éligibilité)
   const concernes = useMemo(
@@ -81,9 +83,9 @@ export default function ArchivagePage(): JSX.Element {
     )
   }, [archives, search])
 
-  const lancerArchivage = (): void => {
+  const lancerArchivage = async (): Promise<void> => {
     const limite = confirmOpen === 'tout' ? seuil : dateLimite
-    const nb = archiverJusquAu(limite.format('YYYY-MM-DD'), sessionLogin)
+    const nb = await archiverJusquAu(limite.format('YYYY-MM-DD'), sessionLogin)
     setConfirmOpen(null)
     notification.success({
       message: `📦 Archivage terminé — ${nb} enregistrement(s)`,
@@ -92,8 +94,8 @@ export default function ArchivagePage(): JSX.Element {
     })
   }
 
-  const rappeler = (refs: string[]): void => {
-    const nb = rappelerArchives(refs)
+  const rappeler = async (refs: string[]): Promise<void> => {
+    const nb = await rappelerArchives(refs)
     setSelected(prev => prev.filter(r => !refs.includes(r)))
     notification.success({
       message: `↩ ${nb} enregistrement(s) rappelé(s)`,
@@ -102,8 +104,8 @@ export default function ArchivagePage(): JSX.Element {
     })
   }
 
-  const purger = (): void => {
-    const nb = purgerArchives(selected)
+  const purger = async (): Promise<void> => {
+    const nb = await purgerArchives(selected)
     setSelected([])
     setPurgeOpen(false)
     notification.warning({
@@ -179,7 +181,7 @@ export default function ArchivagePage(): JSX.Element {
     {
       title: '', width: 92, align: 'center' as const,
       render: (_, row) => (
-        <Button size="small" icon={<RollbackOutlined />} onClick={() => rappeler([row.ref])}
+        <Button size="small" icon={<RollbackOutlined />} onClick={() => void rappeler([row.ref])}
           style={{ fontSize: 10, color: C.accent, borderColor: C.accent }}>
           Rappeler
         </Button>
@@ -293,7 +295,7 @@ export default function ArchivagePage(): JSX.Element {
                   <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
                     {selected.length > 0 && (
                       <>
-                        <Button size="small" icon={<RollbackOutlined />} onClick={() => rappeler(selected)}
+                        <Button size="small" icon={<RollbackOutlined />} onClick={() => void rappeler(selected)}
                           style={{ color: C.accent, borderColor: C.accent, fontWeight: 600 }}>
                           Rappeler la sélection ({selected.length})
                         </Button>
@@ -326,7 +328,7 @@ export default function ArchivagePage(): JSX.Element {
       {/* ── Confirmation d'archivage ─────────────────────────────────────────── */}
       <Modal
         title={<>📦 Lancer l&apos;archivage</>}
-        open={confirmOpen !== null} onOk={lancerArchivage} onCancel={() => setConfirmOpen(null)}
+        open={confirmOpen !== null} onOk={() => void lancerArchivage()} onCancel={() => setConfirmOpen(null)}
         okText={`Archiver ${nbConfirme} enregistrement(s)`} cancelText="Annuler" width={450}
       >
         <p style={{ fontSize: 12, marginBottom: 8, lineHeight: 1.6 }}>
@@ -344,7 +346,7 @@ export default function ArchivagePage(): JSX.Element {
       {/* ── Confirmation de purge définitive ─────────────────────────────────── */}
       <Modal
         title={<><WarningOutlined style={{ color: C.danger, marginRight: 6 }} />Purger les archives</>}
-        open={purgeOpen} onOk={purger} onCancel={() => setPurgeOpen(false)}
+        open={purgeOpen} onOk={() => void purger()} onCancel={() => setPurgeOpen(false)}
         okText="Purger définitivement" okButtonProps={{ danger: true }} cancelText="Annuler" width={400}
       >
         <p style={{ fontSize: 12, marginBottom: 8 }}>

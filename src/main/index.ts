@@ -15,6 +15,13 @@ import {
   initAfficheur, configurerAfficheur, envoyerEnregistrement, testerConnexion, etatAfficheur
 } from './afficheur'
 import type { AffichageConfig, EnvoiPayload } from './protocoleAffichage'
+import {
+  enregistrementsActifsList, enregistrementAdd, enregistrementUpdate, enregistrementRemove,
+  getRefCompteur, setRefCompteur, maxRefEnBase, nextRef, countActifsForDest, maxNumImmatForDest, rechercherActif,
+  vehiculesArchivables, archiverJusquAu, archivesList, rechercherArchive,
+  rappelerArchives, purgerArchives,
+  type EnregistrementInput, type EnregistrementDto,
+} from './enregistrements'
 
 const isDev = process.env['NODE_ENV'] === 'development' || !app.isPackaged
 
@@ -191,6 +198,73 @@ function setupMdiIPC(): void {
   })
   ipcMain.handle('db:admin:setForcage', async (_, mdp: string) => {
     try { await setMdpForcage(mdp); return { ok: true } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+
+  // ── Enregistrements (le cœur — cache actif + archives à la demande) ──────────
+  ipcMain.handle('db:enreg:listActifs', async () => {
+    try { return { ok: true, items: await enregistrementsActifsList() } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:enreg:add', async (_, input: EnregistrementInput) => {
+    try { return await enregistrementAdd(input) }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:enreg:update', async (_, p: { ref: string; changes: Partial<EnregistrementDto> }) => {
+    try { return await enregistrementUpdate(p.ref, p.changes) }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:enreg:remove', async (_, ref: string) => {
+    try { return await enregistrementRemove(ref) }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:enreg:nextRef', async () => {
+    try { return { ok: true, ref: await nextRef() } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:enreg:refCompteur:get', async () => {
+    try { return { ok: true, compteur: await getRefCompteur(), maxBase: await maxRefEnBase() } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:enreg:refCompteur:set', async (_, n: number) => {
+    try { await setRefCompteur(n); return { ok: true } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:enreg:countForDest', async (_, code: string) => {
+    try { return { ok: true, count: await countActifsForDest(code) } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:enreg:maxImmatForDest', async (_, code: string) => {
+    try { return { ok: true, max: await maxNumImmatForDest(code) } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:enreg:rechercherActif', async (_, query: string) => {
+    try { return { ok: true, items: await rechercherActif(query) } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  // ── Archives (à la demande) ──────────────────────────────────────────────────
+  ipcMain.handle('db:archives:list', async () => {
+    try { return { ok: true, items: await archivesList() } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:archives:rechercher', async (_, query: string) => {
+    try { return { ok: true, items: await rechercherArchive(query) } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:archives:archivables', async (_, dateLimite: string) => {
+    try { return { ok: true, items: await vehiculesArchivables(dateLimite) } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:archives:archiver', async (_, p: { dateLimite: string; par: string }) => {
+    try { return { ok: true, count: await archiverJusquAu(p.dateLimite, p.par) } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:archives:rappeler', async (_, refs: string[]) => {
+    try { return { ok: true, count: await rappelerArchives(refs) } }
+    catch (err) { return { ok: false, error: String(err) } }
+  })
+  ipcMain.handle('db:archives:purger', async (_, refs: string[]) => {
+    try { return { ok: true, count: await purgerArchives(refs) } }
     catch (err) { return { ok: false, error: String(err) } }
   })
 

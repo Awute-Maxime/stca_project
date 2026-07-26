@@ -14,6 +14,32 @@ export interface DbUserInput {
   compteActif: boolean
 }
 
+// Enregistrements (shape historique MockVehicule, servi par la base)
+export interface DbEnregistrement {
+  id: number
+  ref: string
+  date: string
+  immat: string
+  chassis: string
+  typeVehicule: string
+  marqueModele: string
+  destination: string
+  montant: number
+  nomAcheteur: string
+  paysResidence: string
+  paysDestination: string
+  parc: string
+  agent: string
+  recyclerPlaque: boolean
+  numTri: string
+  dateTri: string
+}
+export type DbEnregistrementInput = Omit<DbEnregistrement, 'id' | 'ref'>
+export interface DbArchive extends DbEnregistrement {
+  dateArchivage: string
+  archivePar: string
+}
+
 export interface DbAssurTarif {
   type: string; tarif: number; taxe: number; commissionPct: number
   detail: { rc: number; cedeao: number; individuelle: number; accessoires: number }
@@ -124,6 +150,22 @@ declare global {
       affichageEtat:      () => Promise<{ ok: boolean; etat?: AffichageEtat }>
       onAffichageEtat:    (cb: (etat: AffichageEtat) => void) => (() => void)
       onDbChanged:     (cb: (p: { domaine: string }) => void) => (() => void)
+      dbEnregListActifs: () => Promise<{ ok: boolean; items?: DbEnregistrement[]; error?: string }>
+      dbEnregAdd:      (input: DbEnregistrementInput) => Promise<{ ok: boolean; ref?: string; error?: string }>
+      dbEnregUpdate:   (ref: string, changes: Partial<DbEnregistrement>) => Promise<{ ok: boolean; error?: string }>
+      dbEnregRemove:   (ref: string) => Promise<{ ok: boolean; error?: string }>
+      dbEnregNextRef:  () => Promise<{ ok: boolean; ref?: string; error?: string }>
+      dbEnregRefCompteurGet: () => Promise<{ ok: boolean; compteur?: number; maxBase?: number; error?: string }>
+      dbEnregRefCompteurSet: (n: number) => Promise<{ ok: boolean; error?: string }>
+      dbEnregCountForDest: (code: string) => Promise<{ ok: boolean; count?: number; error?: string }>
+      dbEnregMaxImmatForDest: (code: string) => Promise<{ ok: boolean; max?: number; error?: string }>
+      dbEnregRechercherActif: (query: string) => Promise<{ ok: boolean; items?: DbEnregistrement[]; error?: string }>
+      dbArchivesList:  () => Promise<{ ok: boolean; items?: DbArchive[]; error?: string }>
+      dbArchivesRechercher: (query: string) => Promise<{ ok: boolean; items?: DbArchive[]; error?: string }>
+      dbArchivesArchivables: (dateLimite: string) => Promise<{ ok: boolean; items?: DbEnregistrement[]; error?: string }>
+      dbArchivesArchiver: (dateLimite: string, par: string) => Promise<{ ok: boolean; count?: number; error?: string }>
+      dbArchivesRappeler: (refs: string[]) => Promise<{ ok: boolean; count?: number; error?: string }>
+      dbArchivesPurger: (refs: string[]) => Promise<{ ok: boolean; count?: number; error?: string }>
       importPickFile:  () => Promise<string | null>
       importPreview:   (chemin: string) => Promise<ImportPreview>
       importRun:       (p: { chemin: string; mapping: Record<string, string | undefined>; delimiter: string }) => Promise<ImportReport>
@@ -192,6 +234,40 @@ export const electronApi = {
     window.api?.dbAdminSetForcage?.(mdp) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
   onDbChanged:     (cb: (p: { domaine: string }) => void): (() => void) =>
     window.api?.onDbChanged?.(cb) ?? (() => {}),
+
+  // Enregistrements + archives
+  dbEnregListActifs: (): Promise<{ ok: boolean; items?: DbEnregistrement[]; error?: string }> =>
+    window.api?.dbEnregListActifs?.() ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbEnregAdd: (input: DbEnregistrementInput): Promise<{ ok: boolean; ref?: string; error?: string }> =>
+    window.api?.dbEnregAdd?.(input) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbEnregUpdate: (ref: string, changes: Partial<DbEnregistrement>): Promise<{ ok: boolean; error?: string }> =>
+    window.api?.dbEnregUpdate?.(ref, changes) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbEnregRemove: (ref: string): Promise<{ ok: boolean; error?: string }> =>
+    window.api?.dbEnregRemove?.(ref) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbEnregNextRef: (): Promise<{ ok: boolean; ref?: string; error?: string }> =>
+    window.api?.dbEnregNextRef?.() ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbEnregRefCompteurGet: (): Promise<{ ok: boolean; compteur?: number; maxBase?: number; error?: string }> =>
+    window.api?.dbEnregRefCompteurGet?.() ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbEnregRefCompteurSet: (n: number): Promise<{ ok: boolean; error?: string }> =>
+    window.api?.dbEnregRefCompteurSet?.(n) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbEnregCountForDest: (code: string): Promise<{ ok: boolean; count?: number; error?: string }> =>
+    window.api?.dbEnregCountForDest?.(code) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbEnregMaxImmatForDest: (code: string): Promise<{ ok: boolean; max?: number; error?: string }> =>
+    window.api?.dbEnregMaxImmatForDest?.(code) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbEnregRechercherActif: (query: string): Promise<{ ok: boolean; items?: DbEnregistrement[]; error?: string }> =>
+    window.api?.dbEnregRechercherActif?.(query) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbArchivesList: (): Promise<{ ok: boolean; items?: DbArchive[]; error?: string }> =>
+    window.api?.dbArchivesList?.() ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbArchivesRechercher: (query: string): Promise<{ ok: boolean; items?: DbArchive[]; error?: string }> =>
+    window.api?.dbArchivesRechercher?.(query) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbArchivesArchivables: (dateLimite: string): Promise<{ ok: boolean; items?: DbEnregistrement[]; error?: string }> =>
+    window.api?.dbArchivesArchivables?.(dateLimite) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbArchivesArchiver: (dateLimite: string, par: string): Promise<{ ok: boolean; count?: number; error?: string }> =>
+    window.api?.dbArchivesArchiver?.(dateLimite, par) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbArchivesRappeler: (refs: string[]): Promise<{ ok: boolean; count?: number; error?: string }> =>
+    window.api?.dbArchivesRappeler?.(refs) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
+  dbArchivesPurger: (refs: string[]): Promise<{ ok: boolean; count?: number; error?: string }> =>
+    window.api?.dbArchivesPurger?.(refs) ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
   affichageConfigGet: (): Promise<{ ok: boolean; config?: AffichageConfig; error?: string }> =>
     window.api?.affichageConfigGet?.() ?? Promise.resolve({ ok: false, error: 'window.api indisponible' }),
   affichageConfigSet: (cfg: AffichageConfig): Promise<{ ok: boolean; error?: string }> =>

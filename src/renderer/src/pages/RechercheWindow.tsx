@@ -1,9 +1,8 @@
 import { useDestColors } from '@mock/destinationsStore'
-import { useState, useMemo, type ReactNode } from 'react'
+import { useState, useMemo, useEffect, type ReactNode } from 'react'
 import { notification } from 'antd'
 import dayjs from 'dayjs'
 import { useVehicules, removeVehicule } from '@mock/vehiculesStore'
-import { useArchives } from '@mock/archivesStore'
 import type { MockVehicule } from '@mock/vehicules'
 import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
@@ -79,16 +78,25 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
   // 1er temps : seule la base ACTIVE est interrogée (rapide, cas courant) ;
   // 2e temps : rien trouvé → on interroge alors les ARCHIVES (vieux
   // enregistrements), qui restent ainsi toujours disponibles.
-  const archives = useArchives()
-  const [results, depuisArchives] = useMemo((): [MockVehicule[], boolean] => {
-    if (!searched || !query) return [[], false]
+  // 1er temps : base ACTIVE (cache, immédiat). 2e temps : rien trouvé → on
+  // interroge les ARCHIVES EN BASE (requête, pas le cache plafonné).
+  const [results, setResults] = useState<MockVehicule[]>([])
+  const [depuisArchives, setDepuisArchives] = useState(false)
+  useEffect(() => {
+    if (!searched || !query) { setResults([]); setDepuisArchives(false); return }
     const q = query.toUpperCase()
     const critere = (v: MockVehicule): boolean =>
       isImmat ? v.immat.toUpperCase().includes(q) : v.chassis.toUpperCase().includes(q)
     const actifs = vehicules.filter(critere)
-    if (actifs.length > 0) return [actifs, false]
-    return [archives.filter(critere), true]
-  }, [vehicules, archives, searched, query, isImmat])
+    if (actifs.length > 0) { setResults(actifs); setDepuisArchives(false); return }
+    let annule = false
+    void electronApi.dbArchivesRechercher(query.trim()).then(r => {
+      if (annule) return
+      setResults((r.items ?? []).filter(critere))
+      setDepuisArchives(true)
+    })
+    return () => { annule = true }
+  }, [vehicules, searched, query, isImmat])
 
   const filtered = useMemo(() => {
     if (!frFilter) return results

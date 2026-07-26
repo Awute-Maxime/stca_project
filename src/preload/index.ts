@@ -55,6 +55,24 @@ const api = {
     return () => ipcRenderer.removeListener('db:changed', h)
   },
 
+  // Enregistrements (cache actif + archives à la demande)
+  dbEnregListActifs: (): Promise<unknown> => ipcRenderer.invoke('db:enreg:listActifs'),
+  dbEnregAdd: (input: unknown): Promise<unknown> => ipcRenderer.invoke('db:enreg:add', input),
+  dbEnregUpdate: (ref: string, changes: unknown): Promise<unknown> => ipcRenderer.invoke('db:enreg:update', { ref, changes }),
+  dbEnregRemove: (ref: string): Promise<unknown> => ipcRenderer.invoke('db:enreg:remove', ref),
+  dbEnregNextRef: (): Promise<unknown> => ipcRenderer.invoke('db:enreg:nextRef'),
+  dbEnregRefCompteurGet: (): Promise<unknown> => ipcRenderer.invoke('db:enreg:refCompteur:get'),
+  dbEnregRefCompteurSet: (n: number): Promise<unknown> => ipcRenderer.invoke('db:enreg:refCompteur:set', n),
+  dbEnregCountForDest: (code: string): Promise<unknown> => ipcRenderer.invoke('db:enreg:countForDest', code),
+  dbEnregMaxImmatForDest: (code: string): Promise<unknown> => ipcRenderer.invoke('db:enreg:maxImmatForDest', code),
+  dbEnregRechercherActif: (query: string): Promise<unknown> => ipcRenderer.invoke('db:enreg:rechercherActif', query),
+  dbArchivesList: (): Promise<unknown> => ipcRenderer.invoke('db:archives:list'),
+  dbArchivesRechercher: (query: string): Promise<unknown> => ipcRenderer.invoke('db:archives:rechercher', query),
+  dbArchivesArchivables: (dateLimite: string): Promise<unknown> => ipcRenderer.invoke('db:archives:archivables', dateLimite),
+  dbArchivesArchiver: (dateLimite: string, par: string): Promise<unknown> => ipcRenderer.invoke('db:archives:archiver', { dateLimite, par }),
+  dbArchivesRappeler: (refs: string[]): Promise<unknown> => ipcRenderer.invoke('db:archives:rappeler', refs),
+  dbArchivesPurger: (refs: string[]): Promise<unknown> => ipcRenderer.invoke('db:archives:purger', refs),
+
   // Assistant d'import de l'ancienne base STCA (CSV)
   importPickFile: (): Promise<string | null> => ipcRenderer.invoke('import:pickFile'),
   importPreview: (chemin: string): Promise<unknown> => ipcRenderer.invoke('import:preview', chemin),

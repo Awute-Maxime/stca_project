@@ -129,6 +129,8 @@ model Enregistrement {
   marqueModele            String // texte, comme STCA
   vin                     String    @unique // Vin_Vehicule (châssis)
   numTri                  String?
+  dateTri                 DateTime? // Date du N° de Tri (ajout TCIT — imprimée sur la carte grise)
+  paysDestination         String? // Pays de destination (ajout TCIT — hors STCA M)
   numImmatriculation      String
   montant                 Int       @default(10000) // Montant_Enregistrement
   dateEnreg               DateTime  @default(now())
