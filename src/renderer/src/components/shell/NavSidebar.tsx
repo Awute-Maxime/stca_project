@@ -56,6 +56,7 @@ export default function NavSidebar({ onSelect, activeId }: NavSidebarProps): JSX
           <button
             key={item.id}
             aria-label={item.label}
+            className="nav-btn"
             onClick={() => onSelect(item.id)}
             style={{
               position: 'relative',
@@ -97,7 +98,7 @@ export default function NavSidebar({ onSelect, activeId }: NavSidebarProps): JSX
                 background: '#60A5FA',
               }} />
             )}
-            <span style={{ fontSize: 18 }}>{item.icon}</span>
+            <span className="nav-ico" style={{ fontSize: 18 }}>{item.icon}</span>
             <span style={{ fontSize: 9.5, fontWeight: 500, textAlign: 'center', lineHeight: 1.2 }}>
               {item.label}
             </span>

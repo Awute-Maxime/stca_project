@@ -24,6 +24,7 @@ function StatCard({ icon, iconBg, borderColor, value, valueStyle, label, sub }: 
 }): JSX.Element {
   return (
     <div
+      className="stat-card"
       style={{
         background: '#fff', borderRadius: 12,
         padding: '14px 16px',
@@ -46,7 +47,7 @@ function StatCard({ icon, iconBg, borderColor, value, valueStyle, label, sub }: 
       }}
     >
       {/* Icon — prototype: .si */}
-      <div style={{
+      <div className="stat-ico" style={{
         width: 44, height: 44, borderRadius: 10,
         background: iconBg,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -121,7 +122,7 @@ export default function DashboardHome(): JSX.Element {
 
       {/* ── Stat Cards — prototype: .dg ────────────────────────────── */}
       <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 18,
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 14, marginBottom: 18,
       }}>
         <StatCard icon="🚗" iconBg="#EFF6FF" borderColor="#2563EB"
           value={stats.total} label="Véhicules enregistrés" sub="Total cumulé" />
@@ -136,11 +137,13 @@ export default function DashboardHome(): JSX.Element {
       </div>
 
       {/* ── Charts row — prototype: .dr ────────────────────────────── */}
-      <div style={{ display: 'flex', gap: 14, marginBottom: 18 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginBottom: 18 }}>
 
         {/* Activité par frontière — prototype: .dp flex:1.4 */}
-        <div style={{
-          flex: 1.4, background: '#fff', borderRadius: 12, padding: 16,
+        <div
+          onMouseEnter={e => e.currentTarget.querySelectorAll<HTMLElement>('.jauge-fill').forEach(el => { el.style.animation = 'none'; void el.offsetHeight; el.style.animation = '' })}
+          style={{
+          flex: '1.4 1 320px', background: '#fff', borderRadius: 12, padding: 16,
           border: '1px solid #F1F5F9', boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
         }}>
           <SectionTitle label="Activité par frontière" />
@@ -150,7 +153,7 @@ export default function DashboardHome(): JSX.Element {
               <span style={{ width: 36, fontSize: 10, fontWeight: 800, color: '#1B3A6B' }}>{r.code}</span>
               {/* Bar — prototype: .frb + .frf */}
               <div style={{ flex: 1, height: 6, background: '#F1F5F9', borderRadius: 3, overflow: 'hidden' }}>
-                <div style={{
+                <div className="jauge-fill" style={{
                   height: '100%', borderRadius: 3,
                   width: `${r.pct}%`,
                   background: DEST_COLORS[r.code] ?? '#2563EB',
@@ -163,8 +166,10 @@ export default function DashboardHome(): JSX.Element {
         </div>
 
         {/* Répartition par type — prototype: .dp flex:1 */}
-        <div style={{
-          flex: 1, background: '#fff', borderRadius: 12, padding: 16,
+        <div
+          onMouseEnter={e => e.currentTarget.querySelectorAll<HTMLElement>('.jauge-fill').forEach(el => { el.style.animation = 'none'; void el.offsetHeight; el.style.animation = '' })}
+          style={{
+          flex: '1 1 260px', background: '#fff', borderRadius: 12, padding: 16,
           border: '1px solid #F1F5F9', boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
         }}>
           <SectionTitle label="Répartition par type" />
@@ -174,7 +179,7 @@ export default function DashboardHome(): JSX.Element {
               <span style={{ width: 64, fontSize: 10, color: '#1E293B' }}>{r.type}</span>
               {/* Bar — prototype: .tyb + .tyf */}
               <div style={{ flex: 1, height: 5, background: '#F1F5F9', borderRadius: 3, overflow: 'hidden' }}>
-                <div style={{
+                <div className="jauge-fill" style={{
                   height: '100%', borderRadius: 3,
                   width: `${r.pct}%`,
                   background: TYPE_COLORS[r.type] ?? '#6B7280',

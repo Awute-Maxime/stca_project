@@ -215,3 +215,33 @@ input.light-input--filled:focus {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ── Micro-interactions au survol (MainScreen) ─────────────────────────────── */
+/* Icône de la sidebar : petit rebond au survol */
+.nav-btn .nav-ico { transition: transform 0.2s cubic-bezier(0.2, 0.7, 0.3, 1.4); display: inline-block; }
+.nav-btn:hover .nav-ico { transform: translateY(-2px) scale(1.18); }
+.nav-btn:active .nav-ico { transform: translateY(0) scale(0.96); }
+
+/* Items de la barre de menu : léger soulèvement */
+.menu-item { transition: background 0.15s, color 0.15s, transform 0.15s; }
+.menu-item:hover { transform: translateY(-1px); }
+
+/* Lignes de tableau « survolables » */
+.row-hover { transition: background 0.14s; }
+.row-hover:hover { background: #F4F7FD !important; }
+
+/* Boutons génériques : réactivité au clic */
+button:active { transform: translateY(0.5px); }
+@media (prefers-reduced-motion: reduce) {
+  .nav-btn:hover .nav-ico, .menu-item:hover, button:active { transform: none; }
+}
+
+/* Cartes stats : l'icône « pop » et pivote légèrement au survol de la carte */
+.stat-card .stat-ico { transition: transform 0.22s cubic-bezier(0.2, 0.7, 0.3, 1.5); }
+.stat-card:hover .stat-ico { transform: scale(1.14) rotate(-6deg); }
+@media (prefers-reduced-motion: reduce) { .stat-card:hover .stat-ico { transform: none; } }
+
+/* Jauges du dashboard : remplissage de gauche à droite au chargement */
+@keyframes jaugeFill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.jauge-fill { transform-origin: left center; animation: jaugeFill 0.8s cubic-bezier(0.25, 0.85, 0.3, 1) both; }
+@media (prefers-reduced-motion: reduce) { .jauge-fill { animation: none; } }
