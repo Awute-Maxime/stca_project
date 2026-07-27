@@ -61,15 +61,29 @@ const CHASSIS_DEFAUT = [
   'XLR', // DAF (camions)
 ]
 
-// Amorçage unique : au tout premier lancement, on remplit l'historique châssis.
+// Pays d'Afrique de l'Ouest et Centrale (partagés Résidence + Destination) —
+// listes connues, pré-alimentées pour l'aide à la saisie. L'opérateur enrichit ensuite.
+const PAYS_DEFAUT = [
+  // Afrique de l'Ouest
+  'Bénin', 'Burkina Faso', 'Cap-Vert', "Côte d'Ivoire", 'Gambie', 'Ghana', 'Guinée',
+  'Guinée-Bissau', 'Liberia', 'Mali', 'Mauritanie', 'Niger', 'Nigeria', 'Sénégal',
+  'Sierra Leone', 'Togo',
+  // Afrique Centrale
+  'Angola', 'Burundi', 'Cameroun', 'Centrafrique', 'Congo', 'Gabon', 'Guinée équatoriale',
+  'République Démocratique du Congo', 'Rwanda', 'Sao Tomé-et-Principe', 'Tchad',
+]
+
+// Amorçage par domaine : chaque historique par défaut est semé UNE FOIS, si sa clé
+// n'a jamais été écrite (une liste vidée par l'utilisateur = '[]', donc pas re-semée).
 if (typeof window !== 'undefined') {
   try {
-    if (!localStorage.getItem('tcit_hist_amorce')) {
-      if (!localStorage.getItem(prefixeCle('chassis'))) {
-        localStorage.setItem(prefixeCle('chassis'), JSON.stringify(CHASSIS_DEFAUT))
+    const semer = (cle: string, defaut: string[]): void => {
+      if (localStorage.getItem(prefixeCle(cle)) === null) {
+        localStorage.setItem(prefixeCle(cle), JSON.stringify(defaut))
       }
-      localStorage.setItem('tcit_hist_amorce', '1')
     }
+    semer('chassis', CHASSIS_DEFAUT)
+    semer('pays', PAYS_DEFAUT)
   } catch { /* localStorage indisponible : on ignore */ }
 }
 

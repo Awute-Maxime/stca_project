@@ -18,6 +18,7 @@ import RechercheWindow from '@pages/RechercheWindow'
 import { CopyrightWindow, VersionWindow, IdReseauWindow } from '@pages/InfoWindows'
 import FichierMarquesPage from '@pages/FichierMarquesPage'
 import GestionHistoriqueWindow from '@pages/GestionHistoriqueWindow'
+import DecodeurVinWindow from '@pages/DecodeurVinWindow'
 import ArchivagePage from '@pages/ArchivagePage'
 import PointagePage from '@pages/PointagePage'
 import ExportPage from '@pages/ExportPage'
@@ -62,6 +63,8 @@ export function renderWindowContent(id: string): JSX.Element {
       return <GestionHistoriqueWindow domaine="transit" />
     case 'historique.chassis':
       return <GestionHistoriqueWindow domaine="chassis" />
+    case 'fichier.decodeurVin':
+      return <DecodeurVinWindow />
 
     // ── Menu Enregistrements ───────────────────────────────────────
     case 'enregistrements.listeChassis':

@@ -8,8 +8,8 @@ import {
 // ─────────────────────────────────────────────────────────────────────────────
 // Fenêtre GÉNÉRIQUE de gestion d'un historique de saisie (Noms, Pays, Parcs,
 // Transit, Préfixes de châssis). Ouverte depuis Fichier › Gestion des Historiques
-// de Saisie, ou via le bouton à côté du champ correspondant. Voir / corriger /
-// supprimer / ajouter — synchronisé en direct avec le formulaire (store partagé).
+// de Saisie, ou via le bouton à côté du champ. Recherche + double-clic pour
+// CHARGER une valeur dans le champ d'origine du formulaire (signal tcit_hist_pick).
 // ─────────────────────────────────────────────────────────────────────────────
 
 const C = {
@@ -17,12 +17,28 @@ const C = {
   border: '#E2E8F0', red: '#DC2626', bg: '#F8FAFF',
 }
 
+// Champ du formulaire ciblé par défaut (si la fenêtre est ouverte depuis le menu,
+// sans champ d'origine précis).
+const DEFAUT_CHAMP: Record<DomaineHistorique, string> = {
+  nom: 'nomAcheteur', pays: 'paysResidence', parc: 'description', transit: 'maisonTransit', chassis: 'chassis',
+}
+
 export default function GestionHistoriqueWindow({ domaine }: { domaine: DomaineHistorique }): JSX.Element {
   const cfg = DOMAINES[domaine]
   const liste = useHistorique(domaine)
   const [nouveau, setNouveau] = useState('')
-  const [editIdx, setEditIdx] = useState<number | null>(null)
+  const [recherche, setRecherche] = useState('')
+  const [editing, setEditing] = useState<string | null>(null) // valeur en cours d'édition
   const [editVal, setEditVal] = useState('')
+
+  // Champ d'origine (consommé une seule fois : posé par le bouton du champ avant l'ouverture)
+  const [origine] = useState<string | null>(() => {
+    try { const o = localStorage.getItem('tcit_hist_origine'); localStorage.removeItem('tcit_hist_origine'); return o }
+    catch { return null }
+  })
+
+  const filtre = recherche.trim().toLowerCase()
+  const affichee = filtre ? liste.filter(v => v.toLowerCase().includes(filtre)) : liste
 
   const fermer = (): void => { window.dispatchEvent(new CustomEvent('mdi:close-self')) }
 
@@ -33,11 +49,18 @@ export default function GestionHistoriqueWindow({ domaine }: { domaine: DomaineH
     setNouveau('')
   }
 
-  const lancerEdit = (i: number, valeur: string): void => { setEditIdx(i); setEditVal(valeur) }
+  const lancerEdit = (valeur: string): void => { setEditing(valeur); setEditVal(valeur) }
   const validerEdit = (ancien: string): void => {
     const v = editVal.trim()
     if (v && v !== ancien) renameHistorique(domaine, ancien, v)
-    setEditIdx(null)
+    setEditing(null)
+  }
+
+  // Double-clic → charge la valeur dans le champ d'origine du formulaire, puis ferme.
+  const charger = (v: string): void => {
+    const champ = origine ?? DEFAUT_CHAMP[domaine]
+    localStorage.setItem('tcit_hist_pick', JSON.stringify({ champ, valeur: v, ts: Date.now() }))
+    fermer()
   }
 
   const viderTout = (): void => {
@@ -51,7 +74,7 @@ export default function GestionHistoriqueWindow({ domaine }: { domaine: DomaineH
 
   return (
     <div style={{ animation: 'formEnter 0.3s ease', display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* Sub-header beige (convention maison) */}
+      {/* Sub-header beige */}
       <div style={{
         background: '#F5F3EE', borderBottom: '2px solid #E2D9C8',
         padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 11,
@@ -59,15 +82,26 @@ export default function GestionHistoriqueWindow({ domaine }: { domaine: DomaineH
         <span style={{ fontSize: 20 }}>{cfg.icone}</span>
         <div>
           <div style={{ color: C.blue, fontSize: 12, fontWeight: 800, letterSpacing: 0.5, textTransform: 'uppercase' }}>{cfg.label}</div>
-          <div style={{ color: C.muted, fontSize: 10.5, marginTop: 1 }}>{cfg.aide}</div>
+          <div style={{ color: C.muted, fontSize: 10.5, marginTop: 1 }}>Double-cliquez sur une valeur pour la charger dans le champ.</div>
         </div>
       </div>
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 14, minHeight: 0 }}>
+        {/* Recherche */}
+        <div style={{ position: 'relative', marginBottom: 8 }}>
+          <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: C.muted, fontSize: 12, pointerEvents: 'none' }}>🔍</span>
+          <input
+            className="light-input" value={recherche}
+            placeholder="Rechercher…"
+            onChange={e => setRecherche(e.target.value)}
+            style={{ height: 30, paddingLeft: 30 }}
+          />
+        </div>
+
         {/* Ajout */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
           <input
-            className="light-input" value={nouveau} autoFocus
+            className="light-input" value={nouveau}
             placeholder={`Ajouter — ${cfg.placeholder.toLowerCase()}`}
             onChange={e => setNouveau(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') ajouter() }}
@@ -83,7 +117,7 @@ export default function GestionHistoriqueWindow({ domaine }: { domaine: DomaineH
           >+ Ajouter</button>
         </div>
 
-        {/* En-tête clair (convention maison) */}
+        {/* En-tête clair */}
         <div style={{
           display: 'flex', alignItems: 'center', padding: '7px 12px',
           background: '#EEF3FB', borderBottom: '2px solid #DCE6F5', borderRadius: '6px 6px 0 0',
@@ -91,36 +125,46 @@ export default function GestionHistoriqueWindow({ domaine }: { domaine: DomaineH
         }}>
           <span style={{ width: 30 }}>#</span>
           <span style={{ flex: 1 }}>Valeur mémorisée</span>
-          <span style={{ width: 80, textAlign: 'right' }}>Actions</span>
+          <span style={{ width: 108, textAlign: 'right' }}>Actions</span>
         </div>
 
-        {/* Liste */}
+        {/* Liste (filtrée) */}
         <div style={{ flex: 1, overflowY: 'auto', border: `1px solid ${C.border}`, borderTop: 'none', borderRadius: '0 0 6px 6px' }}>
-          {liste.length === 0 ? (
+          {affichee.length === 0 ? (
             <div style={{ padding: '30px 14px', textAlign: 'center', color: C.muted, fontSize: 12 }}>
-              Aucune entrée pour l'instant — l'historique se remplit à chaque enregistrement.
+              {liste.length === 0
+                ? "Aucune entrée pour l'instant — l'historique se remplit à chaque enregistrement."
+                : 'Aucun résultat pour cette recherche.'}
             </div>
-          ) : liste.map((v, i) => (
-            <div key={v} className="hist-row" style={{
-              display: 'flex', alignItems: 'center', gap: 8, padding: '7px 12px',
-              borderBottom: `1px solid #F1F5F9`, fontSize: 12,
-            }}>
+          ) : affichee.map((v, i) => (
+            <div
+              key={v} className="hist-row"
+              title="Double-cliquez pour charger dans le champ"
+              onDoubleClick={() => { if (editing !== v) charger(v) }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8, padding: '7px 12px',
+                borderBottom: `1px solid #F1F5F9`, fontSize: 12, cursor: 'pointer',
+              }}
+            >
               <span style={{ width: 22, color: C.muted, fontSize: 10.5 }}>{i + 1}</span>
-              {editIdx === i ? (
+              {editing === v ? (
                 <input
                   className="light-input" value={editVal} autoFocus
                   onChange={e => setEditVal(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') validerEdit(v); if (e.key === 'Escape') setEditIdx(null) }}
+                  onKeyDown={e => { if (e.key === 'Enter') validerEdit(v); if (e.key === 'Escape') setEditing(null) }}
                   onBlur={() => validerEdit(v)}
+                  onDoubleClick={e => e.stopPropagation()}
                   style={{ flex: 1, height: 26 }}
                 />
               ) : (
                 <span style={{ flex: 1, color: '#1E293B', fontWeight: 600 }}>{v}</span>
               )}
-              <div style={{ width: 74, display: 'flex', justifyContent: 'flex-end', gap: 4 }}>
-                <button title="Modifier" onClick={() => lancerEdit(i, v)}
+              <div style={{ width: 102, display: 'flex', justifyContent: 'flex-end', gap: 4 }}>
+                <button title="Charger cette valeur dans le champ" onClick={e => { e.stopPropagation(); charger(v) }}
+                  style={{ width: 26, height: 26, border: `1px solid #A7D8B8`, borderRadius: 6, background: '#F0FDF4', cursor: 'pointer', color: '#16A34A', fontSize: 12 }}>📥</button>
+                <button title="Modifier" onClick={e => { e.stopPropagation(); lancerEdit(v) }}
                   style={{ width: 26, height: 26, border: `1px solid ${C.border}`, borderRadius: 6, background: '#fff', cursor: 'pointer', color: C.accent }}>✎</button>
-                <button title="Supprimer" onClick={() => removeHistorique(domaine, v)}
+                <button title="Supprimer" onClick={e => { e.stopPropagation(); removeHistorique(domaine, v) }}
                   style={{ width: 26, height: 26, border: `1px solid #FCA5A5`, borderRadius: 6, background: '#fff', cursor: 'pointer', color: C.red }}>🗑</button>
               </div>
             </div>
@@ -129,7 +173,9 @@ export default function GestionHistoriqueWindow({ domaine }: { domaine: DomaineH
 
         {/* Pied */}
         <div style={{ display: 'flex', alignItems: 'center', marginTop: 12 }}>
-          <span style={{ fontSize: 11, color: C.muted }}>{liste.length} entrée(s)</span>
+          <span style={{ fontSize: 11, color: C.muted }}>
+            {filtre ? `${affichee.length} / ${liste.length}` : `${liste.length}`} entrée(s)
+          </span>
           <div style={{ flex: 1 }} />
           {liste.length > 0 && (
             <button onClick={viderTout}

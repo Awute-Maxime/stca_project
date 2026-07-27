@@ -335,6 +335,41 @@ export default function EnregistrementPage(): JSX.Element {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // « Appliquer ce type » depuis la fenêtre de décodage VIN (autre BrowserWindow)
+  useEffect(() => {
+    const onVinType = (e: StorageEvent): void => {
+      if (e.key !== 'tcit_vin_type' || !e.newValue) return
+      try {
+        const { type } = JSON.parse(e.newValue) as { type: string }
+        if (type && type !== typeVehicule && !saved) {
+          setTypeVehicule(type); setDestination(undefined); setImmatGenere(null); setMontant(null)
+        }
+      } catch { /* ignore */ }
+    }
+    window.addEventListener('storage', onVinType)
+    return () => window.removeEventListener('storage', onVinType)
+  }, [typeVehicule, saved])
+
+  // « Double-clic pour charger » depuis une fenêtre d'historique (autre BrowserWindow)
+  useEffect(() => {
+    const onPick = (e: StorageEvent): void => {
+      if (e.key !== 'tcit_hist_pick' || !e.newValue || saved) return
+      try {
+        const { champ, valeur } = JSON.parse(e.newValue) as { champ: string; valeur: string }
+        switch (champ) {
+          case 'nomAcheteur':    setNomAcheteur(valeur); break
+          case 'paysResidence':  setPaysResidence(valeur); break
+          case 'paysDestination':setPaysDestination(valeur); break
+          case 'description':    setDescription(valeur); break
+          case 'maisonTransit':  setMaisonTransit(valeur); break
+          case 'chassis':        setChassis(valeur); break
+        }
+      } catch { /* ignore */ }
+    }
+    window.addEventListener('storage', onPick)
+    return () => window.removeEventListener('storage', onPick)
+  }, [saved])
+
   // ── Historiques de saisie (store centralisé, synchro inter-fenêtres) ───────
   const nomOpts     = useHistorique('nom')
   const paysOpts    = useHistorique('pays')     // partagé Résidence + Destination
@@ -344,8 +379,10 @@ export default function EnregistrementPage(): JSX.Element {
   const marquesRef  = useMarques()              // référentiel Marques (fichier)
   const triHist     = useFieldHistory('numTri') // inchangé (pas dans le périmètre)
 
-  // Ouvre une fenêtre de gestion (MDI) depuis le registre
-  const ouvrirGestion = (id: string): void => {
+  // Ouvre une fenêtre de gestion (MDI) depuis le registre. `origine` = champ du
+  // formulaire à renseigner si l'utilisateur double-clique une valeur dans la fenêtre.
+  const ouvrirGestion = (id: string, origine?: string): void => {
+    try { if (origine) localStorage.setItem('tcit_hist_origine', origine) } catch { /* ignore */ }
     const c = WINDOW_REGISTRY[id]
     if (c) electronApi.mdiOpen({ id, x: c.defaultX, y: c.defaultY, width: c.width, height: c.height })
   }
@@ -609,19 +646,19 @@ export default function EnregistrementPage(): JSX.Element {
             <AutoCompleteHistorique value={nomAcheteur} onChange={setNomAcheteur} options={nomOpts}
               normaliser={enMajuscules} placeholder="Nom et prénom de l'acheteur" icone="👤"
               style={{ height: 26 }} disabled={saved}
-              onOpenGestion={() => ouvrirGestion('historique.nom')} />
+              onOpenGestion={() => ouvrirGestion('historique.nom', 'nomAcheteur')} />
           </div>
           <div style={R}>
             <span style={LBL_SM}>Pays Résidence :</span>
             <AutoCompleteHistorique value={paysResidence} onChange={setPaysResidence} options={paysOpts}
               normaliser={enCapitalise} placeholder="Pays de résidence" icone="🌍"
               style={{ height: 26 }} disabled={saved}
-              onOpenGestion={() => ouvrirGestion('historique.pays')} />
+              onOpenGestion={() => ouvrirGestion('historique.pays', 'paysResidence')} />
             <span style={{ fontSize: 11, color: '#475569', whiteSpace: 'nowrap', marginLeft: 12 }}>Pays Destination :</span>
             <AutoCompleteHistorique value={paysDestination} onChange={setPaysDestination} options={paysOpts}
               normaliser={enCapitalise} placeholder="Pays de destination" icone="🌍"
               style={{ height: 26 }} disabled={saved}
-              onOpenGestion={() => ouvrirGestion('historique.pays')} />
+              onOpenGestion={() => ouvrirGestion('historique.pays', 'paysDestination')} />
           </div>
         </fieldset>
 
@@ -642,7 +679,7 @@ export default function EnregistrementPage(): JSX.Element {
             <AutoCompleteHistorique value={description} onChange={setDescription} options={parcOpts}
               normaliser={enCapitalise} placeholder="Nom du parc de provenance du véhicule" icone="🅿️"
               style={{ height: 26 }} disabled={saved}
-              onOpenGestion={() => ouvrirGestion('historique.parc')} />
+              onOpenGestion={() => ouvrirGestion('historique.parc', 'description')} />
           </div>
           {/* À Destination de + Montant */}
           <div style={R}>
@@ -684,7 +721,7 @@ export default function EnregistrementPage(): JSX.Element {
             <AutoCompleteHistorique value={maisonTransit} onChange={setMaisonTransit} options={transitOpts}
               normaliser={enCapitalise} placeholder="Maison de transit" icone="🏢"
               style={{ height: 26 }} disabled={saved}
-              onOpenGestion={() => ouvrirGestion('historique.transit')} />
+              onOpenGestion={() => ouvrirGestion('historique.transit', 'maisonTransit')} />
             <span style={{ fontSize: 11, color: '#475569', whiteSpace: 'nowrap', marginLeft: 12 }}>Date N° Tri :</span>
             <DatePicker value={dateTri} onChange={v => v && setDateTri(v)} format="DD/MM/YYYY" size="small"
               allowClear={false} disabled={saved} style={{ width: 140, height: 26 }} />
@@ -697,9 +734,12 @@ export default function EnregistrementPage(): JSX.Element {
               placeholder="Ex : ZFA29000000302873 — le début est proposé" icone="🔩"
               inputClass="light-input--chassis"
               style={{ height: 36 }} disabled={saved}
-              onOpenGestion={() => ouvrirGestion('historique.chassis')} />
-            <input className="light-input" style={{ width: 130, background: '#F1F5F9', color: '#94A3B8', height: 26 }}
-              placeholder="(N° série)" readOnly />
+              onOpenGestion={() => ouvrirGestion('historique.chassis', 'chassis')} />
+            <button type="button" className="btn-decoder-vin" disabled={saved}
+              title="Décoder ce N° de châssis (constructeur, année, catégorie…)"
+              onClick={() => { localStorage.setItem('tcit_vin_decode', chassis); ouvrirGestion('fichier.decodeurVin') }}>
+              🔎 Décoder le VIN
+            </button>
           </div>
           {chassisDuplique && (
             <div style={{

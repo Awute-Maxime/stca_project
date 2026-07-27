@@ -27,7 +27,7 @@ const estFenetrePrincipale = (id: string): boolean =>
   !id.startsWith('apercu.') && !id.startsWith('edition.') &&
   // Les fenêtres de gestion d'historique (et le fichier Marques) sont des
   // AIDES : elles flottent à côté du formulaire sans le fermer.
-  !id.startsWith('historique.') && id !== 'fichier.marques'
+  !id.startsWith('historique.') && id !== 'fichier.marques' && id !== 'fichier.decodeurVin'
 
 // Son d'alerte (carillon bref à deux notes — WebAudio, aucun fichier requis)
 function sonAlerte(): void {

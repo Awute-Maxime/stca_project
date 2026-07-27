@@ -20,6 +20,7 @@ export const WINDOW_REGISTRY: Record<string, WindowConfig> = {
   'historique.parc':                { title: 'Historique — Parcs de provenance',                defaultX: 280, defaultY: 166, width: 520, height: 480 },
   'historique.transit':             { title: 'Historique — Maisons de transit',                 defaultX: 290, defaultY: 174, width: 520, height: 480 },
   'historique.chassis':             { title: 'Historique — Préfixes de châssis',                defaultX: 300, defaultY: 182, width: 560, height: 480 },
+  'fichier.decodeurVin':            { title: 'Décodage du numéro de châssis (VIN)',              defaultX: 210, defaultY: 120, width: 800, height: 620 },
 
   // ── Menu Enregistrements ───────────────────────────────────────
   'enregistrements.listeChassis':       { title: 'Liste Véhicules Enregistrés par N°Chassis (VIN)', defaultX: 200, defaultY: 124, width: 940, height: 660 },
