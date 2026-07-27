@@ -23,6 +23,9 @@ Idée utilisateur : aider l'OP à décider le type de véhicule depuis le châss
 Nouveaux : `mock/vinDecoder.ts` (+ `.test.ts`), `pages/DecodeurVinWindow.tsx`, `prototype-html/vin-decoder-window.html`.
 Modifiés : `mock/historiquesStore.ts`, `components/shell/MenuBar.tsx`, `pages/GestionHistoriqueWindow.tsx`, `pages/EnregistrementPage.tsx`, `windows/WINDOW_REGISTRY.ts`, `windows/WindowContent.tsx`, `windows/MainScreen.tsx`, `assets/index.css`.
 
+## ✅ Correctif (27/07 — commit 3f05bea, VALIDÉ par l'utilisateur)
+« Pays de destination » ne se chargeait pas depuis l'historique : la fenêtre lisait le champ d'origine une seule fois au montage, or elle se REFOCALISE (pas de re-montage) quand on la rappelle depuis un autre champ → elle gardait l'ancienne cible. Fix : `charger()` lit l'origine (`tcit_hist_origine`) FRAÎCHE au moment du clic, puis la consomme. Testé E2E + validé.
+
 ## ▶️ REPRISE PROCHAINE SESSION
 - **Valider les tests** de tout ce bloc (l'utilisateur teste à sa main).
 - Éventuels ajustements décodeur (enrichir la table WMI/catégories) + brancher l'API NHTSA en ligne un jour.
