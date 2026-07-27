@@ -31,12 +31,6 @@ export default function GestionHistoriqueWindow({ domaine }: { domaine: DomaineH
   const [editing, setEditing] = useState<string | null>(null) // valeur en cours d'édition
   const [editVal, setEditVal] = useState('')
 
-  // Champ d'origine (consommé une seule fois : posé par le bouton du champ avant l'ouverture)
-  const [origine] = useState<string | null>(() => {
-    try { const o = localStorage.getItem('tcit_hist_origine'); localStorage.removeItem('tcit_hist_origine'); return o }
-    catch { return null }
-  })
-
   const filtre = recherche.trim().toLowerCase()
   const affichee = filtre ? liste.filter(v => v.toLowerCase().includes(filtre)) : liste
 
@@ -57,9 +51,14 @@ export default function GestionHistoriqueWindow({ domaine }: { domaine: DomaineH
   }
 
   // Double-clic → charge la valeur dans le champ d'origine du formulaire, puis ferme.
+  // On lit l'origine FRAÎCHE au moment du clic (le bouton du champ la pose juste
+  // avant d'ouvrir/refocaliser la fenêtre), puis on la consomme. Ainsi, rouvrir
+  // la même fenêtre depuis un AUTRE champ (ex. Pays Destination alors qu'elle est
+  // déjà ouverte pour Résidence) cible bien le bon champ.
   const charger = (v: string): void => {
-    const champ = origine ?? DEFAUT_CHAMP[domaine]
-    localStorage.setItem('tcit_hist_pick', JSON.stringify({ champ, valeur: v, ts: Date.now() }))
+    let champ: string | null = null
+    try { champ = localStorage.getItem('tcit_hist_origine'); localStorage.removeItem('tcit_hist_origine') } catch { /* ignore */ }
+    localStorage.setItem('tcit_hist_pick', JSON.stringify({ champ: champ ?? DEFAUT_CHAMP[domaine], valeur: v, ts: Date.now() }))
     fermer()
   }
 
