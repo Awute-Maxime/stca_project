@@ -38,6 +38,21 @@ les **listes de véhicules sortis**. Se connecte à la base STCA M (contrairemen
   `669ba60`/`4fc380b` UI onglets → `2aae1eb`/`f679ae9` documents+Impressions. (dépôt git local, sans remote GitHub)
 - STCA-Electron : `7c773ee` (module write-through + test) → `f07a05d` (branchement db:enreg:add).
 
+## Retouches après revue utilisateur (2 corrections UI)
+1. **Documents en fenêtre d'aperçu séparée** (commit `23460bf`) — l'utilisateur a rejeté l'« empilage »
+   (documents collés en permanence sous l'écran de travail). Repris le pattern d'aperçu de TCIT
+   (`FactureApercuWindow`) : « Générer Bordereau »/« Imprimer » ouvrent le document dans une **BrowserWindow
+   d'aperçu dédiée** (fond gris, page A4 centrée, pied Fermer/Imprimer). Nouveau `ApercuWindow.tsx`, routage par
+   hash `#apercu`, IPC `apercu:ouvrir`, données via localStorage. Vérifié E2E.
+2. **L'app remplit la fenêtre** (commit `ca54c5a`) — l'utilisateur a comparé à STCA-Affichage : Pointage flottait
+   comme une carte 1040px centrée dans un grand vide. Corrigé : `.win{width:100%;height:100%;flex column}`,
+   `.stage{flex:1;overflow-y:auto}`, suppression du wrapper centreur + des faux boutons fenêtre (─ □ ✕ Quitter,
+   redondants avec le cadre Windows). Vérifié E2E : bord à bord comme l'Affichage.
+
+**Leçon** : une maquette HTML est une *présentation* (carte décorative sur fond) ; dans la vraie fenêtre Electron
+le contenu doit REMPLIR la fenêtre et réutiliser le style/fonctionnement DÉJÀ VALIDÉ de TCIT — ne pas porter les
+aperçus/cadres de maquette littéralement.
+
 ## Reste (non fait)
 - **Phase 8** : packaging electron-builder (installeur .exe) — non demandé pour l'instant.
 - Remote GitHub pour STCA-Pointage (et STCA-Affichage) — dépôts locaux seulement.
