@@ -22,6 +22,9 @@ import {
   rappelerArchives, purgerArchives,
   type EnregistrementInput, type EnregistrementDto,
 } from './enregistrements'
+// Write-through ADDITIF vers la base STCA M partagée (lue par l'app STCA-Pointage).
+import { upsertEnregistrement } from './stcaMShared'
+import { cheminBaseM } from '../shared/cheminBaseM'
 
 const isDev = process.env['NODE_ENV'] === 'development' || !app.isPackaged
 
@@ -207,7 +210,33 @@ function setupMdiIPC(): void {
     catch (err) { return { ok: false, error: String(err) } }
   })
   ipcMain.handle('db:enreg:add', async (_, input: EnregistrementInput) => {
-    try { return await enregistrementAdd(input) }
+    try {
+      const res = await enregistrementAdd(input)
+      // Write-through additif : miroir vers la base STCA M partagée (app Pointage).
+      // Best-effort, dans son propre try/catch → ne peut jamais faire échouer la sauvegarde.
+      if (res.ok && res.ref) {
+        try {
+          upsertEnregistrement(cheminBaseM(), {
+            numRef: res.ref,
+            numTri: input.numTri ?? '',
+            immat: input.immat,
+            codeTransit: input.destination,
+            // Modèle app principale : un seul champ parc/transit (DTO.parc = colonne MaisonTransit).
+            // On alimente les deux ; le vrai STCA M les distinguera.
+            nomParc: input.parc ?? '',
+            maisonTransit: input.parc ?? '',
+            nomPrenom: input.nomAcheteur,
+            adresse: input.paysResidence ?? '',
+            marqueModele: input.marqueModele,
+            chassis: input.chassis,
+            dateEnreg: (input.date ?? '').slice(0, 10) || new Date().toISOString().slice(0, 10),
+            flagSortie: false,
+            dateSortie: null,
+          })
+        } catch { /* miroir best-effort : ignoré */ }
+      }
+      return res
+    }
     catch (err) { return { ok: false, error: String(err) } }
   })
   ipcMain.handle('db:enreg:update', async (_, p: { ref: string; changes: Partial<EnregistrementDto> }) => {
