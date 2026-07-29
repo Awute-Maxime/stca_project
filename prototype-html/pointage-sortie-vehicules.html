@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCIT — Pointage Sortie Véhicules (maquette)</title>
+<style>
+  :root{
+    --navy:#1B3A6B; --navy2:#16305c; --accent:#2563EB; --gold:#F59E0B; --green:#16A34A;
+    --red:#DC2626; --bg:#F8FAFF; --line:#E2E8F0; --muted:#64748B; --ink:#1E293B;
+    --paper:#fff; --pointe:#FEF9E7; --pointe-b:#F5D98B;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:#E7ECF4;color:var(--navy);padding:26px 20px 60px;display:flex;flex-direction:column;align-items:center;gap:26px;}
+  .hint{font-size:12px;color:var(--muted);max-width:1040px;text-align:center;line-height:1.5;}
+  .hint b{color:var(--navy);}
+
+  /* ─── Fenêtre principale ─── */
+  .win{width:1040px;max-width:100%;background:#fff;border:1.5px solid var(--navy);border-radius:9px;overflow:hidden;box-shadow:0 26px 64px rgba(27,58,107,.26);}
+  .titlebar{height:36px;background:linear-gradient(180deg,#204d92,var(--navy));display:flex;align-items:center;padding:0 10px;color:#fff;gap:8px;}
+  .titlebar .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold);}
+  .titlebar .t{font-size:12.5px;font-weight:600;letter-spacing:.3px;}
+  .titlebar .t .esc{color:var(--gold);font-weight:800;letter-spacing:1px;}
+  .titlebar .sp{flex:1;}
+  .titlebar .brand{font-size:10.5px;color:rgba(255,255,255,.6);font-weight:700;letter-spacing:.5px;}
+  .titlebar .quit{height:22px;padding:0 10px;border-radius:5px;background:rgba(255,255,255,.12);font-size:11px;font-weight:700;display:flex;align-items:center;gap:5px;cursor:pointer;transition:.15s;}
+  .titlebar .quit:hover{background:var(--red);}
+  .titlebar .wbtn{width:26px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;color:rgba(255,255,255,.7);border-radius:3px;}
+
+  /* ─── Barre d'onglets ─── */
+  .tabbar{display:flex;gap:3px;background:#EEF2F9;border-bottom:2px solid #D8E1F0;padding:7px 10px 0;}
+  .tab{padding:9px 18px;font-size:12.5px;font-weight:700;color:var(--muted);cursor:pointer;border-radius:7px 7px 0 0;display:flex;align-items:center;gap:7px;border:1.5px solid transparent;border-bottom:none;transition:.15s;}
+  .tab:hover{color:var(--navy);background:#E3EAF6;}
+  .tab.on{color:var(--navy);background:#fff;border-color:#D8E1F0;box-shadow:0 -2px 0 var(--accent) inset;}
+  .tab .ic{font-size:14px;}
+
+  .stage{background:var(--bg);padding:16px 18px;}
+
+  /* ─── Zone formulaire (change selon l'onglet) ─── */
+  .formarea{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:12px;position:relative;overflow:hidden;}
+  .panel{animation:fade .28s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  .hidden{display:none !important;}
+
+  .flabel{font-size:11px;color:#475569;margin-bottom:9px;}
+  .flabel b{color:var(--navy);}
+  .frow{display:flex;gap:9px;align-items:center;flex-wrap:wrap;}
+  .frow label{font-size:12px;color:#334155;font-weight:600;white-space:nowrap;}
+  .fin{height:34px;border:1.5px solid #CBD5E1;border-radius:6px;padding:0 11px;font-family:'Consolas',monospace;font-size:15px;font-weight:700;letter-spacing:1px;color:var(--navy);transition:.15s;}
+  .fin:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.14);}
+  .fin.zip{width:210px;letter-spacing:2px;}
+  .fin.rech{width:210px;}
+
+  .btn{height:34px;padding:0 15px;border:none;border-radius:6px;font-size:12.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s;white-space:nowrap;}
+  .btn:active{transform:translateY(1px);}
+  .btn.prim{background:var(--accent);color:#fff;}
+  .btn.prim:hover{background:#1d4fd0;box-shadow:0 4px 12px rgba(37,99,235,.3);}
+  .btn.ghost{background:#fff;border:1px solid #CBD5E1;color:#475569;}
+  .btn.ghost:hover{border-color:var(--accent);color:var(--accent);}
+  .btn.mini{width:34px;padding:0;justify-content:center;}
+  .btn.danger{background:#fff;border:1px solid #FCA5A5;color:var(--red);}
+  .btn.danger:hover{background:var(--red);color:#fff;border-color:var(--red);}
+
+  /* ─── Barre d'action commune ─── */
+  .toolbar{display:flex;align-items:center;gap:9px;margin-bottom:10px;}
+  .toolbar .sp{flex:1;}
+  .btn.gen{background:linear-gradient(135deg,var(--green),#12813d);color:#fff;box-shadow:0 3px 10px rgba(22,163,74,.28);}
+  .btn.gen:hover{filter:brightness(1.06);box-shadow:0 6px 16px rgba(22,163,74,.4);}
+  .btn.gen:disabled{background:#CBD5E1;box-shadow:none;cursor:default;color:#fff;filter:none;}
+  .btn.vider{background:linear-gradient(135deg,#F59E0B,#d9820a);color:#fff;}
+  .btn.vider:hover{filter:brightness(1.05);}
+  .counter{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--navy);background:#EEF3FB;border:1px solid #DCE6F5;border-radius:20px;padding:5px 12px;}
+  .counter .n{font-size:14px;color:var(--green);min-width:14px;text-align:center;transition:.2s;}
+  .counter .n.pulse{animation:pop .35s ease;}
+  @keyframes pop{0%{transform:scale(1);}45%{transform:scale(1.5);color:var(--accent);}100%{transform:scale(1);}}
+
+  /* ─── Tableau liste ─── */
+  .listwrap{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff;}
+  table.list{width:100%;border-collapse:collapse;font-size:11.5px;}
+  table.list thead th{background:#EEF3FB;color:var(--navy);text-transform:uppercase;font-size:9.5px;letter-spacing:.4px;font-weight:800;padding:8px 9px;text-align:left;border-bottom:2px solid #DCE6F5;white-space:nowrap;}
+  table.list tbody td{padding:8px 9px;border-bottom:1px solid #F1F5F9;color:var(--ink);white-space:nowrap;}
+  table.list tbody tr{transition:.13s;cursor:pointer;}
+  table.list tbody tr:hover{background:#F6F9FF;}
+  table.list tbody tr.pointe{background:var(--pointe);box-shadow:inset 3px 0 0 var(--gold);}
+  table.list tbody tr.pointe:hover{background:#FDF3D6;}
+  table.list tbody tr.flash{animation:flash 1s ease;}
+  @keyframes flash{0%{background:#DCFCE7;}100%{background:transparent;}}
+  td.c-ref{font-weight:800;color:var(--navy);} td.c-tri{font-weight:800;color:var(--accent);font-family:'Consolas',monospace;}
+  td.c-immat{font-family:'Consolas',monospace;font-weight:700;}
+  td.c-chassis{font-family:'Consolas',monospace;color:#475569;font-size:11px;}
+  .dest{display:inline-block;padding:2px 8px;border-radius:11px;font-size:10px;font-weight:800;color:#fff;}
+  .cell-chk{width:34px;text-align:center;}
+  .cell-chk input{width:15px;height:15px;accent-color:var(--green);cursor:pointer;}
+  .empty{padding:34px;text-align:center;color:var(--muted);font-size:12px;}
+  .tag-sorti{font-size:9px;font-weight:800;color:var(--green);background:#DCFCE7;border-radius:9px;padding:1px 6px;margin-left:6px;vertical-align:1px;}
+
+  /* ─── Onglet Impressions ─── */
+  .impr{display:grid;grid-template-columns:1fr 1fr;gap:12px 26px;max-width:640px;}
+  .impr .opt{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--navy);font-weight:600;cursor:pointer;padding:7px 10px;border:1.5px solid var(--line);border-radius:7px;transition:.15s;}
+  .impr .opt:hover{border-color:var(--accent);background:#F6F9FF;}
+  .impr .opt.on{border-color:var(--accent);background:#EEF3FB;box-shadow:0 0 0 2px rgba(37,99,235,.12);}
+  .impr .opt input{accent-color:var(--accent);}
+  .impr .dates{grid-column:1/3;display:flex;gap:9px;align-items:center;margin-top:4px;}
+  .impr .dates label{font-size:11.5px;color:var(--muted);font-weight:600;}
+  .impr .dates input[type=date]{height:32px;border:1.5px solid #CBD5E1;border-radius:6px;padding:0 9px;font-size:12px;color:var(--navy);}
+  .impr .dates input:disabled{opacity:.45;}
+  .impr .go{grid-column:1/3;margin-top:6px;}
+
+  /* ─── Documents (aperçus papier) ─── */
+  .docs{width:1040px;max-width:100%;}
+  .docs h2{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;text-align:center;font-weight:800;}
+  .doctabs{display:flex;justify-content:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .doctab{padding:8px 16px;font-size:12px;font-weight:700;border-radius:20px;border:1.5px solid #CBD5E1;background:#fff;color:var(--muted);cursor:pointer;transition:.15s;}
+  .doctab:hover{border-color:var(--accent);color:var(--accent);}
+  .doctab.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .paper{background:#fff;border:1px solid #dfe4ec;border-radius:6px;box-shadow:0 10px 34px rgba(30,50,90,.12);padding:34px 40px;color:#1a1a1a;font-family:'Segoe UI',sans-serif;}
+  .paper.hidden{display:none;}
+
+  .doc-head{display:flex;align-items:flex-start;gap:14px;border-bottom:0;margin-bottom:6px;}
+  .logo{width:44px;height:44px;flex:none;}
+  .doc-org{font-size:17px;font-weight:800;color:#1c3f6e;letter-spacing:.3px;}
+  .doc-org small{display:block;font-size:10px;color:#8a94a3;font-weight:600;letter-spacing:2px;margin-top:2px;}
+  .doc-edit{margin-left:auto;text-align:right;font-size:11px;color:#333;}
+  .doc-edit b{color:#1c3f6e;font-size:12px;}
+  .doc-title{text-align:center;font-size:20px;font-weight:800;color:#16305c;margin:6px 0 16px;letter-spacing:.4px;}
+  .doc-sub{font-size:12px;color:#333;margin:14px 0 6px;}
+  .doc-sub b{color:#16305c;}
+
+  table.doc{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:4px;}
+  table.doc th{background:#eef1e4;color:#333;font-weight:700;padding:6px 8px;border:1px solid #c9cdb8;text-align:center;font-size:10.5px;}
+  table.doc td{padding:5px 8px;border:1px solid #d7dac6;color:#222;}
+  table.doc tbody tr:nth-child(even){background:#fbfbf3;}
+  table.doc .l{text-align:left;} table.doc .c{text-align:center;}
+  .doc-count{font-size:11px;color:#333;margin:8px 0 2px;}
+  .doc-count b{color:#16305c;}
+  .doc-foot{display:flex;justify-content:space-between;align-items:center;margin-top:34px;padding-top:8px;font-size:10px;color:#7a8494;}
+  .doc-foot .sig{font-weight:800;color:#1c3f6e;letter-spacing:.5px;}
+
+  /* ─── Footbar / barre d'état ─── */
+  .statusbar{position:relative;height:30px;background:linear-gradient(180deg,#204d92,var(--navy));display:flex;align-items:center;gap:12px;padding:0 14px;color:#fff;font-size:11px;overflow:hidden;}
+  .statusbar::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#006A4E 16%,#FFCE00 50%,#D21034 84%,transparent);opacity:.9;}
+  .statusbar::after{content:"";position:absolute;top:0;left:-90px;height:2px;width:90px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent);animation:sbshine 6s linear infinite;}
+  @keyframes sbshine{0%{left:-90px;}100%{left:100%;}}
+  .sb-item{display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.9);white-space:nowrap;}
+  .sb-item b{color:#fff;font-weight:700;}
+  .sb-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px #22c55e;animation:sbpulse 2s ease-in-out infinite;}
+  @keyframes sbpulse{0%,100%{opacity:1;box-shadow:0 0 6px #22c55e;}50%{opacity:.4;box-shadow:0 0 2px #22c55e;}}
+  .sb-sep{width:1px;height:15px;background:rgba(255,255,255,.22);}
+  .sb-sp{flex:1;}
+  .sb-ver{color:rgba(255,255,255,.6);}
+  .sb-item .up{transition:.2s;} .sb-item .up.pulse{animation:pop .35s ease;}
+
+  /* ─── Toast ─── */
+  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:11px 20px;border-radius:9px;font-size:12.5px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:.28s;z-index:50;display:flex;align-items:center;gap:9px;}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  #toast.err{background:var(--red);} #toast.ok{background:var(--green);}
+</style>
+</head>
+<body>
+
+  <div class="hint">
+    Maquette interactive — <b>essaie&nbsp;:</b> onglet <b>Saisie ZIP</b> tape <code>T7471CK</code> ou <code>A2050NO</code> puis Entrée ·
+    onglet <b>Rech.</b> cherche par TRI (<code>2207</code>) ou immat · coche des lignes puis <b>Pointage Véh.</b> ·
+    <b>Générer Bordereau Escort</b> · onglet <b>Impressions</b>. Les aperçus des 2 documents sont en bas.
+  </div>
+
+  <!-- ═══════════ FENÊTRE APP ═══════════ -->
+  <div class="win">
+    <div class="titlebar">
+      <span class="dot"></span>
+      <span class="t">Pointage Sortie Véhicules&nbsp;&nbsp;›&nbsp;&nbsp;<span class="esc">ESCORT</span></span>
+      <span class="sp"></span>
+      <span class="brand">TCIT · Pointage</span>
+      <span class="wbtn">─</span><span class="wbtn">□</span>
+      <span class="quit">✕ Quitter</span>
+    </div>
+
+    <div class="tabbar">
+      <div class="tab on" data-tab="zip"><span class="ic">🎫</span> Saisie ZIP</div>
+      <div class="tab" data-tab="rech"><span class="ic">🔍</span> Rech. N° TRI/IMMAT</div>
+      <div class="tab" data-tab="impr"><span class="ic">🖨️</span> Impressions</div>
+    </div>
+
+    <div class="stage">
+      <!-- Zone formulaire -->
+      <div class="formarea">
+        <!-- ONGLET ZIP -->
+        <div id="form-zip" class="panel">
+          <div class="flabel"><b>ZIP Fiche ID Jaune</b> agrafée à la C.G. (ex&nbsp;: A0001CK) — afin de retrouver et pointer le véhicule</div>
+          <div class="frow">
+            <label>Véhicule à pointer :</label>
+            <input id="zipInput" class="fin zip" placeholder="Scannez…" autocomplete="off">
+            <button class="btn prim" onclick="scanZip()">🔎 Rech. + Pointer</button>
+            <span style="font-size:11px;color:var(--muted);">↵ le scanner valide automatiquement</span>
+          </div>
+        </div>
+
+        <!-- ONGLET RECHERCHE -->
+        <div id="form-rech" class="panel hidden">
+          <div class="flabel">Saisir un <b>N° de TRI</b> (ex : 125) ou un <b>N° d'IMMAT</b> complet (ex : A0001CK) afin de rechercher le véhicule</div>
+          <div class="frow">
+            <label>Véhicule à rechercher :</label>
+            <input id="rechInput" class="fin rech" placeholder="TRI ou immat…" autocomplete="off">
+            <button class="btn prim" onclick="scanRech()">🔍 Rechercher</button>
+            <span style="width:14px"></span>
+            <label>Suppr. sélection :</label>
+            <button class="btn danger mini" title="Retirer les lignes cochées de la liste" onclick="supprSelection()">➖</button>
+            <button class="btn ghost" onclick="pointerVeh()">🔄 Pointage Véh.</button>
+          </div>
+        </div>
+
+        <!-- ONGLET IMPRESSIONS -->
+        <div id="form-impr" class="panel hidden">
+          <div class="flabel"><b>Édition des listes de véhicules sortis</b></div>
+          <div class="impr">
+            <label class="opt on"><input type="radio" name="periode" value="jour" checked onchange="majImpr()"> Véhicules sortis aujourd'hui</label>
+            <label class="opt"><input type="radio" name="periode" value="periode" onchange="majImpr()"> Véhicules sortis sur une période</label>
+            <label class="opt on"><input type="radio" name="mode" value="standard" checked onchange="majImpr()"> Imprimé standard</label>
+            <label class="opt"><input type="radio" name="mode" value="parc" onchange="majImpr()"> Imprimé par parc</label>
+            <div class="dates">
+              <label>Du</label><input type="date" id="d1" value="2026-07-01" disabled>
+              <label>au</label><input type="date" id="d2" value="2026-07-28" disabled>
+            </div>
+            <button class="btn prim go" onclick="imprimerListe()">🖨️ Imprimer</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barre d'action + liste (masquée sous Impressions) -->
+      <div id="workzone">
+        <div class="toolbar">
+          <button id="btnGen" class="btn gen" onclick="genererBordereau()">✅ Générer Bordereau Escort</button>
+          <button class="btn vider" onclick="viderListe()">⊘ Vider Liste Pointage</button>
+          <span class="sp"></span>
+          <span class="counter">Pointés&nbsp;: <span id="cntPointe" class="n">0</span></span>
+          <span class="counter">En liste&nbsp;: <span id="cntTotal" class="n" style="color:var(--navy)">0</span></span>
+        </div>
+
+        <div class="listwrap">
+          <table class="list">
+            <thead>
+              <tr>
+                <th class="cell-chk">Sortie</th>
+                <th>Réf.</th><th>N° TRI</th><th>N° Immat.</th><th>Dest.</th>
+                <th>NomDuParc</th><th>MaisonTransit</th><th>Nom et prénom</th>
+                <th>Marque / Modèle</th><th>N° Chassis</th><th>Enregistré le</th>
+              </tr>
+            </thead>
+            <tbody id="listBody">
+              <tr><td colspan="11" class="empty">Aucun véhicule en liste — scannez ou recherchez un véhicule pour commencer.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footbar / barre d'état -->
+    <div class="statusbar">
+      <span class="sb-item"><span class="sb-dot"></span> Base <b>STCA&nbsp;M</b> — connectée</span>
+      <span class="sb-sep"></span>
+      <span class="sb-item">🖥️ Poste&nbsp;: <b>DOUANE-PC01</b></span>
+      <span class="sb-sep"></span>
+      <span class="sb-item">🚗 Sorties du jour&nbsp;: <b class="up" id="sbSorties">0</b></span>
+      <span class="sb-sp"></span>
+      <span class="sb-item" id="sbClock">—</span>
+      <span class="sb-sep"></span>
+      <span class="sb-item sb-ver">TCIT · Pointage <b>v1.0</b></span>
+    </div>
+  </div>
+
+  <!-- ═══════════ DOCUMENTS ═══════════ -->
+  <div class="docs">
+    <h2>Aperçu des documents générés</h2>
+    <div class="doctabs">
+      <div class="doctab on" data-doc="bord">📄 Bordereau d'Escorte</div>
+      <div class="doctab" data-doc="liste">📋 Liste des véhicules sortis</div>
+    </div>
+
+    <!-- BORDEREAU D'ESCORTE -->
+    <div id="doc-bord" class="paper">
+      <div class="doc-head">
+        <svg class="logo" viewBox="0 0 48 48"><polygon points="24,3 45,40 3,40" fill="none" stroke="#1c3f6e" stroke-width="3"/><polygon points="24,14 35,34 13,34" fill="#F59E0B"/></svg>
+        <div><div class="doc-org">Douanes Togolaises<small>TCIT</small></div></div>
+        <div class="doc-edit">Édition du : <b id="bordDate">Mardi 28 Juillet 2026</b><br><span id="bordHeure">00:57</span></div>
+      </div>
+      <div class="doc-title">Bordereau d'Escorte</div>
+      <table class="doc">
+        <thead><tr>
+          <th>N° TRI</th><th>N° Immatriculation</th><th>Destination</th><th>Nom Parc</th>
+          <th>Maison Transit</th><th>Marque / Modèle</th><th>N° Chassis</th>
+        </tr></thead>
+        <tbody id="bordBody"></tbody>
+      </table>
+      <div class="doc-count">Nombre de véhicules escortés : <b id="bordCount">0</b></div>
+      <div class="doc-foot"><span></span><span class="sig">TCIT · Pointage — v1.0</span></div>
+    </div>
+
+    <!-- LISTE DES VÉHICULES SORTIS -->
+    <div id="doc-liste" class="paper hidden">
+      <div class="doc-title" id="listeTitle" style="margin-top:6px">Liste des véhicules sortis pour la journée du : 28/07/2026</div>
+      <div id="listeContent"></div>
+      <div class="doc-count">Nombre de véhicules sortis : <b id="listeTotal">2</b></div>
+      <div class="doc-foot"><span>Édition du : Mardi 28 Juillet 2026&nbsp;&nbsp;01:03</span><span>1 / 1</span></div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+<script>
+  /* ─── Couleurs destination (couleur de plaque, comme l'écosystème) ─── */
+  const DEST = {CK:'#16A34A', NO:'#334155', KA:'#2563EB', KE:'#9333EA', AFO:'#DC2626', TO:'#0891B2', KP:'#B45309', KW:'#DB2777'};
+  const destColor = c => DEST[c] || '#6B7280';
+
+  /* ─── Base mock « STCA M » (recherchable par immat ou TRI) ─── */
+  const BASE = [
+    {ref:'610270',tri:'2107',immat:'T7471',code:'CK',parc:'UNIPARK',transit:'AFRIQUE ATTACHED',nom:'KOLO KOSSI',adresse:'Bub/Burkina-Faso',mm:'ACERBI 135PS',chassis:'2M5XYZUDLAXDG1220',enreg:'20/07/2026'},
+    {ref:'610271',tri:'2207',immat:'T7472',code:'CK',parc:'DJ - LOMÉ / TG',transit:'ABC-TRA',nom:'SDSDF',adresse:'Sdfdsfs/Sdf',mm:'ACERBI AB01P',chassis:'2T1LE40E59C008932',enreg:'20/07/2026'},
+    {ref:'610272',tri:'1305',immat:'A2050',code:'NO',parc:'Parc Agoé',transit:'TRANS-SAHEL',nom:'Kofi Mensah',adresse:'Accra/Ghana',mm:'TOYOTA HILUX',chassis:'AHTFR22G506123456',enreg:'25/07/2026'},
+    {ref:'610273',tri:'1450',immat:'E2201',code:'KA',parc:'Parc Baguida',transit:'SODICOM',nom:'Ibrahim Traoré',adresse:'Ouaga/Burkina',mm:'MAN TGX 18.480',chassis:'WMA06XZZ7CM334455',enreg:'26/07/2026'},
+    {ref:'610274',tri:'1512',immat:'C7501',code:'AFO',parc:'Parc Adakpamé',transit:'GLOBAL TRANSIT',nom:'Aminata Bah',adresse:'Cotonou/Bénin',mm:'MERCEDES ACTROS',chassis:'WDB9634031L998877',enreg:'27/07/2026'},
+  ];
+
+  /* ─── État de la liste de travail ─── */
+  let liste = [];  // {…véhicule, checked:bool, sorti:bool}
+  let sortiesJour = 0;  // cumul des sorties écrites aujourd'hui (survit au « Vider Liste »)
+
+  const $ = s => document.querySelector(s);
+  const toast = (msg, type='') => {
+    const t = $('#toast'); t.className = 'show ' + type;
+    t.innerHTML = (type==='err'?'⚠️ ':type==='ok'?'✔️ ':'ℹ️ ') + msg;
+    clearTimeout(t._t); t._t = setTimeout(()=>t.className='', 2400);
+  };
+
+  /* ─── Onglets ─── */
+  document.querySelectorAll('.tab').forEach(tb=>tb.onclick=()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+    tb.classList.add('on');
+    const id = tb.dataset.tab;
+    ['zip','rech','impr'].forEach(k=>$('#form-'+k).classList.toggle('hidden', k!==id));
+    $('#workzone').classList.toggle('hidden', id==='impr');
+    if(id==='zip') setTimeout(()=>$('#zipInput').focus(),50);
+  });
+
+  /* ─── Recherche dans la base ─── */
+  function chercher(saisie){
+    const q = saisie.trim().toUpperCase().replace(/\s/g,'');
+    if(!q) return null;
+    // immat exacte, immat+code, ou TRI
+    return BASE.find(v => v.immat===q || (v.immat+v.code)===q || v.tri===q) || null;
+  }
+
+  function ajouterAListe(saisie){
+    const v = chercher(saisie);
+    if(!v){ toast('Véhicule introuvable : « '+saisie+' »','err'); return false; }
+    if(v.sortiEnBase){ toast(v.immat+' est déjà sorti (pointé antérieurement)','err'); return false; }
+    const exist = liste.find(x=>x.ref===v.ref);
+    if(exist){ toast(v.immat+' est déjà dans la liste','err'); flashRow(v.ref); return false; }
+    liste.push({...v, checked:true, sorti:false});
+    render(v.ref);
+    toast(v.immat+' ajouté à la liste','ok');
+    return true;
+  }
+
+  function scanZip(){
+    const el=$('#zipInput'); if(ajouterAListe(el.value)){ el.value=''; } el.focus();
+  }
+  function scanRech(){
+    const el=$('#rechInput'); if(ajouterAListe(el.value)){ el.value=''; } el.focus();
+  }
+  $('#zipInput').addEventListener('keydown',e=>{if(e.key==='Enter')scanZip();});
+  $('#rechInput').addEventListener('keydown',e=>{if(e.key==='Enter')scanRech();});
+
+  /* ─── Pointage = écrit la sortie (mock) ─── */
+  function pointerVeh(){
+    const cibles = liste.filter(v=>v.checked && !v.sorti);
+    if(cibles.length===0){ toast('Cochez au moins un véhicule non encore sorti','err'); return; }
+    cibles.forEach(v=>v.sorti=true);
+    sortiesJour += cibles.length;
+    $('#sbSorties').textContent = sortiesJour;
+    pulse('#cntPointe'); pulse('#sbSorties');
+    render();
+    toast(cibles.length+' véhicule(s) pointé(s) — FlagSortie ✔ / DateSortie du jour','ok');
+  }
+
+  function supprSelection(){
+    const avant = liste.length;
+    liste = liste.filter(v=>!v.checked);
+    render();
+    if(liste.length<avant) toast((avant-liste.length)+' ligne(s) retirée(s) de la liste');
+  }
+
+  function viderListe(){
+    if(liste.length===0){ toast('La liste est déjà vide'); return; }
+    liste = []; render(); toast('Liste de pointage vidée (les sorties déjà écrites sont conservées)');
+  }
+
+  function genererBordereau(){
+    const pts = liste.filter(v=>v.sorti);
+    if(pts.length===0){ toast('Aucun véhicule pointé à escorter','err'); return; }
+    if(!confirm('Êtes-vous sûr de vouloir générer le PDF du Bordereau d\'Escorte ?')) return;
+    remplirBordereau(pts);
+    switchDoc('bord');
+    document.querySelector('.docs').scrollIntoView({behavior:'smooth'});
+    toast('Bordereau d\'Escorte généré ('+pts.length+' véhicule(s))','ok');
+  }
+
+  /* ─── Rendu de la liste ─── */
+  function render(flashRef){
+    const tb=$('#listBody');
+    if(liste.length===0){
+      tb.innerHTML='<tr><td colspan="11" class="empty">Aucun véhicule en liste — scannez ou recherchez un véhicule pour commencer.</td></tr>';
+    } else {
+      tb.innerHTML = liste.map((v,i)=>`
+        <tr class="${v.sorti?'pointe':''}" data-ref="${v.ref}">
+          <td class="cell-chk"><input type="checkbox" ${v.checked?'checked':''} onchange="toggleChk(${i})"></td>
+          <td class="c-ref">${v.ref}</td>
+          <td class="c-tri">${v.tri}</td>
+          <td class="c-immat">${v.immat}${v.sorti?'<span class="tag-sorti">SORTI</span>':''}</td>
+          <td><span class="dest" style="background:${destColor(v.code)}">${v.code}</span></td>
+          <td>${v.parc}</td><td>${v.transit}</td><td>${v.nom}</td>
+          <td>${v.mm}</td><td class="c-chassis">${v.chassis}</td><td>${v.enreg}</td>
+        </tr>`).join('');
+    }
+    $('#cntTotal').textContent = liste.length;
+    $('#cntPointe').textContent = liste.filter(v=>v.sorti).length;
+    $('#btnGen').disabled = liste.filter(v=>v.sorti).length===0;
+    if(flashRef) flashRow(flashRef);
+  }
+  function toggleChk(i){ liste[i].checked = !liste[i].checked; }
+  function flashRow(ref){ const r=document.querySelector(`tr[data-ref="${ref}"]`); if(r){r.classList.remove('flash');void r.offsetWidth;r.classList.add('flash');} }
+  function pulse(sel){ const n=$(sel); n.classList.remove('pulse'); void n.offsetWidth; n.classList.add('pulse'); }
+
+  /* ─── Documents ─── */
+  document.querySelectorAll('.doctab').forEach(dt=>dt.onclick=()=>switchDoc(dt.dataset.doc));
+  function switchDoc(which){
+    document.querySelectorAll('.doctab').forEach(x=>x.classList.toggle('on',x.dataset.doc===which));
+    $('#doc-bord').classList.toggle('hidden',which!=='bord');
+    $('#doc-liste').classList.toggle('hidden',which!=='liste');
+  }
+
+  function remplirBordereau(rows){
+    $('#bordBody').innerHTML = rows.map(v=>`<tr>
+      <td class="c">${v.tri}</td><td class="c">${v.immat}</td><td class="c">${v.code}</td>
+      <td class="l">${v.parc}</td><td class="l">${v.transit}</td><td class="l">${v.mm}</td><td class="l">${v.chassis}</td>
+    </tr>`).join('');
+    $('#bordCount').textContent = rows.length;
+  }
+
+  /* ─── Onglet Impressions ─── */
+  function majImpr(){
+    const periode = document.querySelector('input[name=periode]:checked').value;
+    $('#d1').disabled = $('#d2').disabled = (periode!=='periode');
+    document.querySelectorAll('.impr .opt').forEach(o=>o.classList.toggle('on', o.querySelector('input').checked));
+  }
+
+  function imprimerListe(){
+    const periode = document.querySelector('input[name=periode]:checked').value;
+    const mode = document.querySelector('input[name=mode]:checked').value;
+    // données = véhicules sortis (dans cette maquette : ceux pointés + les 2 exemples de base)
+    const src = liste.filter(v=>v.sorti);
+    const rows = src.length? src : [BASE[1], BASE[0]]; // exemple si rien de pointé
+    const rowsSortie = rows.map(v=>({...v, sortie:'28/07/2026'}));
+
+    $('#listeTitle').textContent = periode==='jour'
+      ? 'Liste des véhicules sortis pour la journée du : 28/07/2026'
+      : 'Liste des véhicules sortis pour la période du : 01/07/2026 au 28/07/2026';
+
+    const colParc = (periode==='periode' && mode==='standard');
+    const th = `<tr><th>Nom et prénom</th><th>Adresse</th><th>N° de Tri</th><th>Immatriculation</th><th>Destination</th><th>Marque et modèle</th><th>N° Chassis</th>${colParc?'<th>Parc</th>':''}<th>Enregistré le</th><th>Sortie le</th></tr>`;
+    const tr = v=>`<tr><td class="l">${v.nom}</td><td class="l">${v.adresse}</td><td class="c">${v.tri}</td><td class="c">${v.immat}</td><td class="c">${v.code}</td><td class="l">${v.mm}</td><td class="l">${v.chassis}</td>${colParc?`<td class="l">${v.parc}</td>`:''}<td class="c">${v.enreg}</td><td class="c">${v.sortie}</td></tr>`;
+
+    let html='';
+    if(mode==='parc'){
+      const parcs=[...new Set(rowsSortie.map(v=>v.parc))].sort();
+      parcs.forEach(p=>{
+        const g=rowsSortie.filter(v=>v.parc===p);
+        html += `<div class="doc-sub">Nom du parc : <b>${p}</b></div>
+          <table class="doc"><thead>${th}</thead><tbody>${g.map(tr).join('')}</tbody></table>
+          <div class="doc-count" style="margin-bottom:12px">Nombre de véhicules sortis de ce parc : <b>${g.length}</b></div>`;
+      });
+    } else {
+      html = `<table class="doc"><thead>${th}</thead><tbody>${rowsSortie.map(tr).join('')}</tbody></table>`;
+    }
+    $('#listeContent').innerHTML = html;
+    $('#listeTotal').textContent = rowsSortie.length;
+    switchDoc('liste');
+    document.querySelector('.docs').scrollIntoView({behavior:'smooth'});
+    toast('Liste des véhicules sortis générée','ok');
+  }
+
+  /* ─── Horloge live de la barre d'état ─── */
+  function tick(){
+    const d=new Date(), p=n=>String(n).padStart(2,'0');
+    const jours=['dim.','lun.','mar.','mer.','jeu.','ven.','sam.'];
+    $('#sbClock').innerHTML = `🕑 ${jours[d.getDay()]} ${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} · <b>${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}</b>`;
+  }
+  setInterval(tick,1000); tick();
+
+  /* ─── Init : bordereau + liste pré-remplis avec l'exemple des captures ─── */
+  (function init(){
+    remplirBordereau([BASE[0],BASE[1]]);
+    imprimerListePreview();
+    $('#zipInput').focus();
+  })();
+  function imprimerListePreview(){
+    // aperçu par défaut : journée par parc (comme la capture)
+    document.querySelector('input[name=mode][value=parc]').checked=true;
+    majImpr();
+    const rowsSortie=[BASE[1],BASE[0]].map(v=>({...v,sortie:'28/07/2026'}));
+    const th=`<tr><th>Nom et prénom</th><th>Adresse</th><th>N° de Tri</th><th>Immatriculation</th><th>Destination</th><th>Marque et modèle</th><th>N° Chassis</th><th>Enregistré le</th><th>Sortie le</th></tr>`;
+    const tr=v=>`<tr><td class="l">${v.nom}</td><td class="l">${v.adresse}</td><td class="c">${v.tri}</td><td class="c">${v.immat}</td><td class="c">${v.code}</td><td class="l">${v.mm}</td><td class="l">${v.chassis}</td><td class="c">${v.enreg}</td><td class="c">${v.sortie}</td></tr>`;
+    const parcs=[...new Set(rowsSortie.map(v=>v.parc))].sort();
+    $('#listeContent').innerHTML=parcs.map(p=>{const g=rowsSortie.filter(v=>v.parc===p);return `<div class="doc-sub">Nom du parc : <b>${p}</b></div><table class="doc"><thead>${th}</thead><tbody>${g.map(tr).join('')}</tbody></table><div class="doc-count" style="margin-bottom:12px">Nombre de véhicules sortis de ce parc : <b>${g.length}</b></div>`;}).join('');
+    // remet le mode standard coché par défaut dans le formulaire
+    document.querySelector('input[name=mode][value=standard]').checked=true; majImpr();
+  }
+</script>
+</body>
+</html>
