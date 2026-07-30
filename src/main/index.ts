@@ -25,6 +25,7 @@ import {
 // Write-through ADDITIF vers la base STCA M partagée (lue par l'app STCA-Pointage).
 import { upsertEnregistrement } from './stcaMShared'
 import { cheminBaseM } from '../shared/cheminBaseM'
+import { decoderVinEnLigne } from './vinOnline'
 
 const isDev = process.env['NODE_ENV'] === 'development' || !app.isPackaged
 
@@ -321,6 +322,9 @@ function setupMdiIPC(): void {
   ipcMain.handle('import:preview', (_, chemin: string) => previewCsv(chemin))
   ipcMain.handle('import:run', (e, p: { chemin: string; mapping: Mapping; delimiter: string }) =>
     runImport(e, p.chemin, p.mapping, p.delimiter))
+
+  // Décodage VIN en ligne (NHTSA vPIC) — exécuté côté main (CSP renderer interdit le réseau externe)
+  ipcMain.handle('vin:decodeOnline', (_e, vin: string) => decoderVinEnLigne(vin))
 
   // Imprimantes du système (nom + défaut) — pour Config. Imprimantes
   ipcMain.handle('printers:list', async (e) => {

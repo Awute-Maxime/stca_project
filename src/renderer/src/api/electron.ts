@@ -109,6 +109,19 @@ export interface AffichagePayload {
   agent: string
 }
 
+// ── Décodeur VIN en ligne (NHTSA, exécuté côté main) ──────────────────────────
+export interface VinEnLigne {
+  ok: boolean
+  erreur?: string
+  constructeur: string
+  pays: string
+  annee: string
+  marque: string
+  modele: string
+  typeVehicule: string
+  categorie: 'Voiture' | 'Camion' | 'Autre' | null
+}
+
 declare global {
   interface Window {
     api: {
@@ -173,6 +186,7 @@ declare global {
       mdiSelfClose:    () => void
       mdiSelfMinimize: () => void
       mdiSelfMaximize: () => void
+      vinDecodeOnline: (vin: string) => Promise<VinEnLigne>
     }
   }
 }
@@ -290,4 +304,11 @@ export const electronApi = {
   mdiSelfClose:    () => window.api?.mdiSelfClose?.(),
   mdiSelfMinimize: () => window.api?.mdiSelfMinimize?.(),
   mdiSelfMaximize: () => window.api?.mdiSelfMaximize?.(),
+
+  // Décodeur VIN en ligne (NHTSA, exécuté côté main)
+  vinDecodeOnline: (vin: string): Promise<VinEnLigne> =>
+    window.api?.vinDecodeOnline?.(vin) ?? Promise.resolve({
+      ok: false, erreur: 'window.api indisponible', constructeur: 'Inconnu', pays: '—', annee: '—',
+      marque: '', modele: '', typeVehicule: '', categorie: null,
+    }),
 }

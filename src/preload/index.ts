@@ -101,6 +101,12 @@ const api = {
   mdiSelfClose:    () => ipcRenderer.send('mdi:self:close'),
   mdiSelfMinimize: () => ipcRenderer.send('mdi:self:minimize'),
   mdiSelfMaximize: () => ipcRenderer.send('mdi:self:maximize'),
+
+  // Décodage VIN en ligne (NHTSA, exécuté côté main)
+  vinDecodeOnline: (vin: string): Promise<{
+    ok: boolean; erreur?: string; constructeur: string; pays: string; annee: string;
+    marque: string; modele: string; typeVehicule: string; categorie: 'Voiture'|'Camion'|'Autre'|null
+  }> => ipcRenderer.invoke('vin:decodeOnline', vin),
 }
 
 if (process.contextIsolated) {
