@@ -14,8 +14,6 @@ export interface ResultatVin {
   vin: string
   source: 'local' | 'en ligne'
   structureValide: boolean          // 17 car., charset VIN, pas de I/O/Q
-  /** @deprecated compat temporaire, retiré en Phase 3 — miroir de structureValide (DecodeurVinWindow.tsx lit encore res.valide). */
-  valide: boolean
   raisonInvalide: string | null     // renseigné seulement si structure invalide
   chiffreControleRequis: boolean    // WMI nord-américain (1re lettre 1-5)
   chiffreControleOk: boolean        // le chiffre pos.9 correspond
@@ -177,7 +175,7 @@ function trouverInfo(vin: string): InfoWmi | null {
 export function decoderVin(brut: string): ResultatVin {
   const vin = nettoyer(brut)
   const base: ResultatVin = {
-    vin, source: 'local', structureValide: false, valide: false, raisonInvalide: null,
+    vin, source: 'local', structureValide: false, raisonInvalide: null,
     chiffreControleRequis: /^[1-5]/.test(vin), chiffreControleOk: false, noteControle: '',
     wmi: vin.slice(0, 3), constructeur: 'Inconnu', pays: '—', annee: '—',
     usine: vin[10] ?? '—', serie: vin.slice(11), categorie: null, confiance: 'faible', raisonCategorie: '',
@@ -188,7 +186,6 @@ export function decoderVin(brut: string): ResultatVin {
   if (/[IOQ]/.test(vin)) { base.raisonInvalide = 'Contient un caractère interdit (I, O ou Q)'; return base }
   if (!/^[A-HJ-NPR-Z0-9]+$/.test(vin)) { base.raisonInvalide = 'Caractères non valides'; return base }
   base.structureValide = true
-  base.valide = true // compat temporaire, retiré en Phase 3 (suit structureValide)
 
   // Chiffre de contrôle — informatif (obligatoire seulement en Amérique du Nord)
   const attendu = chiffreControle(vin)

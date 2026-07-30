@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { decoderVin, zoneVin, type ResultatVin, type Categorie } from '@mock/vinDecoder'
+import { electronApi, type VinEnLigne } from '@api/electron'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Fenêtre « Décodage du numéro de châssis (VIN) » — hors ligne.
@@ -21,11 +22,42 @@ export default function DecodeurVinWindow(): JSX.Element {
     try { return (localStorage.getItem('tcit_vin_decode') ?? '').toUpperCase() } catch { return '' }
   })
   const [res, setRes] = useState<ResultatVin | null>(null)
+  const [chargement, setChargement] = useState(false)   // appel en ligne en cours
+  const [enLigneEssaye, setEnLigneEssaye] = useState(false)
 
-  useEffect(() => { if (vin.length === 17) setRes(decoderVin(vin)) }, []) // auto-décode si pré-chargé
+  // Décode en local, puis bascule en ligne si nécessaire ET connecté.
+  const decoder = async (forcerEnLigne = false): Promise<void> => {
+    const local = decoderVin(vin)
+    setRes(local); setEnLigneEssaye(false)
+    if (!local.structureValide) return
+    const insuffisant = local.categorie === null || local.constructeur === 'Inconnu'
+    if (!forcerEnLigne && !insuffisant) return
+    if (!navigator.onLine) return                        // hors ligne : on garde le local
+    // cache
+    const cle = 'tcit_vin_online_' + local.vin
+    try { const c = localStorage.getItem(cle); if (c) { appliquerEnLigne(local, JSON.parse(c)); return } } catch { /* ignore */ }
+    setChargement(true); setEnLigneEssaye(true)
+    try {
+      const online = await electronApi.vinDecodeOnline(local.vin)
+      if (online.ok) { try { localStorage.setItem(cle, JSON.stringify(online)) } catch { /* ignore */ }; appliquerEnLigne(local, online) }
+    } catch { /* ignore : on garde le local */ } finally { setChargement(false) }
+  }
+
+  function appliquerEnLigne(local: ResultatVin, o: VinEnLigne): void {
+    setRes({
+      ...local, source: 'en ligne',
+      constructeur: o.constructeur || local.constructeur,
+      pays: o.pays !== '—' ? o.pays : local.pays,
+      annee: o.annee !== '—' ? o.annee : local.annee,
+      categorie: o.categorie ?? local.categorie,
+      confiance: o.categorie ? 'élevée' : local.confiance,
+      raisonCategorie: o.categorie ? `NHTSA — ${o.typeVehicule || 'type identifié'}` : local.raisonCategorie,
+    })
+  }
+
+  useEffect(() => { if (vin.length === 17) void decoder() }, []) // auto-décode si pré-chargé
 
   const fermer = (): void => { window.dispatchEvent(new CustomEvent('mdi:close-self')) }
-  const decoder = (): void => setRes(decoderVin(vin))
   const appliquer = (): void => {
     if (!res?.categorie) return
     localStorage.setItem('tcit_vin_type', JSON.stringify({ type: res.categorie, ts: Date.now() }))
@@ -55,11 +87,11 @@ export default function DecodeurVinWindow(): JSX.Element {
           <input
             className="light-input" value={vin} maxLength={17}
             onChange={e => setVin(e.target.value.replace(/\s+/g, '').toUpperCase())}
-            onKeyDown={e => { if (e.key === 'Enter') decoder() }}
+            onKeyDown={e => { if (e.key === 'Enter') void decoder() }}
             placeholder="Ex : WMA06XZZ7CM123456"
             style={{ flex: 1, height: 34, fontFamily: "'Consolas', monospace", fontSize: 16, fontWeight: 700, letterSpacing: 1.5, color: C.navy }}
           />
-          <button style={{ ...btn, background: C.accent, color: '#fff' }} onClick={decoder}>🔍 Décoder</button>
+          <button style={{ ...btn, background: C.accent, color: '#fff' }} onClick={() => void decoder()}>🔍 Décoder</button>
         </div>
 
         {res && (
@@ -88,9 +120,20 @@ export default function DecodeurVinWindow(): JSX.Element {
 
             {/* Résultat */}
             <div style={{ background: '#fff', border: `1px solid ${C.line}`, borderRadius: 10, padding: '13px 16px', marginBottom: 14 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12.5, fontWeight: 700, marginBottom: 10, color: res.valide ? C.green : C.red }}>
-                {res.valide ? '✓ VIN valide — chiffre de contrôle (pos. 9) correct, 17 caractères' : `✗ ${res.raisonInvalide}`}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12.5, fontWeight: 700, marginBottom: 6, color: res.structureValide ? C.green : C.red }}>
+                {res.structureValide ? '✓ Structure VIN valide (17 caractères)' : `✗ ${res.raisonInvalide}`}
+                <span style={{
+                  marginLeft: 'auto', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 10,
+                  background: res.source === 'en ligne' ? '#EFF6FF' : '#F1F5F9', color: res.source === 'en ligne' ? C.accent : C.muted,
+                }}>
+                  {res.source === 'en ligne' ? '🌐 Source : NHTSA en ligne' : '💾 Source : base hors ligne'}
+                </span>
               </div>
+              {res.structureValide && (
+                <div style={{ fontSize: 10.5, color: res.chiffreControleOk ? C.green : (res.chiffreControleRequis ? C.gold : C.muted), marginBottom: 10 }}>
+                  {res.chiffreControleOk ? '● ' : (res.chiffreControleRequis ? '⚠ ' : 'ℹ ')}{res.noteControle}
+                </div>
+              )}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 22px' }}>
                 <KV k="Constructeur" v={res.constructeur} />
                 <KV k="Pays d'origine" v={res.pays} />
@@ -100,6 +143,10 @@ export default function DecodeurVinWindow(): JSX.Element {
                 <KV k="Zone WMI" v={res.wmi} />
               </div>
             </div>
+
+            {chargement && (
+              <div style={{ fontSize: 11, color: C.accent, marginBottom: 14 }}>⏳ Recherche en ligne (NHTSA)…</div>
+            )}
 
             {/* Catégorie suggérée */}
             <div style={{
@@ -123,7 +170,14 @@ export default function DecodeurVinWindow(): JSX.Element {
 
         {/* Pied */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button style={{ ...btn, background: '#fff', border: `1px solid ${C.line}`, color: '#94A3B8' }} disabled title="Nécessite Internet — disponible plus tard">🌐 Décoder en ligne (NHTSA)</button>
+          <button
+            style={{ ...btn, background: '#fff', border: `1px solid ${C.accent}`, color: C.accent }}
+            disabled={chargement || vin.length !== 17} onClick={() => void decoder(true)}
+            title={navigator.onLine ? 'Forcer le décodage en ligne' : 'Aucune connexion Internet détectée'}
+          >
+            🌐 Décoder en ligne (NHTSA)
+          </button>
+          {!navigator.onLine && <span style={{ fontSize: 10.5, color: C.muted }}>Hors ligne — décodage local seul.</span>}
           <div style={{ flex: 1 }} />
           <button style={{ ...btn, background: '#fff', border: `1px solid ${C.line}`, color: '#475569' }} onClick={fermer}>Fermer</button>
         </div>
