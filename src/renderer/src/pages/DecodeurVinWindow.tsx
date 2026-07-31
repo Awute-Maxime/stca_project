@@ -42,11 +42,13 @@ export default function DecodeurVinWindow(): JSX.Element {
   const decoder = async (forcerEnLigne = false): Promise<void> => {
     if (enCoursRef.current) return
     enCoursRef.current = true
-    setTravail(true); setRes(null)
+    // On NE vide PAS le résultat précédent : la page reste stable, seul le
+    // pipeline (les pastilles) rejoue son animation de phases.
+    setTravail(true)
     setEtapes({ structure: 'encours', local: 'attente', enligne: 'attente' })
     try {
       // ── Phase 1 : structure ──
-      await pause(240)
+      await pause(160)
       const local = decoderVin(vin)
       if (!local.structureValide) {
         setEtapes({ structure: 'ko', local: 'attente', enligne: 'attente' })
@@ -56,7 +58,7 @@ export default function DecodeurVinWindow(): JSX.Element {
       setEtapes(e => ({ ...e, structure: 'ok', local: 'encours' }))
 
       // ── Phase 2 : base locale ──
-      await pause(320)
+      await pause(220)
       setRes(local)
       const insuffisant = local.categorie === null || local.constructeur === 'Inconnu'
       const irEnLigne = (forcerEnLigne || insuffisant) && navigator.onLine
@@ -73,7 +75,6 @@ export default function DecodeurVinWindow(): JSX.Element {
         const cache = localStorage.getItem(cle)
         if (cache) { appliquerEnLigne(local, JSON.parse(cache)); setEtapes(e => ({ ...e, enligne: 'ok' })); return }
       } catch { /* cache illisible : on interroge le réseau */ }
-      await pause(150)
       try {
         const online = await electronApi.vinDecodeOnline(local.vin)
         if (online.ok) {
@@ -124,9 +125,9 @@ export default function DecodeurVinWindow(): JSX.Element {
   })()
 
   return (
-    <div style={{ animation: 'formEnter 0.3s ease', background: C.bg, minHeight: '100%' }}>
+    <div style={{ background: C.bg, minHeight: '100%' }}>
       {/* Sub-header beige */}
-      <div style={{ background: '#F5F3EE', borderBottom: '2px solid #E2D9C8', padding: '9px 14px', display: 'flex', alignItems: 'center', gap: 9 }}>
+      <div style={{ background: '#F5F3EE', borderBottom: '2px solid #E2D9C8', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 9 }}>
         <span style={{ fontSize: 18 }} className={travail ? 'dv-globe' : undefined}>🔎</span>
         <div>
           <div style={{ fontSize: 12, fontWeight: 800, color: C.navy, letterSpacing: 0.6, textTransform: 'uppercase' }}>Décodage du numéro de châssis (VIN)</div>
@@ -134,9 +135,9 @@ export default function DecodeurVinWindow(): JSX.Element {
         </div>
       </div>
 
-      <div style={{ padding: '14px 16px' }}>
+      <div style={{ padding: '12px 16px' }}>
         {/* Saisie */}
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 14 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
           <span style={{ fontSize: 12, color: '#475569', whiteSpace: 'nowrap' }}>N° de châssis :</span>
           <input
             className="light-input" value={vin} maxLength={17} disabled={travail}
@@ -166,17 +167,17 @@ export default function DecodeurVinWindow(): JSX.Element {
           <>
             {/* Décomposition (VIN de structure valide seulement) */}
             {res.structureValide && (
-              <div className="dv-reveal" style={{ background: '#fff', border: `1px solid ${C.line}`, borderRadius: 10, padding: 12, marginBottom: 14 }}>
-                <div style={{ fontSize: 9.5, fontWeight: 800, color: C.muted, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 8 }}>Décomposition</div>
+              <div style={{ background: '#fff', border: `1px solid ${C.line}`, borderRadius: 10, padding: 10, marginBottom: 10 }}>
+                <div style={{ fontSize: 9.5, fontWeight: 800, color: C.muted, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 }}>Décomposition</div>
                 <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
                   {res.vin.split('').map((ch, i) => (
-                    <div key={i} className="dv-cell" style={{ background: ZONE_COUL[zoneVin(i)], animationDelay: `${i * 22}ms` }}>
+                    <div key={i} className="dv-cell" style={{ background: ZONE_COUL[zoneVin(i)] }}>
                       <small>{i + 1}</small>
                       {ch}
                     </div>
                   ))}
                 </div>
-                <div style={{ display: 'flex', gap: 16, marginTop: 9, fontSize: 10.5, color: C.muted, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: 16, marginTop: 7, fontSize: 10.5, color: C.muted, flexWrap: 'wrap' }}>
                   <span><b style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: C.accent, marginRight: 5, verticalAlign: -1 }} />WMI — constructeur / pays (1-3)</span>
                   <span><b style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: C.gold, marginRight: 5, verticalAlign: -1 }} />VDS — description (4-9)</span>
                   <span><b style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: C.green, marginRight: 5, verticalAlign: -1 }} />VIS — année / usine / série (10-17)</span>
@@ -185,7 +186,7 @@ export default function DecodeurVinWindow(): JSX.Element {
             )}
 
             {/* Résultat */}
-            <div className="dv-reveal" style={{ background: '#fff', border: `1px solid ${C.line}`, borderRadius: 10, padding: '13px 16px', marginBottom: 14 }}>
+            <div style={{ background: '#fff', border: `1px solid ${C.line}`, borderRadius: 10, padding: '10px 14px', marginBottom: 10 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12.5, fontWeight: 700, marginBottom: 6, color: res.structureValide ? C.green : C.red }}>
                 {res.structureValide ? '✓ Structure VIN valide (17 caractères)' : `✗ ${res.raisonInvalide}`}
                 <span style={{
@@ -198,12 +199,12 @@ export default function DecodeurVinWindow(): JSX.Element {
                 </span>
               </div>
               {res.structureValide && (
-                <div style={{ fontSize: 10.5, color: res.chiffreControleOk ? C.green : (res.chiffreControleRequis ? C.gold : C.muted), marginBottom: 10 }}>
+                <div style={{ fontSize: 10.5, color: res.chiffreControleOk ? C.green : (res.chiffreControleRequis ? C.gold : C.muted), marginBottom: 8 }}>
                   {res.chiffreControleOk ? '● ' : (res.chiffreControleRequis ? '⚠ ' : 'ℹ ')}{res.noteControle}
                 </div>
               )}
               {res.structureValide && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 22px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 20px' }}>
                   <KV k="Constructeur" v={res.constructeur} />
                   <KV k="Pays d'origine" v={res.pays} />
                   <KV k="Année-modèle" v={res.annee} />
@@ -217,13 +218,13 @@ export default function DecodeurVinWindow(): JSX.Element {
             {/* Catégorie suggérée (VIN valide seulement) */}
             {res.structureValide && (
               <div className="dv-cat" style={{
-                display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14, padding: '12px 16px', borderRadius: 12,
+                display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10, padding: '10px 14px', borderRadius: 12,
                 background: res.categorie ? 'linear-gradient(135deg,#FEF9EE,#FFF)' : '#F8FAFC',
                 border: `1.5px solid ${res.categorie ? '#FCD9A0' : C.line}`,
               }}>
-                <span className="dv-cat__emoji" style={{ fontSize: 34 }}>{res.categorie ? EMOJI_CAT[res.categorie] : '❓'}</span>
+                <span className="dv-cat__emoji" style={{ fontSize: 30 }}>{res.categorie ? EMOJI_CAT[res.categorie] : '❓'}</span>
                 <div>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: C.navy, lineHeight: 1 }}>{res.categorie ?? 'À CONFIRMER'}</div>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: C.navy, lineHeight: 1 }}>{res.categorie ?? 'À CONFIRMER'}</div>
                   <div style={{ fontSize: 10.5, fontWeight: 700, color: COUL_CONF[res.confiance], marginTop: 3 }}>
                     <span className="dv-dot-conf" style={{ background: COUL_CONF[res.confiance] }} />Confiance {res.confiance}
                   </div>
@@ -294,7 +295,7 @@ function Lien({ on }: { on: boolean }): JSX.Element {
 
 function KV({ k, v }: { k: string; v: string }): JSX.Element {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, borderBottom: '1px dashed #EDF1F8', paddingBottom: 5 }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, borderBottom: '1px dashed #EDF1F8', paddingBottom: 4 }}>
       <span style={{ color: '#64748B' }}>{k}</span>
       <span style={{ fontWeight: 700, color: '#1E293B' }}>{v}</span>
     </div>
