@@ -395,26 +395,58 @@ ul.ac-hist li .ico { font-size: 11px; opacity: 0.7; flex-shrink: 0; }
 .dv-step { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 88px; flex-shrink: 0; text-align: center; }
 .dv-step__dot {
   width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  font-size: 17px; background: #F1F5F9; border: 2px solid #E2E8F0; color: #94A3B8; position: relative;
+  background: #F1F5F9; border: 2px solid #E2E8F0; color: #94A3B8; position: relative;
   transition: background 0.3s, border-color 0.3s, color 0.3s, box-shadow 0.3s;
 }
 .dv-step__lbl { font-size: 9.5px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; color: #94A3B8; transition: color 0.3s; line-height: 1.15; }
 .dv-step__sub { font-size: 8.5px; color: #B0BAC9; font-weight: 700; min-height: 10px; }
 
-.dv-step.is-encours .dv-step__dot { border-color: #2563EB; color: #2563EB; background: #EFF6FF; animation: dvPulse 1s ease-in-out infinite; }
-.dv-step.is-encours .dv-step__lbl { color: #2563EB; }
+/* Icône de phase (SVG line-art, hérite la couleur du statut via currentColor) */
+.dv-step__icon { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; transition: opacity 0.3s; }
+.dv-step__icon svg { width: 22px; height: 22px; display: block; }
+.dv-step__icon svg * { transform-box: fill-box; transform-origin: center; }
+
+/* Marque de validation POSÉE PAR-DESSUS, SEMI-TRANSPARENTE : l'icône animée
+   dessous reste visible jusqu'à la fin du processus. */
+.dv-step__mark {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 19px; font-weight: 900; opacity: 0; pointer-events: none;
+  filter: drop-shadow(0 0 1.6px rgba(255,255,255,0.95)); transition: opacity 0.35s;
+}
+.dv-step__mark svg { width: 23px; height: 23px; }
+
+/* Statuts : fond LÉGER (l'icône reste lisible), bordure + icône colorées */
+.dv-step.is-encours .dv-step__dot { border-color: #2563EB; color: #2563EB; background: #EFF6FF; animation: dvPulse 1.4s ease-in-out infinite; }
+.dv-step.is-encours .dv-step__lbl,
 .dv-step.is-encours .dv-step__sub { color: #2563EB; }
-.dv-step.is-ok .dv-step__dot { background: linear-gradient(135deg,#16A34A,#12813d); border-color: #16A34A; color: #fff; animation: dvDotPop 0.42s cubic-bezier(0.3,0.8,0.3,1.6); }
+
+.dv-step.is-ok .dv-step__dot { border-color: #16A34A; color: #16A34A; background: #F0FDF4; }
 .dv-step.is-ok .dv-step__lbl { color: #16A34A; }
-.dv-step.is-partiel .dv-step__dot { background: linear-gradient(135deg,#F59E0B,#d97f08); border-color: #F59E0B; color: #fff; animation: dvDotPop 0.42s cubic-bezier(0.3,0.8,0.3,1.6); }
+.dv-step.is-ok .dv-step__mark { opacity: 0.6; animation: dvMarkIn 0.45s cubic-bezier(0.3,0.8,0.3,1.6); }
+
+.dv-step.is-partiel .dv-step__dot { border-color: #F59E0B; color: #B45309; background: #FFFBEB; }
 .dv-step.is-partiel .dv-step__lbl { color: #B45309; }
-.dv-step.is-ko .dv-step__dot { background: linear-gradient(135deg,#DC2626,#b91c1c); border-color: #DC2626; color: #fff; animation: dvDotPop 0.42s cubic-bezier(0.3,0.8,0.3,1.6); }
+.dv-step.is-partiel .dv-step__mark { opacity: 0.66; animation: dvMarkIn 0.45s cubic-bezier(0.3,0.8,0.3,1.6); }
+
+.dv-step.is-ko .dv-step__dot { border-color: #DC2626; color: #DC2626; background: #FEF2F2; }
 .dv-step.is-ko .dv-step__lbl { color: #DC2626; }
+.dv-step.is-ko .dv-step__mark { opacity: 0.66; animation: dvMarkIn 0.45s cubic-bezier(0.3,0.8,0.3,1.6); }
+
 .dv-step.is-skip .dv-step__dot { border-style: dashed; opacity: 0.5; }
 .dv-step.is-skip .dv-step__lbl { opacity: 0.55; }
 
-@keyframes dvDotPop { 0% { transform: scale(0.5); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
-@keyframes dvPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(37,99,235,0.35); } 50% { box-shadow: 0 0 0 7px rgba(37,99,235,0.09); } }
+/* Les icônes s'animent tant que le décodage tourne (.is-travail), sur les étapes
+   ATTEINTES (ni en attente ni sautées) — les étapes déjà validées continuent donc
+   d'animer jusqu'à la fin du processus. */
+.dv-pipe.is-travail .dv-step:not(.is-attente):not(.is-skip) .dv-scan  { animation: dvScan 1.5s ease-in-out infinite; }
+.dv-pipe.is-travail .dv-step:not(.is-attente):not(.is-skip) .dv-dbmid { animation: dvDb 1.5s ease-in-out infinite; }
+.dv-pipe.is-travail .dv-step:not(.is-attente):not(.is-skip) .dv-merid { animation: dvMerid 2.2s linear infinite; }
+
+@keyframes dvScan  { 0%,100% { transform: translateY(-3.5px); } 50% { transform: translateY(3.5px); } }
+@keyframes dvDb    { 0%,100% { opacity: 0.2; } 50% { opacity: 1; } }
+@keyframes dvMerid { 0% { transform: scaleX(1); } 50% { transform: scaleX(0.12); } 100% { transform: scaleX(1); } }
+@keyframes dvMarkIn { 0% { transform: scale(0.4); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
+@keyframes dvPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(37,99,235,0.32); } 50% { box-shadow: 0 0 0 7px rgba(37,99,235,0.08); } }
 
 /* Connecteur entre étapes (se remplit en vert quand l'étape gauche est faite) */
 .dv-link { flex: 1; height: 3px; margin-top: 18px; border-radius: 2px; background: #E2E8F0; position: relative; overflow: hidden; min-width: 12px; }
@@ -447,6 +479,7 @@ ul.ac-hist li .ico { font-size: 11px; opacity: 0.7; flex-shrink: 0; }
 
 /* Mouvement réduit : on fige les boucles et on retire les soulèvements */
 @media (prefers-reduced-motion: reduce) {
-  .dv-ring, .dv-globe, .dv-dot-conf, .dv-step.is-encours .dv-step__dot { animation: none !important; }
+  .dv-ring, .dv-globe, .dv-dot-conf, .dv-step.is-encours .dv-step__dot,
+  .dv-scan, .dv-dbmid, .dv-merid { animation: none !important; }
   .dv-btn:hover:not(:disabled), .dv-cell:hover, .dv-cat:hover { transform: none !important; }
 }

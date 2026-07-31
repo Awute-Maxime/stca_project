@@ -47,8 +47,8 @@ export default function DecodeurVinWindow(): JSX.Element {
     setTravail(true)
     setEtapes({ structure: 'encours', local: 'attente', enligne: 'attente' })
     try {
-      // ── Phase 1 : structure ──
-      await pause(160)
+      // ── Phase 1 : structure ── (rythme volontairement posé pour voir l'animation)
+      await pause(620)
       const local = decoderVin(vin)
       if (!local.structureValide) {
         setEtapes({ structure: 'ko', local: 'attente', enligne: 'attente' })
@@ -58,7 +58,7 @@ export default function DecodeurVinWindow(): JSX.Element {
       setEtapes(e => ({ ...e, structure: 'ok', local: 'encours' }))
 
       // ── Phase 2 : base locale ──
-      await pause(220)
+      await pause(760)
       setRes(local)
       const insuffisant = local.categorie === null || local.constructeur === 'Inconnu'
       const irEnLigne = (forcerEnLigne || insuffisant) && navigator.onLine
@@ -154,12 +154,12 @@ export default function DecodeurVinWindow(): JSX.Element {
 
         {/* Pipeline des phases */}
         {pipeVisible && (
-          <div className="dv-pipe">
-            <Etape ico="📐" label="Structure" sous={etapeSub(etapes.structure)} statut={etapes.structure} />
+          <div className={`dv-pipe${travail ? ' is-travail' : ''}`}>
+            <Etape icone="structure" label="Structure" sous={etapeSub(etapes.structure)} statut={etapes.structure} />
             <Lien on={etapes.structure === 'ok'} />
-            <Etape ico="💾" label="Base locale" sous={etapeSub(etapes.local)} statut={etapes.local} />
+            <Etape icone="local" label="Base locale" sous={etapeSub(etapes.local)} statut={etapes.local} />
             <Lien on={etapes.local === 'ok' || etapes.local === 'partiel'} />
-            <Etape ico="🌐" label="En ligne" sous={sousEnLigne} statut={etapes.enligne} spinner={enLigneActif} />
+            <Etape icone="enligne" label="En ligne" sous={sousEnLigne} statut={etapes.enligne} />
           </div>
         )}
 
@@ -267,21 +267,61 @@ function etapeSub(s: Statut): string {
   }
 }
 
-// Icône affichée dans la pastille selon le statut (✓ / ⚠ / ✕ sinon l'emoji).
-function iconeStatut(statut: Statut, ico: string): string {
-  if (statut === 'ok') return '✓'
-  if (statut === 'partiel') return '⚠'
-  if (statut === 'ko') return '✕'
-  return ico
+type NomPhase = 'structure' | 'local' | 'enligne'
+
+// Icône SVG « line-art » de chaque phase. Les parties animées portent une classe
+// (.dv-scan / .dv-dbmid / .dv-merid) que le CSS anime tant que le décodage tourne.
+// stroke = currentColor → l'icône prend la couleur du statut de la pastille.
+function IconePhase({ nom }: { nom: NomPhase }): JSX.Element {
+  const p = { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+  if (nom === 'structure') {
+    return (
+      <svg viewBox="0 0 24 24" {...p}>
+        <rect x="3.5" y="4.5" width="17" height="15" rx="3" />
+        <line className="dv-scan" x1="6.5" y1="12" x2="17.5" y2="12" />
+      </svg>
+    )
+  }
+  if (nom === 'local') {
+    return (
+      <svg viewBox="0 0 24 24" {...p}>
+        <ellipse cx="12" cy="6" rx="7" ry="2.8" />
+        <path d="M5 6 V18 C5 19.6 8 20.8 12 20.8 C16 20.8 19 19.6 19 18 V6" />
+        <ellipse className="dv-dbmid" cx="12" cy="12.4" rx="7" ry="2.8" strokeWidth={1.6} />
+      </svg>
+    )
+  }
+  return (
+    <svg viewBox="0 0 24 24" {...p}>
+      <circle cx="12" cy="12" r="8.2" />
+      <line x1="3.8" y1="12" x2="20.2" y2="12" strokeWidth={1.5} />
+      <ellipse className="dv-merid" cx="12" cy="12" rx="4" ry="8.2" strokeWidth={1.5} />
+    </svg>
+  )
 }
 
-function Etape({ ico, label, sous, statut, spinner = false }: {
-  ico: string; label: string; sous: string; statut: Statut; spinner?: boolean
+// Marque de validation posée par-dessus (semi-transparente via le CSS).
+function MarqueStatut({ statut }: { statut: Statut }): JSX.Element | null {
+  if (statut === 'ok') {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3.4} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M5 12.5 L10 17.5 L19 6.5" />
+      </svg>
+    )
+  }
+  if (statut === 'partiel') return <span>⚠</span>
+  if (statut === 'ko') return <span>✕</span>
+  return null
+}
+
+function Etape({ icone, label, sous, statut }: {
+  icone: NomPhase; label: string; sous: string; statut: Statut
 }): JSX.Element {
   return (
     <div className={`dv-step is-${statut}`}>
       <div className="dv-step__dot">
-        {spinner ? <span className="dv-ring dv-ring--blue" /> : iconeStatut(statut, ico)}
+        <span className="dv-step__icon"><IconePhase nom={icone} /></span>
+        <span className="dv-step__mark"><MarqueStatut statut={statut} /></span>
       </div>
       <div className="dv-step__lbl">{label}</div>
       <div className="dv-step__sub">{sous}</div>
