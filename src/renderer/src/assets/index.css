@@ -394,45 +394,45 @@ ul.ac-hist li .ico { font-size: 11px; opacity: 0.7; flex-shrink: 0; }
 .dv-pipe { display: flex; align-items: flex-start; gap: 0; margin-bottom: 10px; }
 .dv-step { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 88px; flex-shrink: 0; text-align: center; }
 .dv-step__dot {
-  width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  background: #F1F5F9; border: 2px solid #E2E8F0; color: #94A3B8; position: relative;
-  transition: background 0.3s, border-color 0.3s, color 0.3s, box-shadow 0.3s;
+  width: 40px; height: 38px; display: flex; align-items: center; justify-content: center;
+  color: #94A3B8; position: relative; transition: color 0.3s;
 }
 .dv-step__lbl { font-size: 9.5px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; color: #94A3B8; transition: color 0.3s; line-height: 1.15; }
 .dv-step__sub { font-size: 8.5px; color: #B0BAC9; font-weight: 700; min-height: 10px; }
 
-/* Icône de phase (SVG line-art, hérite la couleur du statut via currentColor) */
-.dv-step__icon { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; transition: opacity 0.3s; }
-.dv-step__icon svg { width: 22px; height: 22px; display: block; }
+/* Icône de phase (SVG line-art, hérite la couleur du statut) — SANS cercle autour */
+.dv-step__icon { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; transition: opacity 0.3s; }
+.dv-step__icon svg { width: 26px; height: 26px; display: block; }
 .dv-step__icon svg * { transform-box: fill-box; transform-origin: center; }
 
 /* Marque de validation POSÉE PAR-DESSUS, SEMI-TRANSPARENTE : l'icône animée
    dessous reste visible jusqu'à la fin du processus. */
 .dv-step__mark {
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  font-size: 19px; font-weight: 900; opacity: 0; pointer-events: none;
+  font-size: 21px; font-weight: 900; opacity: 0; pointer-events: none;
   filter: drop-shadow(0 0 1.6px rgba(255,255,255,0.95)); transition: opacity 0.35s;
 }
-.dv-step__mark svg { width: 23px; height: 23px; }
+.dv-step__mark svg { width: 25px; height: 25px; }
 
-/* Statuts : fond LÉGER (l'icône reste lisible), bordure + icône colorées */
-.dv-step.is-encours .dv-step__dot { border-color: #2563EB; color: #2563EB; background: #EFF6FF; animation: dvPulse 1.4s ease-in-out infinite; }
+/* Statuts : PLUS DE CERCLE — seulement la couleur de l'icône + la marque par-dessus */
+.dv-step.is-encours .dv-step__dot { color: #2563EB; }
+.dv-step.is-encours .dv-step__icon { animation: dvGlow 1.4s ease-in-out infinite; }
 .dv-step.is-encours .dv-step__lbl,
 .dv-step.is-encours .dv-step__sub { color: #2563EB; }
 
-.dv-step.is-ok .dv-step__dot { border-color: #16A34A; color: #16A34A; background: #F0FDF4; }
+.dv-step.is-ok .dv-step__dot { color: #16A34A; }
 .dv-step.is-ok .dv-step__lbl { color: #16A34A; }
-.dv-step.is-ok .dv-step__mark { opacity: 0.6; animation: dvMarkIn 0.45s cubic-bezier(0.3,0.8,0.3,1.6); }
+.dv-step.is-ok .dv-step__mark { opacity: 0.62; animation: dvMarkIn 0.45s cubic-bezier(0.3,0.8,0.3,1.6); }
 
-.dv-step.is-partiel .dv-step__dot { border-color: #F59E0B; color: #B45309; background: #FFFBEB; }
+.dv-step.is-partiel .dv-step__dot { color: #B45309; }
 .dv-step.is-partiel .dv-step__lbl { color: #B45309; }
-.dv-step.is-partiel .dv-step__mark { opacity: 0.66; animation: dvMarkIn 0.45s cubic-bezier(0.3,0.8,0.3,1.6); }
+.dv-step.is-partiel .dv-step__mark { opacity: 0.68; animation: dvMarkIn 0.45s cubic-bezier(0.3,0.8,0.3,1.6); }
 
-.dv-step.is-ko .dv-step__dot { border-color: #DC2626; color: #DC2626; background: #FEF2F2; }
+.dv-step.is-ko .dv-step__dot { color: #DC2626; }
 .dv-step.is-ko .dv-step__lbl { color: #DC2626; }
-.dv-step.is-ko .dv-step__mark { opacity: 0.66; animation: dvMarkIn 0.45s cubic-bezier(0.3,0.8,0.3,1.6); }
+.dv-step.is-ko .dv-step__mark { opacity: 0.68; animation: dvMarkIn 0.45s cubic-bezier(0.3,0.8,0.3,1.6); }
 
-.dv-step.is-skip .dv-step__dot { border-style: dashed; opacity: 0.5; }
+.dv-step.is-skip .dv-step__dot { opacity: 0.42; }
 .dv-step.is-skip .dv-step__lbl { opacity: 0.55; }
 
 /* Les icônes s'animent tant que le décodage tourne (.is-travail), sur les étapes
@@ -446,7 +446,7 @@ ul.ac-hist li .ico { font-size: 11px; opacity: 0.7; flex-shrink: 0; }
 @keyframes dvDb    { 0%,100% { opacity: 0.2; } 50% { opacity: 1; } }
 @keyframes dvMerid { 0% { transform: scaleX(1); } 50% { transform: scaleX(0.12); } 100% { transform: scaleX(1); } }
 @keyframes dvMarkIn { 0% { transform: scale(0.4); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
-@keyframes dvPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(37,99,235,0.32); } 50% { box-shadow: 0 0 0 7px rgba(37,99,235,0.08); } }
+@keyframes dvGlow { 0%,100% { filter: drop-shadow(0 0 0 rgba(37,99,235,0)); } 50% { filter: drop-shadow(0 0 5px rgba(37,99,235,0.55)); } }
 
 /* Connecteur entre étapes (se remplit en vert quand l'étape gauche est faite) */
 .dv-link { flex: 1; height: 3px; margin-top: 18px; border-radius: 2px; background: #E2E8F0; position: relative; overflow: hidden; min-width: 12px; }
@@ -479,7 +479,7 @@ ul.ac-hist li .ico { font-size: 11px; opacity: 0.7; flex-shrink: 0; }
 
 /* Mouvement réduit : on fige les boucles et on retire les soulèvements */
 @media (prefers-reduced-motion: reduce) {
-  .dv-ring, .dv-globe, .dv-dot-conf, .dv-step.is-encours .dv-step__dot,
+  .dv-ring, .dv-globe, .dv-dot-conf, .dv-step.is-encours .dv-step__icon,
   .dv-scan, .dv-dbmid, .dv-merid { animation: none !important; }
   .dv-btn:hover:not(:disabled), .dv-cell:hover, .dv-cat:hover { transform: none !important; }
 }
