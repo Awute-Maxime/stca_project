@@ -14,3 +14,7 @@ Thumbs.db
 prisma/*.db
 prisma/*.db-journal
 prisma/migrations/dev.db*
+
+# Corpus source VIN (données brutes, non versionnées)
+scripts/echantillon.csv
+scripts/*.xlsx
