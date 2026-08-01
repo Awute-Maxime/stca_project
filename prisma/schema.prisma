@@ -172,3 +172,33 @@ model Parametre {
 
   @@map("parametre")
 }
+
+// ─── Décodeur VIN (index appris) ─────────────────────────────────
+
+/// Index signature VIN (positions 1-8, repli 1-6) → marque/modèle, avec
+/// compteur de vues. Seedé depuis le corpus 100k (source="seed") puis
+/// enrichi en continu par la saisie agent et le décodage NHTSA (Phase 4).
+model VinIndex {
+  id           Int      @id @default(autoincrement())
+  signature    String
+  marqueModele String
+  nbVus        Int      @default(1)
+  source       String   @default("seed")
+  majLe        DateTime @updatedAt
+
+  @@unique([signature, marqueModele])
+  @@index([signature])
+  @@map("vin_index")
+}
+
+/// Histogramme des années observées par signature (même clé que VinIndex).
+model VinIndexAnnee {
+  id        Int    @id @default(autoincrement())
+  signature String
+  annee     Int
+  nb        Int    @default(1)
+
+  @@unique([signature, annee])
+  @@index([signature])
+  @@map("vin_index_annee")
+}

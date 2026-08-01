@@ -447,6 +447,23 @@ app.whenReady().then(() => {
 
   setupMdiIPC()
 
+  // Décodeur VIN — index appris : seed 100k (une fois) puis apprentissage
+  // depuis la base existante. Best-effort : ne doit jamais empêcher le
+  // démarrage de l'app (import dynamique + try/catch, sur le modèle du
+  // lookup IPC de la Phase 3).
+  void (async () => {
+    const { importerSeed, semer } = await import('./vinIndex')
+    try {
+      const res = await importerSeed()
+      console.log(`[vinIndex] seed : ${res.importe ? `${res.lignes} lignes importées` : 'déjà importé (ignoré)'}`)
+    } catch (err) {
+      console.error('[vinIndex] importerSeed a échoué :', err)
+    }
+    void semer()
+      .then(n => console.log(`[vinIndex] apprentissage base existante : ${n} enregistrement(s)`))
+      .catch(err => console.error('[vinIndex] semer a échoué :', err))
+  })()
+
   // Émetteur poste d'affichage : buffer persistant + connexion selon la config.
   initAfficheur(join(app.getPath('userData'), 'affichage-buffer.json'))
   void getAffichageConfig().then(cfg =>
