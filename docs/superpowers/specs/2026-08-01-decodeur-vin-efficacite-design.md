@@ -1,7 +1,18 @@
 # Design Doc — Décodeur VIN efficace (marque + modèle + année sur ≥ 60 %)
 
 **Date :** 2026-08-01
-**Statut :** conception validée sur l'approche, à valider sur le détail avant `/planification`.
+**Statut :** ✅ VALIDÉ + **PROUVÉ sur données réelles**. Exécution par sous-agents.
+
+> **RÉVISION (preuve empirique, 2026-08-01).** L'utilisateur a fourni une table de correspondance de **100 533 VIN**
+> (VIN, Marque, Modèle, **Année**…). Expérience train/test (index sur 80 %, mesuré sur 20 % = ~19 649 VIN jamais vus) :
+> **Marque 99 % · Modèle 93 % · Année ±1 79 % · TRIPLE 77 %** (dépasse la cible 60 %). Deux corrections vs la conception
+> initiale : (1) le **modèle n'est PAS le goulot** — l'index seedé sur le corpus l'écrase (93 %) ; (2) **l'année EST le
+> goulot** : la **position 10 n'est fiable qu'en Amérique du Nord** (WMI 1-5, 14 % du parc → 99 % ; ailleurs 35 %),
+> confirmé par l'expérience métier de l'utilisateur. **Année = NA→position 10, sinon apprise par signature (médiane +
+> plage, pos10 en appoint).** L'index est **seedé en masse depuis le corpus** (pas seulement l'apprentissage à l'usage).
+> Ajout validé : **bouton « site constructeur »** (ouvre toyodiy & co. dans le navigateur, sans scraping — le site bloque
+> les robots, 403) + providers en ligne pluggables (N2c). **Plan d'exécution à jour :**
+> `docs/superpowers/plans/2026-08-01-decodeur-vin-efficacite.md` (v2, recette prouvée).
 
 ---
 
