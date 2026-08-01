@@ -20,8 +20,10 @@ export interface ResultatVin {
   noteControle: string              // message secondaire (jamais bloquant)
   wmi: string
   constructeur: string
+  modele: string                    // marque+modèle nettoyés depuis l'index (Phase 3), '—' si non trouvé
   pays: string
   annee: string
+  anneeSource: 'position10' | 'signature' | 'aucune'  // provenance de l'année affichée
   usine: string
   serie: string
   categorie: Categorie | null
@@ -153,12 +155,84 @@ function chiffreControle(vin: string): string {
   return r === 10 ? 'X' : String(r)
 }
 
-// Année-modèle (position 10). Lettres = 2010-2039 ; chiffres = 2001-2009.
-const ANNEES: Record<string, number> = {
-  A: 2010, B: 2011, C: 2012, D: 2013, E: 2014, F: 2015, G: 2016, H: 2017, J: 2018,
-  K: 2019, L: 2020, M: 2021, N: 2022, P: 2023, R: 2024, S: 2025, T: 2026, V: 2027,
-  W: 2028, X: 2029, Y: 2030, '1': 2001, '2': 2002, '3': 2003, '4': 2004, '5': 2005,
-  '6': 2006, '7': 2007, '8': 2008, '9': 2009,
+// Année-modèle (position 10) — deux cycles de 30 ans : « ancien » (1980-2009)
+// et « récent » (2010-2039). Le code seul est structurellement ambigu entre
+// les deux cycles ; choisirAnnee() lève l'ambiguïté (cf. commentaire associé).
+const LET_AN = 'ABCDEFGHJKLMNPRSTVWXY'.split('')
+function tableAn(base: number): Record<string, number> {
+  const t: Record<string, number> = {}
+  LET_AN.forEach((l, i) => { t[l] = base + i })
+  for (let d = 1; d <= 9; d++) t[String(d)] = base + 21 + (d - 1)
+  return t
+}
+const AN_ANCIEN = tableAn(1980)
+const AN_RECENT = tableAn(2010)
+
+/** VIN nord-américain (WMI 1re lettre 1-5) : la position 10 seule y est fiable (99 %). */
+export function estAmeriqueNord(vin: string): boolean { return /^[1-5]/.test(vin) }
+
+/** Années candidates (un ou deux cycles) pour un code de position 10 donné. */
+export function anneesCandidates(code: string): number[] {
+  return [AN_ANCIEN[code], AN_RECENT[code]].filter(Boolean) as number[]
+}
+
+/** Médiane PONDÉRÉE d'un histogramme [[année, compte], …] (aplatit puis médiane simple). */
+function medianePonderee(hist: Array<[number, number]>): number | null {
+  const plat: number[] = []
+  for (const [an, nb] of hist) for (let i = 0; i < nb; i++) plat.push(an)
+  if (!plat.length) return null
+  plat.sort((a, b) => a - b)
+  return plat[Math.floor(plat.length / 2)]
+}
+
+/**
+ * Règle année PROUVÉE (mesurée sur 100k châssis réels, cf. plan Phase 3) :
+ *  - VIN nord-américain (WMI 1-5, 14 % du parc) → position 10 seule (99 % exact),
+ *    désambiguïsée entre les deux cycles par la position 7 (lettre → cycle
+ *    récent 2010-2039, chiffre → cycle ancien 1980-2009).
+ *  - Sinon (85 % du parc) → médiane pondérée de l'histogramme d'années de la
+ *    signature ; la position 10 sert d'appoint SEULEMENT si un de ses candidats
+ *    tombe dans la plage observée (désambiguïsation, pas une source à elle seule).
+ * `annees` = histogramme de la signature (peut être vide — ex. décodage
+ * synchrone sans index consulté), auquel cas la branche hors-NA répond
+ * honnêtement 'aucune' plutôt que de deviner.
+ */
+export function choisirAnnee(
+  vin: string,
+  annees: Array<[number, number]>
+): { annee: string; source: 'position10' | 'signature' | 'aucune' } {
+  const code = vin[9] ?? ''
+  const posNA = estAmeriqueNord(vin)
+  // Amérique du Nord : position 10 fiable (désambiguïsée par pos.7)
+  if (posNA) {
+    const rec = /[A-Z]/.test(vin[6] ?? '')
+    let an = (rec ? AN_RECENT : AN_ANCIEN)[code]
+    if (an && an > new Date().getFullYear() + 1) an = AN_ANCIEN[code]
+    return an ? { annee: String(an), source: 'position10' } : { annee: '—', source: 'aucune' }
+  }
+  // Hors NA : s'appuyer sur la signature
+  const med = medianePonderee(annees)
+  if (med != null) {
+    const min = Math.min(...annees.map(a => a[0])), max = Math.max(...annees.map(a => a[0]))
+    const dansPlage = anneesCandidates(code).filter(y => y >= min - 1 && y <= max + 1)
+    if (dansPlage.length) {
+      const an = dansPlage.reduce((b, y) => Math.abs(y - med) < Math.abs(b - med) ? y : b)
+      return { annee: String(an), source: 'position10' }
+    }
+    return { annee: String(med), source: 'signature' }
+  }
+  return { annee: '—', source: 'aucune' } // hors NA, aucune info signature → honnête
+}
+
+/** Sépare et nettoie « TOYOTA - AVENSIS KOMBI 03-06 >> AVENSIS '03 » → { marque:'TOYOTA', modele:'AVENSIS' }. */
+export function nettoyerLibelle(raw: string): { marque: string; modele: string } {
+  let s = (raw || '').replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&').trim()
+  let marque = '', reste = s
+  const i = s.indexOf(' - ')
+  if (i >= 0) { marque = s.slice(0, i).trim(); reste = s.slice(i + 3).trim() }
+  if (reste.includes('>>')) reste = reste.split('>>').pop()!.trim()   // forme courte après >>
+  reste = reste.replace(/'\d{2}\b/g, '').replace(/\b\d{2}-\d{2}\b/g, '').replace(/\s+/g, ' ').trim() // ôte 'YY et gen-range
+  return { marque, modele: reste }
 }
 
 const nettoyer = (v: string): string => v.trim().toUpperCase().replace(/\s+/g, '')
@@ -177,7 +251,7 @@ export function decoderVin(brut: string): ResultatVin {
   const base: ResultatVin = {
     vin, source: 'local', structureValide: false, raisonInvalide: null,
     chiffreControleRequis: /^[1-5]/.test(vin), chiffreControleOk: false, noteControle: '',
-    wmi: vin.slice(0, 3), constructeur: 'Inconnu', pays: '—', annee: '—',
+    wmi: vin.slice(0, 3), constructeur: 'Inconnu', modele: '—', pays: '—', annee: '—', anneeSource: 'aucune',
     usine: vin[10] ?? '—', serie: vin.slice(11), categorie: null, confiance: 'faible', raisonCategorie: '',
   }
 
@@ -196,11 +270,18 @@ export function decoderVin(brut: string): ResultatVin {
       ? `Chiffre de contrôle incorrect (« ${vin[8]} » ≠ « ${attendu} ») — VIN nord-américain suspect.`
       : 'Chiffre de contrôle non applicable (VIN hors Amérique du Nord).'
 
-  // Structure : constructeur / pays / année (inchangé)
+  // Structure : constructeur / pays (inchangé)
   const info = trouverInfo(vin)
   if (info) { base.constructeur = info.constructeur; base.pays = info.pays }
   else { base.pays = REGIONS.find(([re]) => re.test(vin))?.[1] ?? '—' }
-  base.annee = ANNEES[vin[9]] ? String(ANNEES[vin[9]]) : '—'
+
+  // Année — règle NA/signature (recette mesurée). Décodage synchrone : aucun
+  // historique de signature disponible ici (l'index est consulté à part, en
+  // async, par DecodeurVinWindow) ; seule la branche Amérique du Nord (position
+  // 10 seule) peut donc aboutir à ce stade.
+  const { annee, source } = choisirAnnee(vin, [])
+  base.annee = annee
+  base.anneeSource = source
 
   // Catégorie suggérée (inchangé)
   if (info?.categorie) {

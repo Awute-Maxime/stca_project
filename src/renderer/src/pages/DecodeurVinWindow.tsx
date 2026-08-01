@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { decoderVin, zoneVin, type ResultatVin, type Categorie } from '@mock/vinDecoder'
+import { decoderVin, zoneVin, nettoyerLibelle, choisirAnnee, type ResultatVin, type Categorie } from '@mock/vinDecoder'
 import { electronApi, type VinEnLigne } from '@api/electron'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -49,7 +49,7 @@ export default function DecodeurVinWindow(): JSX.Element {
     try {
       // ── Phase 1 : structure ── (rythme volontairement posé pour voir l'animation)
       await pause(620)
-      const local = decoderVin(vin)
+      let local = decoderVin(vin)
       if (!local.structureValide) {
         setEtapes({ structure: 'ko', local: 'attente', enligne: 'attente' })
         setRes(local)
@@ -60,7 +60,23 @@ export default function DecodeurVinWindow(): JSX.Element {
       // ── Phase 2 : base locale ──
       await pause(760)
       setRes(local)
-      const insuffisant = local.categorie === null || local.constructeur === 'Inconnu'
+
+      // Index appris (Phase 3) : signature VIN → marque/modèle majoritaires +
+      // année (règle NA/signature). Consulté ICI, pendant l'étape « local ».
+      const idx = await electronApi.vinIndexLookup(local.vin)
+      if (idx && idx.marqueModele) {
+        const { marque, modele } = nettoyerLibelle(idx.marqueModele)
+        const a = choisirAnnee(local.vin, idx.annees)
+        local = {
+          ...local, modele,
+          constructeur: local.constructeur === 'Inconnu' && marque ? marque : local.constructeur,
+          annee: a.annee, anneeSource: a.source,
+          confiance: idx.part >= 0.7 ? 'élevée' : 'moyenne',
+        }
+        setRes(local)
+      }
+      // insuffisant (déclenche NHTSA) = pas de modèle trouvé
+      const insuffisant = local.modele === '—' || local.constructeur === 'Inconnu'
       const irEnLigne = (forcerEnLigne || insuffisant) && navigator.onLine
       setEtapes(e => ({
         ...e,
@@ -94,6 +110,7 @@ export default function DecodeurVinWindow(): JSX.Element {
     setRes({
       ...local, source: 'en ligne',
       constructeur: o.constructeur || local.constructeur,
+      modele: o.modele || local.modele,
       pays: o.pays !== '—' ? o.pays : local.pays,
       annee: o.annee !== '—' ? o.annee : local.annee,
       categorie: o.categorie ?? local.categorie,
@@ -206,8 +223,9 @@ export default function DecodeurVinWindow(): JSX.Element {
               {res.structureValide && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 20px' }}>
                   <KV k="Constructeur" v={res.constructeur} />
+                  <KV k="Modèle" v={res.modele} />
                   <KV k="Pays d'origine" v={res.pays} />
-                  <KV k="Année-modèle" v={res.annee} />
+                  <KV k="Année-modèle" v={res.anneeSource === 'signature' ? `≈ ${res.annee}` : res.annee} />
                   <KV k="Code usine" v={res.usine} />
                   <KV k="N° de série" v={res.serie || '—'} />
                   <KV k="Zone WMI" v={res.wmi} />

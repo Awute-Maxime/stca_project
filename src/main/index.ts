@@ -326,6 +326,9 @@ function setupMdiIPC(): void {
   // Décodage VIN en ligne (NHTSA vPIC) — exécuté côté main (CSP renderer interdit le réseau externe)
   ipcMain.handle('vin:decodeOnline', (_e, vin: string) => decoderVinEnLigne(vin))
 
+  // Consultation de l'index VIN appris (Phase 3) — signature → marque/modèle + histogramme d'années
+  ipcMain.handle('vin:indexLookup', (_e, vin: string) => import('./vinIndex').then(m => m.chercher(vin)))
+
   // Imprimantes du système (nom + défaut) — pour Config. Imprimantes
   ipcMain.handle('printers:list', async (e) => {
     try {

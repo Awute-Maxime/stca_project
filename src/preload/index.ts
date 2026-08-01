@@ -107,6 +107,10 @@ const api = {
     ok: boolean; erreur?: string; constructeur: string; pays: string; annee: string;
     marque: string; modele: string; typeVehicule: string; categorie: 'Voiture'|'Camion'|'Autre'|null
   }> => ipcRenderer.invoke('vin:decodeOnline', vin),
+
+  // Consultation de l'index VIN appris (Phase 3) — signature → marque/modèle + histogramme d'années
+  vinIndexLookup: (vin: string): Promise<{ marqueModele: string; part: number; annees: Array<[number, number]> } | null> =>
+    ipcRenderer.invoke('vin:indexLookup', vin),
 }
 
 if (process.contextIsolated) {

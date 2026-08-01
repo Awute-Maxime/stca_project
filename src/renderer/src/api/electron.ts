@@ -122,6 +122,13 @@ export interface VinEnLigne {
   categorie: 'Voiture' | 'Camion' | 'Autre' | null
 }
 
+// ── Index VIN appris (Phase 3, lu côté main via Prisma) ───────────────────────
+export interface VinIndexHit {
+  marqueModele: string
+  part: number
+  annees: Array<[number, number]>
+}
+
 declare global {
   interface Window {
     api: {
@@ -187,6 +194,7 @@ declare global {
       mdiSelfMinimize: () => void
       mdiSelfMaximize: () => void
       vinDecodeOnline: (vin: string) => Promise<VinEnLigne>
+      vinIndexLookup:  (vin: string) => Promise<VinIndexHit | null>
     }
   }
 }
@@ -311,4 +319,8 @@ export const electronApi = {
       ok: false, erreur: 'window.api indisponible', constructeur: 'Inconnu', pays: '—', annee: '—',
       marque: '', modele: '', typeVehicule: '', categorie: null,
     }),
+
+  // Index VIN appris (Phase 3)
+  vinIndexLookup: (vin: string): Promise<VinIndexHit | null> =>
+    window.api?.vinIndexLookup?.(vin) ?? Promise.resolve(null),
 }
