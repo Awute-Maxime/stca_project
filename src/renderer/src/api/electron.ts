@@ -195,6 +195,7 @@ declare global {
       mdiSelfMaximize: () => void
       vinDecodeOnline: (vin: string) => Promise<VinEnLigne>
       vinIndexLookup:  (vin: string) => Promise<VinIndexHit | null>
+      vinOuvrirConstructeur: (vin: string, marque: string) => Promise<void>
     }
   }
 }
@@ -323,4 +324,8 @@ export const electronApi = {
   // Index VIN appris (Phase 3)
   vinIndexLookup: (vin: string): Promise<VinIndexHit | null> =>
     window.api?.vinIndexLookup?.(vin) ?? Promise.resolve(null),
+
+  // Fiche constructeur (Phase 4) — ouvre le site du constructeur dans le navigateur (aucun scraping)
+  vinOuvrirConstructeur: (vin: string, marque: string): Promise<void> =>
+    window.api?.vinOuvrirConstructeur?.(vin, marque) ?? Promise.resolve(),
 }

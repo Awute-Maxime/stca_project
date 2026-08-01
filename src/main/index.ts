@@ -29,6 +29,16 @@ import { decoderVinEnLigne } from './vinOnline'
 
 const isDev = process.env['NODE_ENV'] === 'development' || !app.isPackaged
 
+// Fiche constructeur (Phase 4) — URL du site constructeur pour un VIN donné (aucun scraping,
+// juste une ouverture de navigateur). Toyota/Lexus/Daihatsu → toyodiy (précis, VIN pré-rempli) ;
+// sinon un décodeur généraliste. Isolé dans sa propre fonction pour étendre facilement le routage.
+function urlConstructeur(vin: string, marque: string): string {
+  const m = (marque || '').toUpperCase()
+  return /TOYOTA|LEXUS|DAIHATSU/.test(m)
+    ? `https://www.toyodiy.com/parts/q?vin=${encodeURIComponent(vin)}`
+    : `https://www.vindecoder.net/?q=${encodeURIComponent(vin)}`
+}
+
 // ── MDI child windows registry ────────────────────────────────────────────────
 const mdiWindows = new Map<string, BrowserWindow>()
 let mainWin: BrowserWindow | null = null
@@ -323,11 +333,26 @@ function setupMdiIPC(): void {
   ipcMain.handle('import:run', (e, p: { chemin: string; mapping: Mapping; delimiter: string }) =>
     runImport(e, p.chemin, p.mapping, p.delimiter))
 
-  // Décodage VIN en ligne (NHTSA vPIC) — exécuté côté main (CSP renderer interdit le réseau externe)
-  ipcMain.handle('vin:decodeOnline', (_e, vin: string) => decoderVinEnLigne(vin))
+  // Décodage VIN en ligne (NHTSA vPIC) — exécuté côté main (CSP renderer interdit le réseau externe).
+  // Succès → apprentissage live (Phase 4) de l'index, best-effort.
+  ipcMain.handle('vin:decodeOnline', async (_e, vin: string) => {
+    const r = await decoderVinEnLigne(vin)
+    if (r.ok && (r.marque || r.constructeur)) {
+      const lib = [r.marque || r.constructeur, r.modele].filter(Boolean).join(' - ')
+      const an = parseInt(String(r.annee), 10) || 0
+      try { const { apprendre } = await import('./vinIndex'); void apprendre(vin, lib, an, 'nhtsa') } catch { /* ignore */ }
+    }
+    return r
+  })
 
   // Consultation de l'index VIN appris (Phase 3) — signature → marque/modèle + histogramme d'années
   ipcMain.handle('vin:indexLookup', (_e, vin: string) => import('./vinIndex').then(m => m.chercher(vin)))
+
+  // Fiche constructeur (Phase 4) — ouvre le site du constructeur dans le navigateur, VIN pré-rempli.
+  // Routage par marque (Toyota/Lexus/Daihatsu → toyodiy, sinon décodeur généraliste) ; aucun scraping,
+  // simple ouverture de lien externe.
+  ipcMain.handle('vin:ouvrirConstructeur', (_e, vin: string, marque: string) =>
+    shell.openExternal(urlConstructeur(vin, marque)))
 
   // Imprimantes du système (nom + défaut) — pour Config. Imprimantes
   ipcMain.handle('printers:list', async (e) => {

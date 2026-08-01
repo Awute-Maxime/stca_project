@@ -199,6 +199,10 @@ export async function enregistrementAdd(input: EnregistrementInput): Promise<Res
     await getPrisma().enregistrement.create({ data: data as never })
     await setParam('refCompteur', String(numRef))
     diffuserChangement('enregistrements')
+    // Apprentissage live (Phase 4) : nourrit l'index VIN depuis la saisie agent.
+    // Best-effort — ne doit jamais faire échouer l'enregistrement.
+    try { const { apprendre } = await import('./vinIndex')
+      void apprendre(String(data.vin ?? ''), String(data.marqueModele ?? ''), 0, 'saisie') } catch { /* ignore */ }
     return { ok: true, ref: String(numRef).padStart(6, '0') }
   } catch (e) {
     const msg = e instanceof Error && e.message.includes('Unique')

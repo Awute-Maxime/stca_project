@@ -111,6 +111,10 @@ const api = {
   // Consultation de l'index VIN appris (Phase 3) — signature → marque/modèle + histogramme d'années
   vinIndexLookup: (vin: string): Promise<{ marqueModele: string; part: number; annees: Array<[number, number]> } | null> =>
     ipcRenderer.invoke('vin:indexLookup', vin),
+
+  // Fiche constructeur (Phase 4) — ouvre le site du constructeur dans le navigateur (aucun scraping)
+  vinOuvrirConstructeur: (vin: string, marque: string): Promise<void> =>
+    ipcRenderer.invoke('vin:ouvrirConstructeur', vin, marque),
 }
 
 if (process.contextIsolated) {

@@ -71,7 +71,9 @@ export default function DecodeurVinWindow(): JSX.Element {
           ...local, modele,
           constructeur: local.constructeur === 'Inconnu' && marque ? marque : local.constructeur,
           annee: a.annee, anneeSource: a.source,
-          confiance: idx.part >= 0.7 ? 'élevée' : 'moyenne',
+          // `confiance` reste celle de la CATÉGORIE (posée par decoderVin) — la fiabilité
+          // du hit d'index est exposée séparément via `confianceModele`.
+          confianceModele: idx.part,
         }
         setRes(local)
       }
@@ -113,6 +115,8 @@ export default function DecodeurVinWindow(): JSX.Element {
       modele: o.modele || local.modele,
       pays: o.pays !== '—' ? o.pays : local.pays,
       annee: o.annee !== '—' ? o.annee : local.annee,
+      // Année confirmée en ligne (NHTSA) : ce n'est plus une estimation → plus de « ≈ ».
+      anneeSource: o.annee !== '—' ? 'position10' : local.anneeSource,
       categorie: o.categorie ?? local.categorie,
       confiance: o.categorie ? 'élevée' : local.confiance,
       raisonCategorie: o.categorie ? `NHTSA — ${o.typeVehicule || 'type identifié'}` : local.raisonCategorie,
@@ -223,7 +227,7 @@ export default function DecodeurVinWindow(): JSX.Element {
               {res.structureValide && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 20px' }}>
                   <KV k="Constructeur" v={res.constructeur} />
-                  <KV k="Modèle" v={res.modele} />
+                  <KV k="Modèle" v={res.confianceModele != null && res.confianceModele < 0.7 ? `${res.modele} (à confirmer)` : res.modele} />
                   <KV k="Pays d'origine" v={res.pays} />
                   <KV k="Année-modèle" v={res.anneeSource === 'signature' ? `≈ ${res.annee}` : res.annee} />
                   <KV k="Code usine" v={res.usine} />
@@ -264,6 +268,13 @@ export default function DecodeurVinWindow(): JSX.Element {
           >
             {enLigneActif ? <span className="dv-ring dv-ring--blue" /> : <span className="dv-ico">🌐</span>}
             {enLigneActif ? 'Interrogation NHTSA…' : 'Décoder en ligne (NHTSA)'}
+          </button>
+          <button
+            className="dv-btn dv-btn--ghost" disabled={vin.length !== 17}
+            onClick={() => void electronApi.vinOuvrirConstructeur(vin, res?.constructeur ?? '')}
+            title="Ouvrir le site du constructeur (toyodiy pour Toyota, sinon décodeur généraliste)"
+          >
+            <span className="dv-ico">🔧</span> Fiche constructeur
           </button>
           {!navigator.onLine && <span style={{ fontSize: 10.5, color: C.muted }}>Hors ligne — décodage local seul.</span>}
           <div style={{ flex: 1 }} />

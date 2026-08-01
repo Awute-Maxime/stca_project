@@ -21,6 +21,7 @@ export interface ResultatVin {
   wmi: string
   constructeur: string
   modele: string                    // marque+modèle nettoyés depuis l'index (Phase 3), '—' si non trouvé
+  confianceModele?: number          // fiabilité du hit d'index (idx.part, 0-1) — distincte de `confiance` (catégorie)
   pays: string
   annee: string
   anneeSource: 'position10' | 'signature' | 'aucune'  // provenance de l'année affichée
