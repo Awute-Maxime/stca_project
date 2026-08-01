@@ -401,9 +401,14 @@ ul.ac-hist li .ico { font-size: 11px; opacity: 0.7; flex-shrink: 0; }
 .dv-step__sub { font-size: 8.5px; color: #B0BAC9; font-weight: 700; min-height: 10px; }
 
 /* Icône de phase (SVG line-art, hérite la couleur du statut) — SANS cercle autour */
-.dv-step__icon { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; transition: opacity 0.3s; }
-.dv-step__icon svg { width: 26px; height: 26px; display: block; }
+.dv-step__icon { width: 27px; height: 27px; display: flex; align-items: center; justify-content: center; transition: opacity 0.3s; }
+.dv-step__icon svg { width: 27px; height: 27px; display: block; overflow: visible; }
 .dv-step__icon svg * { transform-box: fill-box; transform-origin: center; }
+/* Le satellite orbite AUTOUR du centre de l'icône (pas de son propre centre) */
+.dv-step__icon svg .dv-orbit { transform-box: view-box; transform-origin: center; }
+/* Zones « occultantes » (face de fiche + tiroir) remplies de la couleur du fond
+   pour l'illusion « la fiche sort du tiroir ». */
+.dv-step__icon .dv-occl { fill: #F8FAFF; }
 
 /* Marque de validation POSÉE PAR-DESSUS, SEMI-TRANSPARENTE : l'icône animée
    dessous reste visible jusqu'à la fin du processus. */
@@ -438,12 +443,19 @@ ul.ac-hist li .ico { font-size: 11px; opacity: 0.7; flex-shrink: 0; }
 /* Les icônes s'animent tant que le décodage tourne (.is-travail), sur les étapes
    ATTEINTES (ni en attente ni sautées) — les étapes déjà validées continuent donc
    d'animer jusqu'à la fin du processus. */
-.dv-pipe.is-travail .dv-step:not(.is-attente):not(.is-skip) .dv-scan  { animation: dvScan 1.5s ease-in-out infinite; }
-.dv-pipe.is-travail .dv-step:not(.is-attente):not(.is-skip) .dv-dbmid { animation: dvDb 1.5s ease-in-out infinite; }
-.dv-pipe.is-travail .dv-step:not(.is-attente):not(.is-skip) .dv-merid { animation: dvMerid 2.2s linear infinite; }
+.dv-pipe.is-travail .dv-step:not(.is-attente):not(.is-skip) .dv-mag   { animation: dvHop 1.5s cubic-bezier(0.3,0.7,0.3,1.4) infinite; }
+.dv-pipe.is-travail .dv-step:not(.is-attente):not(.is-skip) .dv-card  { animation: dvRise 2s cubic-bezier(0.3,0.7,0.3,1.3) infinite; }
+.dv-pipe.is-travail .dv-step:not(.is-attente):not(.is-skip) .dv-merid { animation: dvMerid 2.4s ease-in-out infinite; }
+.dv-pipe.is-travail .dv-step:not(.is-attente):not(.is-skip) .dv-orbit { animation: dvOrbit 3s linear infinite; }
 
-@keyframes dvScan  { 0%,100% { transform: translateY(-3.5px); } 50% { transform: translateY(3.5px); } }
-@keyframes dvDb    { 0%,100% { opacity: 0.2; } 50% { opacity: 1; } }
+@keyframes dvHop {
+  0%,100% { transform: translateY(0.5px) rotate(0); }
+  25% { transform: translateY(-2px) rotate(-11deg); }
+  55% { transform: translateY(0) rotate(8deg); }
+  78% { transform: translateY(-0.5px) rotate(-3deg); }
+}
+@keyframes dvRise { 0%,100% { transform: translateY(4.5px); } 26% { transform: translateY(-1.5px); } 70% { transform: translateY(-1.5px); } }
+@keyframes dvOrbit { to { transform: rotate(360deg); } }
 @keyframes dvMerid { 0% { transform: scaleX(1); } 50% { transform: scaleX(0.12); } 100% { transform: scaleX(1); } }
 @keyframes dvMarkIn { 0% { transform: scale(0.4); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
 @keyframes dvGlow { 0%,100% { filter: drop-shadow(0 0 0 rgba(37,99,235,0)); } 50% { filter: drop-shadow(0 0 5px rgba(37,99,235,0.55)); } }
@@ -480,6 +492,6 @@ ul.ac-hist li .ico { font-size: 11px; opacity: 0.7; flex-shrink: 0; }
 /* Mouvement réduit : on fige les boucles et on retire les soulèvements */
 @media (prefers-reduced-motion: reduce) {
   .dv-ring, .dv-globe, .dv-dot-conf, .dv-step.is-encours .dv-step__icon,
-  .dv-scan, .dv-dbmid, .dv-merid { animation: none !important; }
+  .dv-mag, .dv-card, .dv-merid, .dv-orbit { animation: none !important; }
   .dv-btn:hover:not(:disabled), .dv-cell:hover, .dv-cat:hover { transform: none !important; }
 }

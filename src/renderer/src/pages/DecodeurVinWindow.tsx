@@ -269,33 +269,42 @@ function etapeSub(s: Statut): string {
 
 type NomPhase = 'structure' | 'local' | 'enligne'
 
-// Icône SVG « line-art » de chaque phase. Les parties animées portent une classe
-// (.dv-scan / .dv-dbmid / .dv-merid) que le CSS anime tant que le décodage tourne.
-// stroke = currentColor → l'icône prend la couleur du statut de la pastille.
+// Icônes de phase — style « Ludique » : loupe qui sautille (structure), fiche qui
+// surgit d'un tiroir (base locale), globe avec satellite en orbite (en ligne). Les
+// parties animées portent une classe (.dv-mag / .dv-card / .dv-merid / .dv-orbit)
+// que le CSS anime tant que le décodage tourne. stroke = couleur du statut.
 function IconePhase({ nom }: { nom: NomPhase }): JSX.Element {
-  const p = { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+  const p = { fill: 'none', stroke: 'currentColor', strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
   if (nom === 'structure') {
     return (
-      <svg viewBox="0 0 24 24" {...p}>
-        <rect x="3.5" y="4.5" width="17" height="15" rx="3" />
-        <line className="dv-scan" x1="6.5" y1="12" x2="17.5" y2="12" />
+      <svg viewBox="0 0 24 24" {...p} strokeWidth={2.2}>
+        <g className="dv-mag">
+          <circle cx="10" cy="10" r="5.6" />
+          <line x1="14" y1="14" x2="19" y2="19" strokeWidth={2.4} />
+          <line x1="7.6" y1="8.4" x2="10.4" y2="8.4" strokeWidth={1.5} opacity={0.7} />
+        </g>
       </svg>
     )
   }
   if (nom === 'local') {
     return (
-      <svg viewBox="0 0 24 24" {...p}>
-        <ellipse cx="12" cy="6" rx="7" ry="2.8" />
-        <path d="M5 6 V18 C5 19.6 8 20.8 12 20.8 C16 20.8 19 19.6 19 18 V6" />
-        <ellipse className="dv-dbmid" cx="12" cy="12.4" rx="7" ry="2.8" strokeWidth={1.6} />
+      <svg viewBox="0 0 24 24" {...p} strokeWidth={2}>
+        <g className="dv-card">
+          <rect className="dv-occl" x="7.5" y="3.5" width="9" height="9" rx="1.6" />
+          <line x1="9.6" y1="7" x2="14.4" y2="7" strokeWidth={1.4} />
+          <line x1="9.6" y1="9.4" x2="13" y2="9.4" strokeWidth={1.4} />
+        </g>
+        <path className="dv-occl" d="M4 13.5 h16 v4.9 a1.6 1.6 0 0 1 -1.6 1.6 h-12.8 a1.6 1.6 0 0 1 -1.6 -1.6 z" />
+        <line x1="4" y1="13.5" x2="20" y2="13.5" />
       </svg>
     )
   }
   return (
-    <svg viewBox="0 0 24 24" {...p}>
-      <circle cx="12" cy="12" r="8.2" />
-      <line x1="3.8" y1="12" x2="20.2" y2="12" strokeWidth={1.5} />
-      <ellipse className="dv-merid" cx="12" cy="12" rx="4" ry="8.2" strokeWidth={1.5} />
+    <svg viewBox="0 0 24 24" {...p} strokeWidth={2}>
+      <circle cx="12" cy="12" r="6.2" />
+      <line x1="5.8" y1="12" x2="18.2" y2="12" strokeWidth={1.4} />
+      <ellipse className="dv-merid" cx="12" cy="12" rx="2.9" ry="6.2" strokeWidth={1.4} />
+      <g className="dv-orbit"><circle cx="12" cy="3.4" r="1.5" fill="currentColor" stroke="none" /></g>
     </svg>
   )
 }
