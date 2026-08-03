@@ -340,7 +340,10 @@ function setupMdiIPC(): void {
     if (r.ok && (r.marque || r.constructeur)) {
       const lib = [r.marque || r.constructeur, r.modele].filter(Boolean).join(' - ')
       const an = parseInt(String(r.annee), 10) || 0
-      try { const { apprendre } = await import('./vinIndex'); void apprendre(vin, lib, an, 'nhtsa') } catch { /* ignore */ }
+      try {
+        const { apprendre } = await import('./vinIndex')
+        void apprendre(vin, lib, an, 'nhtsa', { carrosserie: r.carrosserie, version: r.motorisation })
+      } catch { /* ignore */ }
     }
     return r
   })

@@ -123,6 +123,8 @@ export default function DecodeurVinWindow(): JSX.Element {
       categorie: o.categorie ?? local.categorie,
       confiance: o.categorie ? 'élevée' : local.confiance,
       raisonCategorie: o.categorie ? `NHTSA — ${o.typeVehicule || 'type identifié'}` : local.raisonCategorie,
+      carrosserie: o.carrosserie ? nettoyerCarrosserie(o.carrosserie) : local.carrosserie,
+      motorisation: o.motorisation || local.motorisation,
     })
   }
 

@@ -12,6 +12,8 @@ export interface ResultatVinEnLigne {
   modele: string
   typeVehicule: string
   categorie: CategorieVin | null
+  carrosserie: string
+  motorisation: string
 }
 
 /** Mappe le VehicleType / BodyClass NHTSA vers nos catégories. */
@@ -29,9 +31,25 @@ export function mapNhtsaCategorie(vehicleType: string, bodyClass: string): Categ
 const champ = (arr: Array<{ Variable: string; Value: string | null }>, nom: string): string =>
   (arr.find(x => x.Variable === nom)?.Value ?? '').trim()
 
+/** Construit le libellé motorisation depuis Displacement (L) / Engine Number of
+ * Cylinders / Engine Model NHTSA. Ex. « 2.2L 4 cyl. », « 4 cyl. », ou modèle moteur brut. */
+export function construireMotorisation(displacementL: string, cylindres: string, moteurModele: string): string {
+  const l = parseFloat(displacementL)
+  const cyl = parseInt(cylindres, 10)
+  const lOk = Number.isFinite(l) && l > 0
+  const cylOk = Number.isFinite(cyl) && cyl > 0
+  if (lOk && cylOk) return `${Math.round(l * 10) / 10}L ${cyl} cyl.`
+  if (cylOk) return `${cyl} cyl.`
+  if (moteurModele.trim()) return moteurModele.trim()
+  return ''
+}
+
 /** Interroge NHTSA vPIC (timeout 6 s). Retourne un résultat mappé, ou ok:false. */
 export async function decoderVinEnLigne(vin: string): Promise<ResultatVinEnLigne> {
-  const vide: ResultatVinEnLigne = { ok: false, constructeur: 'Inconnu', pays: '—', annee: '—', marque: '', modele: '', typeVehicule: '', categorie: null }
+  const vide: ResultatVinEnLigne = {
+    ok: false, constructeur: 'Inconnu', pays: '—', annee: '—', marque: '', modele: '',
+    typeVehicule: '', categorie: null, carrosserie: '', motorisation: '',
+  }
   const url = `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVin/${encodeURIComponent(vin)}?format=json`
   const ctrl = new AbortController()
   const t = setTimeout(() => ctrl.abort(), 6000)
@@ -48,6 +66,9 @@ export async function decoderVinEnLigne(vin: string): Promise<ResultatVinEnLigne
     const modele = champ(res, 'Model')
     const errCode = champ(res, 'Error Code')
     const ok = (make !== '' || manuf !== '') && errCode !== '11' // 11 = VIN inconnu de la base
+    const displacementL = champ(res, 'Displacement (L)')
+    const cylindres = champ(res, 'Engine Number of Cylinders')
+    const moteurModele = champ(res, 'Engine Model')
     return {
       ok,
       constructeur: make || manuf || 'Inconnu',
@@ -56,6 +77,8 @@ export async function decoderVinEnLigne(vin: string): Promise<ResultatVinEnLigne
       marque: make, modele,
       typeVehicule: type || body || '',
       categorie: mapNhtsaCategorie(type, body),
+      carrosserie: body,
+      motorisation: construireMotorisation(displacementL, cylindres, moteurModele),
       erreur: ok ? undefined : 'VIN non reconnu par NHTSA',
     }
   } catch (e) {

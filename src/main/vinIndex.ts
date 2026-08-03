@@ -65,12 +65,45 @@ function anneePlausible(annee: number): boolean {
   return Number.isFinite(annee) && annee >= ANNEE_MIN && annee <= new Date().getFullYear() + 1
 }
 
+// ── Enrichissement VinIndexInfo « trous seulement » (best-effort) ───────────
+// N'écrase JAMAIS une valeur déjà présente (notamment le seed) : si la ligne
+// existe, on ne met à jour que les champs actuellement null. Sans ligne, on la
+// crée avec les valeurs disponibles. Aucune valeur → rien à faire.
+async function apprendreInfo(
+  signature: string,
+  carrosserie: string | undefined,
+  version: string | undefined
+): Promise<void> {
+  const carr = carrosserie?.trim() || undefined
+  const ver = version?.trim() || undefined
+  if (!carr && !ver) return
+  try {
+    const db = getPrisma()
+    const existante = await db.vinIndexInfo.findUnique({ where: { signature } })
+    if (!existante) {
+      await db.vinIndexInfo.create({
+        data: { signature, carrosserie: carr ?? null, version: ver ?? null },
+      })
+      return
+    }
+    const maj: { carrosserie?: string; version?: string } = {}
+    if (carr && existante.carrosserie === null) maj.carrosserie = carr
+    if (ver && existante.version === null) maj.version = ver
+    if (Object.keys(maj).length > 0) {
+      await db.vinIndexInfo.update({ where: { signature }, data: maj })
+    }
+  } catch {
+    // Best-effort : un souci d'enrichissement n'empêche jamais l'apprentissage principal.
+  }
+}
+
 // ── Apprentissage (best-effort — jamais bloquant pour l'appelant) ───────────
 export async function apprendre(
   vin: string,
   marqueModele: string,
   annee: number,
-  source: string
+  source: string,
+  info?: { carrosserie?: string; version?: string }
 ): Promise<void> {
   try {
     const sig8 = signatureVin(vin)
@@ -98,6 +131,12 @@ export async function apprendre(
           create: { signature, annee, nb: 1 },
           update: { nb: { increment: 1 } },
         })
+      }
+    }
+
+    if (info && (info.carrosserie || info.version)) {
+      for (const signature of signatures) {
+        await apprendreInfo(signature, info.carrosserie, info.version)
       }
     }
   } catch {

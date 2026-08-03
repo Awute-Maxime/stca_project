@@ -120,6 +120,8 @@ export interface VinEnLigne {
   modele: string
   typeVehicule: string
   categorie: 'Voiture' | 'Camion' | 'Autre' | null
+  carrosserie?: string
+  motorisation?: string
 }
 
 // ── Index VIN appris (Phase 3, lu côté main via Prisma) ───────────────────────
