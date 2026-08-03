@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Génère l'index seed du décodeur VIN à partir du corpus réel.
 
-Entrée  : scripts/echantillon.csv (colonnes: vin,marque,modele,annee,vehicule)
+Entrée  : scripts/echantillon.csv (colonnes: vin,marque,modele,annee,vehicule,type,finition)
 Sorties :
   - src/main/vinSeed.json               index compact par signature (sig8, sig6)
+                                         + carr/ver/seg majoritaires par signature
   - src/renderer/src/mock/wmiBase.ts     marque majoritaire par WMI (3 premiers car.)
 
 Parsing CSV robuste via le module `csv` standard (gère guillemets/virgules dans `modele`).
@@ -38,10 +39,12 @@ def main() -> None:
     if not CSV_PATH.exists():
         raise SystemExit(f"Corpus introuvable : {CSV_PATH}")
 
-    # sig_data[n][signature] = {"mm": Counter(libelle->nb), "an": Counter(annee->nb)}
+    # sig_data[n][signature] = {"mm": Counter(libelle->nb), "an": Counter(annee->nb),
+    #                            "carr": Counter(vehicule->nb), "ver": Counter(type->nb),
+    #                            "seg": Counter(finition->nb)}
     sig_data: dict[int, dict[str, dict[str, Counter]]] = {
-        8: defaultdict(lambda: {"mm": Counter(), "an": Counter()}),
-        6: defaultdict(lambda: {"mm": Counter(), "an": Counter()}),
+        8: defaultdict(lambda: {"mm": Counter(), "an": Counter(), "carr": Counter(), "ver": Counter(), "seg": Counter()}),
+        6: defaultdict(lambda: {"mm": Counter(), "an": Counter(), "carr": Counter(), "ver": Counter(), "seg": Counter()}),
     }
     wmi_data: dict[str, Counter] = defaultdict(Counter)
 
@@ -50,7 +53,7 @@ def main() -> None:
 
     with CSV_PATH.open(encoding="utf-8", newline="") as f:
         reader = csv.reader(f)
-        next(reader, None)  # entête : vin,marque,modele,annee,vehicule
+        next(reader, None)  # entête : vin,marque,modele,annee,vehicule,type,finition
         for row in reader:
             total_rows += 1
             if len(row) < 4:
@@ -59,6 +62,9 @@ def main() -> None:
             marque = row[1] if len(row) > 1 else ""
             modele = row[2] if len(row) > 2 else ""
             annee_raw = row[3] if len(row) > 3 else ""
+            vehicule = row[4] if len(row) > 4 else ""
+            type_ = row[5] if len(row) > 5 else ""
+            finition = row[6] if len(row) > 6 else ""
 
             if not VIN_RE.match(vin):
                 continue
@@ -72,12 +78,22 @@ def main() -> None:
             except (ValueError, AttributeError):
                 annee = None
 
+            carr = (vehicule or "").strip()
+            ver = (type_ or "").strip()
+            seg = (finition or "").strip()
+
             for n in (8, 6):
                 entry = sig_data[n][vin[:n]]
                 if lib:
                     entry["mm"][lib] += 1
                 if annee is not None:
                     entry["an"][annee] += 1
+                if carr:
+                    entry["carr"][carr] += 1
+                if ver:
+                    entry["ver"][ver] += 1
+                if seg:
+                    entry["seg"][seg] += 1
 
             marque_clean = (marque or "").strip()
             if marque_clean:
@@ -88,10 +104,15 @@ def main() -> None:
         for sig, entry in sig_map.items():
             mm_top = entry["mm"].most_common(TOP_N)
             an_hist = sorted(entry["an"].items())  # ordre croissant par année
-            out[sig] = {
+            packed = {
                 "mm": [[label, count] for label, count in mm_top],
                 "an": [[year, count] for year, count in an_hist],
             }
+            for key, field in (("carr", "carr"), ("ver", "ver"), ("seg", "seg")):
+                counter = entry[field]
+                if counter:
+                    packed[key] = counter.most_common(1)[0][0]
+            out[sig] = packed
         return out
 
     seed = {
