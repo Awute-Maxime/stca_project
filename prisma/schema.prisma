@@ -202,3 +202,15 @@ model VinIndexAnnee {
   @@index([signature])
   @@map("vin_index_annee")
 }
+
+/// Infos complémentaires par signature (carrosserie / motorisation / segment),
+/// seedées depuis le corpus 100k (Phase suivante après VinIndex/VinIndexAnnee).
+model VinIndexInfo {
+  id          Int     @id @default(autoincrement())
+  signature   String  @unique
+  carrosserie String?
+  version     String?
+  segment     String?
+
+  @@map("vin_index_info")
+}

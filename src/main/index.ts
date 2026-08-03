@@ -480,12 +480,18 @@ app.whenReady().then(() => {
   // démarrage de l'app (import dynamique + try/catch, sur le modèle du
   // lookup IPC de la Phase 3).
   void (async () => {
-    const { importerSeed, semer } = await import('./vinIndex')
+    const { importerSeed, importerInfo, semer } = await import('./vinIndex')
     try {
       const res = await importerSeed()
       console.log(`[vinIndex] seed : ${res.importe ? `${res.lignes} lignes importées` : 'déjà importé (ignoré)'}`)
     } catch (err) {
       console.error('[vinIndex] importerSeed a échoué :', err)
+    }
+    try {
+      const res = await importerInfo()
+      console.log(`[vinIndex] info : ${res.importe ? `${res.lignes} lignes importées` : 'déjà importé (ignoré)'}`)
+    } catch (err) {
+      console.error('[vinIndex] importerInfo a échoué :', err)
     }
     void semer()
       .then(n => console.log(`[vinIndex] apprentissage base existante : ${n} enregistrement(s)`))

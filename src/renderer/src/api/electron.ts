@@ -127,6 +127,9 @@ export interface VinIndexHit {
   marqueModele: string
   part: number
   annees: Array<[number, number]>
+  carrosserie?: string | null
+  version?: string | null
+  segment?: string | null
 }
 
 declare global {

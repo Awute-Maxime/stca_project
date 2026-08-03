@@ -22,6 +22,9 @@ export interface ResultatVin {
   constructeur: string
   modele: string                    // marque+modèle nettoyés depuis l'index (Phase 3), '—' si non trouvé
   confianceModele?: number          // fiabilité du hit d'index (idx.part, 0-1) — distincte de `confiance` (catégorie)
+  carrosserie: string               // ex. « Hatchback 5 p. » — '—' si non trouvé
+  motorisation: string              // ex. « AVENSIS 2.2 D-4D SOL » — '—' si non trouvé
+  segment: string                   // ex. « Upper Medium » — '—' si non trouvé
   pays: string
   annee: string
   anneeSource: 'position10' | 'signature' | 'aucune'  // provenance de l'année affichée
@@ -236,6 +239,14 @@ export function nettoyerLibelle(raw: string): { marque: string; modele: string }
   return { marque, modele: reste }
 }
 
+/** Nettoie un libellé de carrosserie du seed : enlève le préfixe « Voit. » (garde
+ * « Camion »/« VUL »/… tels quels), trim, '—' si vide. Ex. « Voit. Hatchback 5 p. »
+ * → « Hatchback 5 p. » ; « Camion Tracteur » → inchangé. */
+export function nettoyerCarrosserie(s: string): string {
+  const v = (s || '').replace(/^Voit\.\s*/i, '').trim()
+  return v.length ? v : '—'
+}
+
 const nettoyer = (v: string): string => v.trim().toUpperCase().replace(/\s+/g, '')
 
 /** Cherche l'info constructeur : préfixe le plus long d'abord, sinon WMI (3 car.). */
@@ -252,7 +263,9 @@ export function decoderVin(brut: string): ResultatVin {
   const base: ResultatVin = {
     vin, source: 'local', structureValide: false, raisonInvalide: null,
     chiffreControleRequis: /^[1-5]/.test(vin), chiffreControleOk: false, noteControle: '',
-    wmi: vin.slice(0, 3), constructeur: 'Inconnu', modele: '—', pays: '—', annee: '—', anneeSource: 'aucune',
+    wmi: vin.slice(0, 3), constructeur: 'Inconnu', modele: '—',
+    carrosserie: '—', motorisation: '—', segment: '—',
+    pays: '—', annee: '—', anneeSource: 'aucune',
     usine: vin[10] ?? '—', serie: vin.slice(11), categorie: null, confiance: 'faible', raisonCategorie: '',
   }
 

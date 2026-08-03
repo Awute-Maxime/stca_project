@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { decoderVin, zoneVin, nettoyerLibelle, choisirAnnee, type ResultatVin, type Categorie } from '@mock/vinDecoder'
+import { decoderVin, zoneVin, nettoyerLibelle, nettoyerCarrosserie, choisirAnnee, type ResultatVin, type Categorie } from '@mock/vinDecoder'
 import { electronApi, type VinEnLigne } from '@api/electron'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -74,6 +74,9 @@ export default function DecodeurVinWindow(): JSX.Element {
           // `confiance` reste celle de la CATÉGORIE (posée par decoderVin) — la fiabilité
           // du hit d'index est exposée séparément via `confianceModele`.
           confianceModele: idx.part,
+          carrosserie: nettoyerCarrosserie(idx.carrosserie ?? ''),
+          motorisation: idx.version ?? '—',
+          segment: idx.segment ?? '—',
         }
         setRes(local)
       }
@@ -228,11 +231,14 @@ export default function DecodeurVinWindow(): JSX.Element {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 20px' }}>
                   <KV k="Constructeur" v={res.constructeur} />
                   <KV k="Modèle" v={res.confianceModele != null && res.confianceModele < 0.7 ? `${res.modele} (à confirmer)` : res.modele} />
+                  {res.carrosserie !== '—' && <KV k="Carrosserie" v={res.carrosserie} />}
+                  {res.motorisation !== '—' && <KV k="Motorisation" v={res.motorisation} />}
                   <KV k="Pays d'origine" v={res.pays} />
                   <KV k="Année-modèle" v={res.anneeSource === 'signature' ? `≈ ${res.annee}` : res.annee} />
                   <KV k="Code usine" v={res.usine} />
                   <KV k="N° de série" v={res.serie || '—'} />
                   <KV k="Zone WMI" v={res.wmi} />
+                  {res.segment !== '—' && <KV k="Segment" v={res.segment} />}
                 </div>
               )}
             </div>

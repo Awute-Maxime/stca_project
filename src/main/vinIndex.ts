@@ -11,13 +11,20 @@ import vinSeedData from './vinSeed.json'
 // Lu par le décodeur via chercher() (Phase 3).
 // ─────────────────────────────────────────────────────────────────────────────
 
-interface SeedEntree { mm: Array<[string, number]>; an: Array<[number, number]> }
+interface SeedEntree {
+  mm: Array<[string, number]>
+  an: Array<[number, number]>
+  carr?: string
+  ver?: string
+  seg?: string
+}
 interface SeedFichier { sig8: Record<string, SeedEntree>; sig6: Record<string, SeedEntree> }
 // Le JSON est importé statiquement (resolveJsonModule) ; on retype vers notre
 // forme exacte plutôt que de laisser TS inférer le littéral géant du fichier.
 const seed = vinSeedData as unknown as SeedFichier
 
 const FLAG_SEED_IMPORTE = 'vinSeedImported'
+const FLAG_INFO_IMPORTE = 'vinInfoImported'
 const TAILLE_LOT = 5000
 const ANNEE_MIN = 1950
 
@@ -99,9 +106,14 @@ export async function apprendre(
 }
 
 // ── Lecture (décodeur — Phase 3) ─────────────────────────────────────────────
-export async function chercher(
-  vin: string
-): Promise<{ marqueModele: string; part: number; annees: Array<[number, number]> } | null> {
+export async function chercher(vin: string): Promise<{
+  marqueModele: string
+  part: number
+  annees: Array<[number, number]>
+  carrosserie: string | null
+  version: string | null
+  segment: string | null
+} | null> {
   const db = getPrisma()
   const sig8 = signatureVin(vin)
   const sig6 = signature6(vin)
@@ -120,11 +132,15 @@ export async function chercher(
     where: { signature },
     orderBy: { annee: 'asc' },
   })
+  const info = await db.vinIndexInfo.findUnique({ where: { signature } })
 
   return {
     marqueModele: top.marqueModele,
     part: somme > 0 ? top.nbVus / somme : 0,
     annees: anneesLignes.map((a): [number, number] => [a.annee, a.nb]),
+    carrosserie: info?.carrosserie ?? null,
+    version: info?.version ?? null,
+    segment: info?.segment ?? null,
   }
 }
 
@@ -170,6 +186,42 @@ export async function importerSeed(): Promise<{ importe: boolean; lignes: number
   })
 
   return { importe: true, lignes: indexRows.length + anneeRows.length }
+}
+
+// ── Import des infos complémentaires (carrosserie/motorisation/segment) ─────
+// Flag SÉPARÉ de FLAG_SEED_IMPORTE : ne retouche pas l'import existant de
+// VinIndex/VinIndexAnnee sur les bases déjà seedées (Phase précédente).
+export async function importerInfo(): Promise<{ importe: boolean; lignes: number }> {
+  const db = getPrisma()
+  const deja = await db.parametre.findUnique({ where: { cle: FLAG_INFO_IMPORTE } })
+  if (deja) return { importe: false, lignes: 0 }
+
+  const vues = new Set<string>()
+  const infoRows: Array<{ signature: string; carrosserie: string | null; version: string | null; segment: string | null }> = []
+
+  for (const table of [seed.sig8, seed.sig6]) {
+    for (const [signature, entree] of Object.entries(table ?? {})) {
+      if (vues.has(signature)) continue // sig8/sig6 dédoublonnées par sécurité
+      if (!entree.carr && !entree.ver && !entree.seg) continue
+      vues.add(signature)
+      infoRows.push({
+        signature,
+        carrosserie: entree.carr ?? null,
+        version: entree.ver ?? null,
+        segment: entree.seg ?? null,
+      })
+    }
+  }
+
+  await creerParLots(infoRows, lot => db.vinIndexInfo.createMany({ data: lot }))
+
+  await db.parametre.upsert({
+    where: { cle: FLAG_INFO_IMPORTE },
+    create: { cle: FLAG_INFO_IMPORTE, valeur: new Date().toISOString() },
+    update: { valeur: new Date().toISOString() },
+  })
+
+  return { importe: true, lignes: infoRows.length }
 }
 
 // ── Apprentissage depuis la base existante (démarrage) ───────────────────────

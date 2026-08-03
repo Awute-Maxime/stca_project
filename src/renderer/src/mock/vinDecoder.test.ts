@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { decoderVin, choisirAnnee, estAmeriqueNord, anneesCandidates, nettoyerLibelle } from './vinDecoder'
+import { decoderVin, choisirAnnee, estAmeriqueNord, anneesCandidates, nettoyerLibelle, nettoyerCarrosserie } from './vinDecoder'
 
 describe('validation reformulée', () => {
   it('VIN nord-américain valide : structure OK + chiffre de contrôle OK/requis', () => {
@@ -119,5 +119,17 @@ describe('nettoyerLibelle — nettoyage des libellés bruités du corpus (index 
   it('libellé sans « - » ni « >> » : pas de marque isolée, modèle = libellé trimé', () => {
     expect(nettoyerLibelle('TOYOTA CAMRY'))
       .toEqual({ marque: '', modele: 'TOYOTA CAMRY' })
+  })
+})
+
+describe('nettoyerCarrosserie — enlève le préfixe « Voit. » du libellé de carrosserie', () => {
+  it('« Voit. Hatchback 5 p. » → « Hatchback 5 p. »', () => {
+    expect(nettoyerCarrosserie('Voit. Hatchback 5 p.')).toBe('Hatchback 5 p.')
+  })
+  it('garde « Camion Tracteur » tel quel (pas de préfixe Voit.)', () => {
+    expect(nettoyerCarrosserie('Camion Tracteur')).toBe('Camion Tracteur')
+  })
+  it('chaîne vide → « — »', () => {
+    expect(nettoyerCarrosserie('')).toBe('—')
   })
 })
