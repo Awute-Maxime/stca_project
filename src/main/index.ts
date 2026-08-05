@@ -66,7 +66,7 @@ app.on('second-instance', () => {
 
 // IPC handlers for MDI child windows (set up once, before any window is created)
 function setupMdiIPC(): void {
-  ipcMain.on('mdi:open', (_, payload: { id: string; x: number; y: number; width: number; height: number }) => {
+  ipcMain.on('mdi:open', (event, payload: { id: string; x: number; y: number; width: number; height: number }) => {
     // If already open, just focus it
     const existing = mdiWindows.get(payload.id)
     if (existing && !existing.isDestroyed()) {
@@ -75,10 +75,20 @@ function setupMdiIPC(): void {
       return
     }
 
-    // Toutes les fenêtres secondaires s'ouvrent CENTRÉES par rapport à la
-    // fenêtre principale (payload.x/y ignorés), sans déborder de l'écran.
-    const mainBounds = mainWin && !mainWin.isDestroyed()
-      ? mainWin.getBounds()
+    // Comportement de la fenêtre vis-à-vis de celle qui l'OUVRE (parent = émetteur IPC) :
+    //  - modal  : formulaires de saisie → BLOQUENT l'appelante jusqu'à validation/fermeture
+    //  - libre  : aperçus d'impression (Règle 10) → fenêtres indépendantes
+    //  - enfant : tout le reste (consultation) → flotte TOUJOURS au-dessus de l'appelante, sans bloquer
+    const FORMULAIRES_MODAUX = new Set(['enregistrement', 'edition.assureur', 'edition.destination', 'outils.fixerRef'])
+    const comportement = FORMULAIRES_MODAUX.has(payload.id)
+      ? 'modal'
+      : payload.id.startsWith('apercu.') ? 'libre' : 'enfant'
+    const parent = BrowserWindow.fromWebContents(event.sender)
+      ?? (mainWin && !mainWin.isDestroyed() ? mainWin : undefined)
+
+    // Ouverture CENTRÉE par rapport à la fenêtre appelante (payload.x/y ignorés), sans déborder.
+    const mainBounds = parent && !parent.isDestroyed()
+      ? parent.getBounds()
       : screen.getPrimaryDisplay().workArea
     const workArea = screen.getDisplayMatching(mainBounds).workArea
     let childX = Math.round(mainBounds.x + (mainBounds.width - payload.width) / 2)
@@ -96,8 +106,10 @@ function setupMdiIPC(): void {
       backgroundColor: '#FFFFFF',
       hasShadow: true,
       resizable: true,
-      minimizable: true,
-      maximizable: true,
+      minimizable: comportement !== 'modal',
+      maximizable: comportement !== 'modal',
+      ...(comportement !== 'libre' && parent ? { parent } : {}),
+      ...(comportement === 'modal' ? { modal: true } : {}),
       show: false,
       autoHideMenuBar: true,
       webPreferences: {
