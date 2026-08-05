@@ -137,7 +137,8 @@ export default function DecodeurVinWindow(): JSX.Element {
     fermer()
   }
 
-  const pipeVisible = travail || res !== null
+  // Résultat décodé VALIDE (sinon null → on affiche des conteneurs vides « en attente »).
+  const dec = res && res.structureValide ? res : null
   const enLigneActif = etapes.enligne === 'encours'
   // Sous-libellé de l'étape « en ligne » selon la situation.
   const sousEnLigne = ((): string => {
@@ -178,95 +179,92 @@ export default function DecodeurVinWindow(): JSX.Element {
           </button>
         </div>
 
-        {/* Pipeline des phases */}
-        {pipeVisible && (
-          <div className={`dv-pipe${travail ? ' is-travail' : ''}`}>
-            <Etape icone="structure" label="Structure" sous={etapeSub(etapes.structure)} statut={etapes.structure} />
-            <Lien on={etapes.structure === 'ok'} />
-            <Etape icone="local" label="Base locale" sous={etapeSub(etapes.local)} statut={etapes.local} />
-            <Lien on={etapes.local === 'ok' || etapes.local === 'partiel'} />
-            <Etape icone="enligne" label="En ligne" sous={sousEnLigne} statut={etapes.enligne} />
+        {/* Pipeline des phases — TOUJOURS visible (état d'attente avant décodage) */}
+        <div className={`dv-pipe${travail ? ' is-travail' : ''}`}>
+          <Etape icone="structure" label="Structure" sous={etapeSub(etapes.structure)} statut={etapes.structure} />
+          <Lien on={etapes.structure === 'ok'} />
+          <Etape icone="local" label="Base locale" sous={etapeSub(etapes.local)} statut={etapes.local} />
+          <Lien on={etapes.local === 'ok' || etapes.local === 'partiel'} />
+          <Etape icone="enligne" label="En ligne" sous={sousEnLigne} statut={etapes.enligne} />
+        </div>
+
+        {/* Décomposition — TOUJOURS affichée ; les cases se remplissent à la saisie */}
+        <div style={{ background: '#fff', border: `1px solid ${C.line}`, borderRadius: 10, padding: 10, marginBottom: 10 }}>
+          <div style={{ fontSize: 9.5, fontWeight: 800, color: C.muted, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 }}>Décomposition</div>
+          <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+            {Array.from({ length: 17 }, (_, i) => {
+              const ch = vin[i]
+              return (
+                <div key={i} className="dv-cell" style={ch
+                  ? { background: ZONE_COUL[zoneVin(i)] }
+                  : { background: '#EEF2F8', color: '#AEB9CA', boxShadow: 'inset 0 0 0 1px #E4EAF2' }}>
+                  <small>{i + 1}</small>
+                  {ch ?? ''}
+                </div>
+              )
+            })}
           </div>
-        )}
+          <div style={{ display: 'flex', gap: 16, marginTop: 7, fontSize: 10.5, color: C.muted, flexWrap: 'wrap' }}>
+            <span><b style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: C.accent, marginRight: 5, verticalAlign: -1 }} />WMI — constructeur / pays (1-3)</span>
+            <span><b style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: C.gold, marginRight: 5, verticalAlign: -1 }} />VDS — description (4-9)</span>
+            <span><b style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: C.green, marginRight: 5, verticalAlign: -1 }} />VIS — année / usine / série (10-17)</span>
+          </div>
+        </div>
 
-        {res && (
-          <>
-            {/* Décomposition (VIN de structure valide seulement) */}
-            {res.structureValide && (
-              <div style={{ background: '#fff', border: `1px solid ${C.line}`, borderRadius: 10, padding: 10, marginBottom: 10 }}>
-                <div style={{ fontSize: 9.5, fontWeight: 800, color: C.muted, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 }}>Décomposition</div>
-                <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-                  {res.vin.split('').map((ch, i) => (
-                    <div key={i} className="dv-cell" style={{ background: ZONE_COUL[zoneVin(i)] }}>
-                      <small>{i + 1}</small>
-                      {ch}
-                    </div>
-                  ))}
-                </div>
-                <div style={{ display: 'flex', gap: 16, marginTop: 7, fontSize: 10.5, color: C.muted, flexWrap: 'wrap' }}>
-                  <span><b style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: C.accent, marginRight: 5, verticalAlign: -1 }} />WMI — constructeur / pays (1-3)</span>
-                  <span><b style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: C.gold, marginRight: 5, verticalAlign: -1 }} />VDS — description (4-9)</span>
-                  <span><b style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: C.green, marginRight: 5, verticalAlign: -1 }} />VIS — année / usine / série (10-17)</span>
-                </div>
-              </div>
-            )}
-
-            {/* Résultat */}
-            <div style={{ background: '#fff', border: `1px solid ${C.line}`, borderRadius: 10, padding: '10px 14px', marginBottom: 10 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12.5, fontWeight: 700, marginBottom: 6, color: res.structureValide ? C.green : C.red }}>
-                {res.structureValide ? '✓ Structure VIN valide (17 caractères)' : `✗ ${res.raisonInvalide}`}
-                <span style={{
-                  marginLeft: 'auto', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 10,
-                  background: res.source === 'en ligne' ? '#EFF6FF' : '#F1F5F9', color: res.source === 'en ligne' ? C.accent : C.muted,
-                }}>
-                  {res.source === 'en ligne'
-                    ? <><span className="dv-globe">🌐</span> Source : NHTSA en ligne</>
-                    : '💾 Source : base hors ligne'}
-                </span>
-              </div>
-              {res.structureValide && (
-                <div style={{ fontSize: 10.5, color: res.chiffreControleOk ? C.green : (res.chiffreControleRequis ? C.gold : C.muted), marginBottom: 8 }}>
-                  {res.chiffreControleOk ? '● ' : (res.chiffreControleRequis ? '⚠ ' : 'ℹ ')}{res.noteControle}
-                </div>
-              )}
-              {res.structureValide && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 20px' }}>
-                  <KV k="Constructeur" v={res.constructeur} />
-                  <KV k="Modèle" v={res.confianceModele != null && res.confianceModele < 0.7 ? `${res.modele} (à confirmer)` : res.modele} />
-                  {res.carrosserie !== '—' && <KV k="Carrosserie" v={res.carrosserie} />}
-                  {res.motorisation !== '—' && <KV k="Motorisation" v={res.motorisation} />}
-                  <KV k="Pays d'origine" v={res.pays} />
-                  <KV k="Année-modèle" v={res.anneeSource === 'signature' ? `≈ ${res.annee}` : res.annee} />
-                  <KV k="Code usine" v={res.usine} />
-                  <KV k="N° de série" v={res.serie || '—'} />
-                  <KV k="Zone WMI" v={res.wmi} />
-                  {res.segment !== '—' && <KV k="Segment" v={res.segment} />}
-                </div>
-              )}
-            </div>
-
-            {/* Catégorie suggérée (VIN valide seulement) */}
-            {res.structureValide && (
-              <div className="dv-cat" style={{
-                display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10, padding: '10px 14px', borderRadius: 12,
-                background: res.categorie ? 'linear-gradient(135deg,#FEF9EE,#FFF)' : '#F8FAFC',
-                border: `1.5px solid ${res.categorie ? '#FCD9A0' : C.line}`,
+        {/* Résultat — TOUJOURS affiché ; valeurs remplies au décodage */}
+        <div style={{ background: '#fff', border: `1px solid ${C.line}`, borderRadius: 10, padding: '10px 14px', marginBottom: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12.5, fontWeight: 700, marginBottom: 6, color: res ? (res.structureValide ? C.green : C.red) : C.muted }}>
+            {res ? (res.structureValide ? '✓ Structure VIN valide (17 caractères)' : `✗ ${res.raisonInvalide}`) : 'En attente d’un décodage'}
+            {res && (
+              <span style={{
+                marginLeft: 'auto', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 10,
+                background: res.source === 'en ligne' ? '#EFF6FF' : '#F1F5F9', color: res.source === 'en ligne' ? C.accent : C.muted,
               }}>
-                <span className="dv-cat__emoji" style={{ fontSize: 30 }}>{res.categorie ? EMOJI_CAT[res.categorie] : '❓'}</span>
-                <div>
-                  <div style={{ fontSize: 20, fontWeight: 800, color: C.navy, lineHeight: 1 }}>{res.categorie ?? 'À CONFIRMER'}</div>
-                  <div style={{ fontSize: 10.5, fontWeight: 700, color: COUL_CONF[res.confiance], marginTop: 3 }}>
-                    <span className="dv-dot-conf" style={{ background: COUL_CONF[res.confiance] }} />Confiance {res.confiance}
-                  </div>
-                </div>
-                <span style={{ fontSize: 10.5, color: C.muted, flex: 1 }}>{res.raisonCategorie}</span>
-                <button className="dv-btn dv-btn--apply" disabled={!res.categorie} onClick={appliquer}>
-                  <span className="dv-ico">✓</span> Appliquer ce type
-                </button>
-              </div>
+                {res.source === 'en ligne'
+                  ? <><span className="dv-globe">🌐</span> Source : NHTSA en ligne</>
+                  : '💾 Source : base hors ligne'}
+              </span>
             )}
-          </>
-        )}
+          </div>
+          {dec && (
+            <div style={{ fontSize: 10.5, color: dec.chiffreControleOk ? C.green : (dec.chiffreControleRequis ? C.gold : C.muted), marginBottom: 8 }}>
+              {dec.chiffreControleOk ? '● ' : (dec.chiffreControleRequis ? '⚠ ' : 'ℹ ')}{dec.noteControle}
+            </div>
+          )}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 20px' }}>
+            <KV k="Constructeur" v={dec?.constructeur ?? '—'} />
+            <KV k="Modèle" v={dec ? (dec.confianceModele != null && dec.confianceModele < 0.7 ? `${dec.modele} (à confirmer)` : dec.modele) : '—'} />
+            {dec && dec.carrosserie !== '—' && <KV k="Carrosserie" v={dec.carrosserie} />}
+            {dec && dec.motorisation !== '—' && <KV k="Motorisation" v={dec.motorisation} />}
+            <KV k="Pays d'origine" v={dec?.pays ?? '—'} />
+            <KV k="Année-modèle" v={dec ? (dec.anneeSource === 'signature' ? `≈ ${dec.annee}` : dec.annee) : '—'} />
+            <KV k="Code usine" v={dec?.usine ?? '—'} />
+            <KV k="N° de série" v={dec ? (dec.serie || '—') : '—'} />
+            <KV k="Zone WMI" v={dec?.wmi ?? '—'} />
+            {dec && dec.segment !== '—' && <KV k="Segment" v={dec.segment} />}
+          </div>
+        </div>
+
+        {/* Catégorie suggérée — TOUJOURS affichée */}
+        <div className="dv-cat" style={{
+          display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10, padding: '10px 14px', borderRadius: 12,
+          background: dec?.categorie ? 'linear-gradient(135deg,#FEF9EE,#FFF)' : '#F8FAFC',
+          border: `1.5px solid ${dec?.categorie ? '#FCD9A0' : C.line}`,
+        }}>
+          <span className="dv-cat__emoji" style={{ fontSize: 30 }}>{dec?.categorie ? EMOJI_CAT[dec.categorie] : '❓'}</span>
+          <div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: dec?.categorie ? C.navy : C.muted, lineHeight: 1 }}>{dec?.categorie ?? (res ? 'À CONFIRMER' : 'À DÉCODER')}</div>
+            <div style={{ fontSize: 10.5, fontWeight: 700, color: dec ? COUL_CONF[dec.confiance] : C.muted, marginTop: 3 }}>
+              {dec
+                ? <><span className="dv-dot-conf" style={{ background: COUL_CONF[dec.confiance] }} />Confiance {dec.confiance}</>
+                : '—'}
+            </div>
+          </div>
+          <span style={{ fontSize: 10.5, color: C.muted, flex: 1 }}>{dec?.raisonCategorie ?? 'Saisissez un n° de châssis (17 car.) puis cliquez « Décoder ».'}</span>
+          <button className="dv-btn dv-btn--apply" disabled={!dec?.categorie} onClick={appliquer}>
+            <span className="dv-ico">✓</span> Appliquer ce type
+          </button>
+        </div>
 
         {/* Pied */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
