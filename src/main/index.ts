@@ -26,6 +26,7 @@ import {
 import { upsertEnregistrement } from './stcaMShared'
 import { cheminBaseM } from '../shared/cheminBaseM'
 import { decoderVinEnLigne } from './vinOnline'
+import { lireBranding, ecrireBranding, surveillerBranding } from './brandingStore'
 
 const isDev = process.env['NODE_ENV'] === 'development' || !app.isPackaged
 
@@ -338,6 +339,20 @@ function setupMdiIPC(): void {
   })
   ipcMain.handle('affichage:tester', (_, p: { ip: string; port: number }) => testerConnexion(p.ip, p.port))
   ipcMain.handle('affichage:etat', () => ({ ok: true, etat: etatAfficheur() }))
+
+  // Personnalisation (branding.json partagé) — lecture/écriture + diffusion multi-fenêtres
+  ipcMain.handle('branding:courant', () => lireBranding())
+  ipcMain.handle('branding:ecrire', (_e, cfg) => {
+    const complet = ecrireBranding(cfg)
+    diffuserTous('branding:maj', complet)
+    return complet
+  })
+  // Fichier modifié par une autre app (Plan C) → rediffuser (anti-rebond 150 ms)
+  let rebondBranding: NodeJS.Timeout | null = null
+  surveillerBranding(() => {
+    if (rebondBranding) clearTimeout(rebondBranding)
+    rebondBranding = setTimeout(() => diffuserTous('branding:maj', lireBranding()), 150)
+  })
 
   // Assistant d'import de l'ancienne base STCA (CSV)
   ipcMain.handle('import:pickFile', () => pickCsvFile())
