@@ -96,7 +96,7 @@ export default function MenuBar({ utilisateurLogin, onMenuItemClick }: MenuBarPr
       {/* ── Barre de titre — prototype: #tb ──────────────────────────── */}
       <div style={{
         height: 32,
-        background: '#1B3A6B',
+        background: 'var(--tc-titlebar)',
         display: 'flex',
         alignItems: 'center',
         padding: '0 10px',
@@ -188,11 +188,11 @@ export default function MenuBar({ utilisateurLogin, onMenuItemClick }: MenuBarPr
         style={{
           height: 28,
           lineHeight: '28px',
-          background: '#fff',
-          borderBottom: '1px solid #D1D5DB',
+          background: 'var(--tc-menu-bg)',
+          borderBottom: '1px solid var(--tc-menu-bd)',
           padding: '0 8px',
           fontSize: 11.5,
-          color: '#1E293B',
+          color: 'var(--tc-menu-tx)',
           boxShadow: 'none',
         }}
       />

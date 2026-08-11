@@ -37,7 +37,7 @@ export default function StatusBar({ nbVehiculesAujourdhui }: StatusBarProps): JS
   return (
     <div style={{
       height: 24,
-      background: 'linear-gradient(90deg, #112654 0%, #1B3A6B 100%)',
+      background: 'linear-gradient(90deg, var(--tc-sb-to) 0%, var(--tc-statusbar-end) 100%)',
       borderTop: '1px solid rgba(255,255,255,0.06)',
       display: 'flex',
       alignItems: 'center',

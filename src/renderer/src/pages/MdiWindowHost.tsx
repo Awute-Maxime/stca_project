@@ -74,15 +74,15 @@ export default function MdiWindowHost(): JSX.Element {
   return (
     <ConfigProvider locale={frFR} theme={construireAntdTheme(sombre, cfg.apparence.couleurAccent)}>
       <div style={{
-        display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', background: '#FFFFFF',
+        display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', background: 'var(--tc-mdi-body)',
         // Fin liseré bleu nuit tout autour de la fenêtre (signature TCIT, comme la principale)
-        ...(id === 'enregistrement' ? { border: '1.5px solid #1B3A6B' } : {}),
+        ...(id === 'enregistrement' ? { border: '1.5px solid var(--tc-frame-bd)' } : {}),
       }}>
 
         {/* ── Title bar — même bleu que la sidebar MainScreen ────────── */}
         <div style={{
           height: 32, flexShrink: 0,
-          background: `linear-gradient(180deg, #1E4B8F 0%, ${appColors.mdiTitleBg} 100%)`,
+          background: 'linear-gradient(180deg, var(--tc-mdi-from) 0%, var(--tc-mdi-to) 100%)',
           borderBottom: '1px solid rgba(0,0,0,0.15)',
           boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
           display: 'flex', alignItems: 'center',
@@ -118,7 +118,7 @@ export default function MdiWindowHost(): JSX.Element {
         </div>
 
         {/* ── Content — entrée animée douce ─────────────────────────── */}
-        <div style={{ flex: 1, overflow: 'auto', background: '#FFFFFF', padding: 8, animation: 'winEnter 0.24s ease' }}>
+        <div style={{ flex: 1, overflow: 'auto', background: 'var(--tc-mdi-body)', padding: 8, animation: 'winEnter 0.24s ease' }}>
           {renderWindowContent(id)}
         </div>
       </div>

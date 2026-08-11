@@ -24,7 +24,7 @@ export default function NavSidebar({ onSelect, activeId, onOpenParametres }: Nav
     <div style={{
       width: 100,
       flexShrink: 0,
-      background: 'linear-gradient(180deg, #1E4080 0%, #112654 100%)',
+      background: 'linear-gradient(180deg, var(--tc-sb-from) 0%, var(--tc-sb-to) 100%)',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
