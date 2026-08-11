@@ -16,9 +16,10 @@ export const SIDEBAR_ITEMS: SidebarItem[] = [
 interface NavSidebarProps {
   onSelect: (id: SidebarItem['id']) => void
   activeId?: string
+  onOpenParametres?: () => void
 }
 
-export default function NavSidebar({ onSelect, activeId }: NavSidebarProps): JSX.Element {
+export default function NavSidebar({ onSelect, activeId, onOpenParametres }: NavSidebarProps): JSX.Element {
   return (
     <div style={{
       width: 100,
@@ -105,6 +106,48 @@ export default function NavSidebar({ onSelect, activeId }: NavSidebarProps): JSX
           </button>
         )
       })}
+
+      {/* Bouton Paramètres — poussé en bas (marginTop:auto), même style que les autres */}
+      {onOpenParametres && (
+        <button
+          aria-label="Paramètres de l'application"
+          className="nav-btn"
+          onClick={onOpenParametres}
+          style={{
+            position: 'relative',
+            width: 88,
+            padding: '10px 4px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 4,
+            cursor: 'pointer',
+            border: 'none',
+            background: 'none',
+            color: 'rgba(255,255,255,0.6)',
+            borderRadius: 8,
+            transition: 'all 0.2s',
+            margin: '1px 0',
+            marginTop: 'auto',
+            flexShrink: 0,
+          }}
+          onMouseEnter={e => {
+            const b = e.currentTarget as HTMLButtonElement
+            b.style.background = 'rgba(255,255,255,0.08)'
+            b.style.color = 'rgba(255,255,255,0.9)'
+          }}
+          onMouseLeave={e => {
+            const b = e.currentTarget as HTMLButtonElement
+            b.style.background = 'none'
+            b.style.color = 'rgba(255,255,255,0.6)'
+          }}
+        >
+          <span className="nav-ico" style={{ fontSize: 18 }}>⚙️</span>
+          <span style={{ fontSize: 9.5, fontWeight: 500, textAlign: 'center', lineHeight: 1.2 }}>
+            Paramètres
+          </span>
+        </button>
+      )}
     </div>
   )
 }

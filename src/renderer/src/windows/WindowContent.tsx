@@ -35,6 +35,7 @@ import ListeDestinationsApercuWindow from '@pages/ListeDestinationsApercuWindow'
 import EditionAssureurWindow from '@pages/EditionAssureurWindow'
 import EditionDestinationWindow from '@pages/EditionDestinationWindow'
 import UserManagementWindow from '@pages/UserManagementWindow'
+import PersonnalisationWindow from '@pages/PersonnalisationWindow'
 
 export function renderWindowContent(id: string): JSX.Element {
   switch (id) {
@@ -136,6 +137,8 @@ export function renderWindowContent(id: string): JSX.Element {
       return <ExportPage />
     case 'outils.pointage':
       return <PointagePage />
+    case 'personnalisation':
+      return <PersonnalisationWindow />
 
     // ── Menu Aide ─────────────────────────────────────────────────
     case 'aide.copyright':

@@ -12,6 +12,7 @@ export const WINDOW_REGISTRY: Record<string, WindowConfig> = {
   listeVehicules:           { title: 'Liste des Véhicules Enregistrés',                    defaultX: 180, defaultY: 114, width: 940, height: 660 },
   rechercheImmat:           { title: 'Recherche par N° Immatriculation',                   defaultX: 220, defaultY: 144, width: 720, height: 540 },
   rechercheChassis:         { title: 'Recherche par N° Chassis (VIN)',                     defaultX: 240, defaultY: 154, width: 720, height: 540 },
+  personnalisation:         { title: "Personnalisation de l'application",                   defaultX: 160, defaultY:  90, width: 1040, height: 680 },
 
   // ── Menu Fichier ───────────────────────────────────────────────
   'fichier.marques':                { title: 'Liste des Marques / Modèles de véhicules',        defaultX: 240, defaultY: 134, width: 640, height: 520 },

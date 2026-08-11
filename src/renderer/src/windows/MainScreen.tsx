@@ -188,7 +188,7 @@ export default function MainScreen({ utilisateurLogin }: MainScreenProps): JSX.E
       <MenuBar utilisateurLogin={utilisateurLogin} onMenuItemClick={handleMenuItemClick} />
 
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        <NavSidebar onSelect={handleSidebarSelect} activeId={undefined} />
+        <NavSidebar onSelect={handleSidebarSelect} activeId={undefined} onOpenParametres={() => openById('personnalisation')} />
 
         <div style={{
           flex: 1,
