@@ -1,3 +1,5 @@
+import { fusionnerBranding, type BrandingConfig } from '../../../shared/branding'
+
 export interface DbUser {
   id: number
   login: string
@@ -201,6 +203,9 @@ declare global {
       vinDecodeOnline: (vin: string) => Promise<VinEnLigne>
       vinIndexLookup:  (vin: string) => Promise<VinIndexHit | null>
       vinOuvrirConstructeur: (vin: string, marque: string) => Promise<void>
+      brandingCourant: () => Promise<BrandingConfig>
+      brandingEcrire:  (cfg: BrandingConfig) => Promise<BrandingConfig>
+      onBrandingMaj:   (cb: (cfg: BrandingConfig) => void) => (() => void)
     }
   }
 }
@@ -333,4 +338,12 @@ export const electronApi = {
   // Fiche constructeur (Phase 4) — ouvre le site du constructeur dans le navigateur (aucun scraping)
   vinOuvrirConstructeur: (vin: string, marque: string): Promise<void> =>
     window.api?.vinOuvrirConstructeur?.(vin, marque) ?? Promise.resolve(),
+
+  // Personnalisation (branding.json partagé)
+  brandingCourant: (): Promise<BrandingConfig> =>
+    window.api?.brandingCourant?.() ?? Promise.resolve(fusionnerBranding({})),
+  brandingEcrire: (cfg: BrandingConfig): Promise<BrandingConfig> =>
+    window.api?.brandingEcrire?.(cfg) ?? Promise.resolve(cfg),
+  onBrandingMaj: (cb: (cfg: BrandingConfig) => void): (() => void) =>
+    window.api?.onBrandingMaj?.(cb) ?? (() => {}),
 }

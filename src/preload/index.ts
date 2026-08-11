@@ -115,6 +115,15 @@ const api = {
   // Fiche constructeur (Phase 4) — ouvre le site du constructeur dans le navigateur (aucun scraping)
   vinOuvrirConstructeur: (vin: string, marque: string): Promise<void> =>
     ipcRenderer.invoke('vin:ouvrirConstructeur', vin, marque),
+
+  // Personnalisation (branding.json partagé, lu/écrit côté main)
+  brandingCourant: (): Promise<unknown> => ipcRenderer.invoke('branding:courant'),
+  brandingEcrire:  (cfg: unknown): Promise<unknown> => ipcRenderer.invoke('branding:ecrire', cfg),
+  onBrandingMaj:   (cb: (cfg: unknown) => void): (() => void) => {
+    const h = (_: unknown, data: unknown): void => cb(data)
+    ipcRenderer.on('branding:maj', h)
+    return () => ipcRenderer.removeListener('branding:maj', h)
+  },
 }
 
 if (process.contextIsolated) {
