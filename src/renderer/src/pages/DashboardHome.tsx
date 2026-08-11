@@ -26,11 +26,11 @@ function StatCard({ icon, iconBg, borderColor, value, valueStyle, label, sub }: 
     <div
       className="stat-card"
       style={{
-        background: '#fff', borderRadius: 12,
+        background: 'var(--tc-card)', borderRadius: 12,
         padding: '14px 16px',
         display: 'flex', alignItems: 'center', gap: 14,
         boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-        border: '1px solid #F1F5F9',
+        border: '1px solid var(--tc-card-bd)',
         borderLeftWidth: 4, borderLeftColor: borderColor,
         cursor: 'default',
         transition: 'box-shadow 0.2s, transform 0.2s',
@@ -55,11 +55,11 @@ function StatCard({ icon, iconBg, borderColor, value, valueStyle, label, sub }: 
       }}>{icon}</div>
       <div>
         {/* Value — prototype: .sv */}
-        <div style={{ fontSize: 22, fontWeight: 800, color: '#1E293B', lineHeight: 1, ...valueStyle }}>{value}</div>
+        <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--tc-text)', lineHeight: 1, ...valueStyle }}>{value}</div>
         {/* Label — prototype: .sl */}
-        <div style={{ fontSize: 10, fontWeight: 600, color: '#64748B', marginTop: 3 }}>{label}</div>
+        <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--tc-muted)', marginTop: 3 }}>{label}</div>
         {/* Sub — prototype: .ss2 */}
-        <div style={{ fontSize: 9.5, color: '#94A3B8', marginTop: 2 }}>{sub}</div>
+        <div style={{ fontSize: 9.5, color: 'var(--tc-subtle)', marginTop: 2 }}>{sub}</div>
       </div>
     </div>
   )
@@ -69,7 +69,7 @@ function StatCard({ icon, iconBg, borderColor, value, valueStyle, label, sub }: 
 function SectionTitle({ label }: { label: string }): JSX.Element {
   return (
     <div style={{
-      fontSize: 10.5, fontWeight: 800, color: '#1B3A6B',
+      fontSize: 10.5, fontWeight: 800, color: 'var(--tc-heading)',
       marginBottom: 14, textTransform: 'uppercase', letterSpacing: 0.6,
     }}>
       {label}
@@ -143,16 +143,16 @@ export default function DashboardHome(): JSX.Element {
         <div
           onMouseEnter={e => e.currentTarget.querySelectorAll<HTMLElement>('.jauge-fill').forEach(el => { el.style.animation = 'none'; void el.offsetHeight; el.style.animation = '' })}
           style={{
-          flex: '1.4 1 320px', background: '#fff', borderRadius: 12, padding: 16,
-          border: '1px solid #F1F5F9', boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+          flex: '1.4 1 320px', background: 'var(--tc-card)', borderRadius: 12, padding: 16,
+          border: '1px solid var(--tc-card-bd)', boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
         }}>
           <SectionTitle label="Activité par frontière" />
           {destRows.map(r => (
             <div key={r.code} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 9 }}>
               {/* Code — prototype: .frc */}
-              <span style={{ width: 36, fontSize: 10, fontWeight: 800, color: '#1B3A6B' }}>{r.code}</span>
+              <span style={{ width: 36, fontSize: 10, fontWeight: 800, color: 'var(--tc-heading)' }}>{r.code}</span>
               {/* Bar — prototype: .frb + .frf */}
-              <div style={{ flex: 1, height: 6, background: '#F1F5F9', borderRadius: 3, overflow: 'hidden' }}>
+              <div style={{ flex: 1, height: 6, background: 'var(--tc-track)', borderRadius: 3, overflow: 'hidden' }}>
                 <div className="jauge-fill" style={{
                   height: '100%', borderRadius: 3,
                   width: `${r.pct}%`,
@@ -160,7 +160,7 @@ export default function DashboardHome(): JSX.Element {
                 }} />
               </div>
               {/* Count — prototype: .frn */}
-              <span style={{ width: 24, fontSize: 10, color: '#64748B', textAlign: 'right' }}>{r.count}</span>
+              <span style={{ width: 24, fontSize: 10, color: 'var(--tc-muted)', textAlign: 'right' }}>{r.count}</span>
             </div>
           ))}
         </div>
@@ -169,16 +169,16 @@ export default function DashboardHome(): JSX.Element {
         <div
           onMouseEnter={e => e.currentTarget.querySelectorAll<HTMLElement>('.jauge-fill').forEach(el => { el.style.animation = 'none'; void el.offsetHeight; el.style.animation = '' })}
           style={{
-          flex: '1 1 260px', background: '#fff', borderRadius: 12, padding: 16,
-          border: '1px solid #F1F5F9', boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+          flex: '1 1 260px', background: 'var(--tc-card)', borderRadius: 12, padding: 16,
+          border: '1px solid var(--tc-card-bd)', boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
         }}>
           <SectionTitle label="Répartition par type" />
           {typeRows.map(r => (
             <div key={r.type} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               {/* Type name — prototype: .tyn */}
-              <span style={{ width: 64, fontSize: 10, color: '#1E293B' }}>{r.type}</span>
+              <span style={{ width: 64, fontSize: 10, color: 'var(--tc-text)' }}>{r.type}</span>
               {/* Bar — prototype: .tyb + .tyf */}
-              <div style={{ flex: 1, height: 5, background: '#F1F5F9', borderRadius: 3, overflow: 'hidden' }}>
+              <div style={{ flex: 1, height: 5, background: 'var(--tc-track)', borderRadius: 3, overflow: 'hidden' }}>
                 <div className="jauge-fill" style={{
                   height: '100%', borderRadius: 3,
                   width: `${r.pct}%`,
@@ -186,7 +186,7 @@ export default function DashboardHome(): JSX.Element {
                 }} />
               </div>
               {/* Percent — prototype: .typ */}
-              <span style={{ width: 30, fontSize: 10, color: '#64748B', textAlign: 'right' }}>{r.pct}%</span>
+              <span style={{ width: 30, fontSize: 10, color: 'var(--tc-muted)', textAlign: 'right' }}>{r.pct}%</span>
             </div>
           ))}
         </div>
@@ -194,8 +194,8 @@ export default function DashboardHome(): JSX.Element {
 
       {/* ── Table — prototype: .dp + .rt ───────────────────────────── */}
       <div style={{
-        background: '#fff', borderRadius: 12, padding: 16,
-        border: '1px solid #F1F5F9', boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+        background: 'var(--tc-card)', borderRadius: 12, padding: 16,
+        border: '1px solid var(--tc-card-bd)', boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
       }}>
         <SectionTitle label="Derniers enregistrements" />
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -203,9 +203,9 @@ export default function DashboardHome(): JSX.Element {
             <tr>
               {['N° IMMAT', 'Type', 'Marque/Modèle', 'Frontière', 'Agent', 'Montant', 'Date'].map(h => (
                 <th key={h} style={{
-                  fontSize: 9.5, fontWeight: 700, color: '#64748B',
+                  fontSize: 9.5, fontWeight: 700, color: 'var(--tc-muted)',
                   textTransform: 'uppercase', letterSpacing: 0.5,
-                  padding: '6px 8px', borderBottom: '1px solid #D1D5DB', textAlign: 'left',
+                  padding: '6px 8px', borderBottom: '1px solid var(--tc-th-bd)', textAlign: 'left',
                 }}>{h}</th>
               ))}
             </tr>
@@ -215,33 +215,33 @@ export default function DashboardHome(): JSX.Element {
               const bg = DEST_COLORS[v.destination] ?? '#2563EB'
               return (
                 <tr key={v.id}
-                  onMouseEnter={e => { e.currentTarget.querySelectorAll('td').forEach(td => { (td as HTMLElement).style.background = '#F8FAFC' }) }}
+                  onMouseEnter={e => { e.currentTarget.querySelectorAll('td').forEach(td => { (td as HTMLElement).style.background = 'var(--tc-row-hover)' }) }}
                   onMouseLeave={e => { e.currentTarget.querySelectorAll('td').forEach(td => { (td as HTMLElement).style.background = '' }) }}
                 >
                   {/* Immat — prototype: .ib */}
-                  <td style={{ padding: 8, fontSize: 11, borderBottom: '1px solid #F8FAFC' }}>
+                  <td style={{ padding: 8, fontSize: 11, borderBottom: '1px solid var(--tc-td-bd)' }}>
                     <span style={{
                       fontFamily: "'Courier New', monospace", fontSize: 10.5, fontWeight: 700,
-                      color: '#1B3A6B', background: '#EFF6FF', border: '1px solid #BFDBFE',
+                      color: 'var(--tc-badge-tx)', background: 'var(--tc-badge-bg)', border: '1px solid var(--tc-badge-bd)',
                       padding: '2px 6px', borderRadius: 3,
                     }}>{v.immat}</span>
                   </td>
-                  <td style={{ padding: 8, fontSize: 11, borderBottom: '1px solid #F8FAFC' }}>{v.typeVehicule}</td>
-                  <td style={{ padding: 8, fontSize: 11, borderBottom: '1px solid #F8FAFC' }}>{v.marqueModele}</td>
+                  <td style={{ padding: 8, fontSize: 11, borderBottom: '1px solid var(--tc-td-bd)' }}>{v.typeVehicule}</td>
+                  <td style={{ padding: 8, fontSize: 11, borderBottom: '1px solid var(--tc-td-bd)' }}>{v.marqueModele}</td>
                   {/* Frontière badge */}
-                  <td style={{ padding: 8, fontSize: 11, borderBottom: '1px solid #F8FAFC' }}>
+                  <td style={{ padding: 8, fontSize: 11, borderBottom: '1px solid var(--tc-td-bd)' }}>
                     <span style={{
                       fontSize: 9.5, fontWeight: 700, padding: '2px 6px', borderRadius: 3,
                       color: destTxt(bg), background: bg,
                     }}>{v.destination}</span>
                   </td>
-                  <td style={{ padding: 8, fontSize: 11, borderBottom: '1px solid #F8FAFC' }}>{v.agent}</td>
+                  <td style={{ padding: 8, fontSize: 11, borderBottom: '1px solid var(--tc-td-bd)' }}>{v.agent}</td>
                   {/* Montant — prototype: .gb */}
-                  <td style={{ padding: 8, fontSize: 11, borderBottom: '1px solid #F8FAFC', color: '#16A34A', fontWeight: 700 }}>
+                  <td style={{ padding: 8, fontSize: 11, borderBottom: '1px solid var(--tc-td-bd)', color: '#16A34A', fontWeight: 700 }}>
                     {(v.montant / 1000).toFixed(0)} 000 F
                   </td>
                   {/* Date */}
-                  <td style={{ padding: 8, fontSize: 11, borderBottom: '1px solid #F8FAFC', color: '#64748B' }}>
+                  <td style={{ padding: 8, fontSize: 11, borderBottom: '1px solid var(--tc-td-bd)', color: 'var(--tc-muted)' }}>
                     {dayjs(v.date).format('DD/MM/YYYY')}
                   </td>
                 </tr>
@@ -252,7 +252,7 @@ export default function DashboardHome(): JSX.Element {
       </div>
 
       <div style={{ textAlign: 'center', paddingTop: 12, paddingBottom: 4 }}>
-        <Text style={{ fontSize: 10, color: '#D1D5DB' }}>
+        <Text style={{ fontSize: 10, color: 'var(--tc-subtle)' }}>
           TCIT — Contrôle et Immatriculation Transit · Données mock · {dayjs().format('DD/MM/YYYY')}
         </Text>
       </div>

@@ -516,6 +516,11 @@ ul.ac-hist li .ico { font-size: 11px; opacity: 0.7; flex-shrink: 0; }
   --tc-menu-bg:#ffffff; --tc-menu-bd:#D1D5DB; --tc-menu-tx:#1E293B;
   --tc-desktop:#EEF2F9; --tc-desktop-dot:rgba(27,58,107,0.07);
   --tc-frame-bd:#1B3A6B; --tc-mdi-body:#FFFFFF;
+  /* contenu (A-bis 2/2) */
+  --tc-card:#ffffff; --tc-card-bd:#F1F5F9;
+  --tc-heading:#1B3A6B; --tc-text:#1E293B; --tc-muted:#64748B; --tc-subtle:#94A3B8;
+  --tc-track:#F1F5F9; --tc-th-bd:#D1D5DB; --tc-td-bd:#F8FAFC; --tc-row-hover:#F8FAFC;
+  --tc-badge-bg:#EFF6FF; --tc-badge-bd:#BFDBFE; --tc-badge-tx:#1B3A6B;
 }
 :root[data-theme='dark']{
   --tc-titlebar:#0A1018;
@@ -525,4 +530,9 @@ ul.ac-hist li .ico { font-size: 11px; opacity: 0.7; flex-shrink: 0; }
   --tc-menu-bg:#0C1320; --tc-menu-bd:rgba(255,255,255,0.08); --tc-menu-tx:#E9EEF6;
   --tc-desktop:#05080D; --tc-desktop-dot:rgba(120,150,190,0.06);
   --tc-frame-bd:#16233C; --tc-mdi-body:#111826;
+  /* contenu (A-bis 2/2) */
+  --tc-card:#111826; --tc-card-bd:#1E2A3D;
+  --tc-heading:#CBD8EA; --tc-text:#E9EEF6; --tc-muted:#93A1B5; --tc-subtle:#66748B;
+  --tc-track:#1E2A3D; --tc-th-bd:#243248; --tc-td-bd:#1A2333; --tc-row-hover:#16223A;
+  --tc-badge-bg:#16233C; --tc-badge-bd:#2B3A52; --tc-badge-tx:#93B4F5;
 }
