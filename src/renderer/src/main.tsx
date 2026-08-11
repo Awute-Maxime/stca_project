@@ -5,23 +5,25 @@ import { ConfigProvider } from 'antd'
 import frFR from 'antd/locale/fr_FR'
 import App from './App'
 import './assets/index.css'
+import { useBranding } from './theme/useBranding'
+import { construireAntdTheme } from './theme/windev-theme'
+import { resoudreTheme } from '../../shared/branding'
+import { prefereSombreOS } from './theme/appliquerBranding'
+
+function Racine(): JSX.Element {
+  const cfg = useBranding()
+  const sombre = resoudreTheme(cfg.apparence.theme, prefereSombreOS()) === 'sombre'
+  return (
+    <ConfigProvider locale={frFR} theme={construireAntdTheme(sombre, cfg.apparence.couleurAccent)}>
+      <App />
+    </ConfigProvider>
+  )
+}
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <HashRouter>
-      <ConfigProvider
-        locale={frFR}
-        theme={{
-          token: {
-            colorPrimary: '#1B3A6B',
-            colorLink: '#2563EB',
-            borderRadius: 6,
-            fontFamily: "'Segoe UI', 'Arial', sans-serif"
-          }
-        }}
-      >
-        <App />
-      </ConfigProvider>
+      <Racine />
     </HashRouter>
   </React.StrictMode>
 )

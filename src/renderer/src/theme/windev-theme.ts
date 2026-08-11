@@ -1,4 +1,4 @@
-import type { ThemeConfig } from 'antd'
+import { theme as antdTheme, type ThemeConfig } from 'antd'
 
 export const appColors = {
   // Chrome fenêtre principale
@@ -96,3 +96,39 @@ export const appAntdTheme: ThemeConfig = {
 
 // Alias compat
 export const winDevAntdTheme = appAntdTheme
+
+// Palette sombre (miroir de appColors) — utilisée par A-bis pour la coquille.
+export const appColorsDark = {
+  windowChromeBg: '#0E1626', windowChromeText: '#E9EEF6',
+  sidebarBg: '#0E1626', sidebarText: '#E9EEF6', sidebarHoverBg: '#16223A', sidebarActiveBg: '#16223A',
+  menuBarBg: '#0C1320', menuBarText: '#E9EEF6', menuBarHoverBg: '#16223A',
+  mdiTitleBg: '#0A1018', mdiTitleText: '#E9EEF6', mdiBodyBg: '#111826',
+  desktopBg: '#05080D',
+  statusBarBg: '#0A1018', statusBarText: '#E9EEF6', statusBarBorder: 'rgba(255,255,255,0.10)',
+  btnValiderBg: '#2563EB', btnAnnulerBg: '#334155',
+  inputBg: '#0B111C', inputRequiredBg: '#0E1A2E',
+  accentBlue: '#2563EB', accentGold: '#F59E0B', accentDanger: '#F87171',
+  primaryBlue: '#111826', mdiTitleGradientStart: '#0E1626', mdiTitleGradientEnd: '#0A1018',
+  formPanelBg: '#111826',
+} as const
+
+/** Construit le thème AntD selon le mode et l'accent. Le clair reste appAntdTheme tel quel. */
+export function construireAntdTheme(sombre: boolean, accent: string): ThemeConfig {
+  if (!sombre) {
+    return { ...appAntdTheme, token: { ...appAntdTheme.token, colorPrimary: accent, colorLink: accent } }
+  }
+  return {
+    ...appAntdTheme,
+    algorithm: antdTheme.darkAlgorithm,
+    token: {
+      ...appAntdTheme.token,
+      colorPrimary: accent, colorLink: accent,
+      colorBgContainer: '#111826', colorBgLayout: '#05080D', colorBorderSecondary: '#1E2A3D',
+    },
+    components: {
+      ...appAntdTheme.components,
+      Table: { ...appAntdTheme.components?.Table, headerBg: '#16223A', headerColor: '#E9EEF6', rowHoverBg: '#16223A' },
+      Menu:  { ...appAntdTheme.components?.Menu, itemColor: '#E9EEF6', itemHoverBg: '#16223A', itemSelectedBg: '#1E2A3D', itemSelectedColor: '#E9EEF6' },
+    },
+  }
+}

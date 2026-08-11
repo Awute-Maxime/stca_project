@@ -6,7 +6,10 @@ import frFR from 'antd/locale/fr_FR'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 import { renderWindowContent } from '@windows/WindowContent'
 import { electronApi } from '@api/electron'
-import { appColors, appAntdTheme } from '@theme/windev-theme'
+import { appColors, construireAntdTheme } from '@theme/windev-theme'
+import { useBranding } from '@theme/useBranding'
+import { prefereSombreOS } from '@theme/appliquerBranding'
+import { resoudreTheme } from '../../../shared/branding'
 
 type DragCSS = CSSProperties & { WebkitAppRegion?: 'drag' | 'no-drag' }
 type BtnType  = 'minimize' | 'maximize' | 'close'
@@ -42,6 +45,8 @@ function TitleBtn({ type, onClick }: { type: BtnType; onClick: () => void }): JS
 
 export default function MdiWindowHost(): JSX.Element {
   const { id } = useParams<{ id: string }>()
+  const cfg = useBranding()
+  const sombre = resoudreTheme(cfg.apparence.theme, prefereSombreOS()) === 'sombre'
 
   // Ponts events custom → IPC : permet aux pages internes de fermer/ouvrir des fenêtres
   useEffect(() => {
@@ -67,7 +72,7 @@ export default function MdiWindowHost(): JSX.Element {
   const title  = config?.title ?? id
 
   return (
-    <ConfigProvider locale={frFR} theme={appAntdTheme}>
+    <ConfigProvider locale={frFR} theme={construireAntdTheme(sombre, cfg.apparence.couleurAccent)}>
       <div style={{
         display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', background: '#FFFFFF',
         // Fin liseré bleu nuit tout autour de la fenêtre (signature TCIT, comme la principale)
