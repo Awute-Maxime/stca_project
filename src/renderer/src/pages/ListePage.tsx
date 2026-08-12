@@ -89,12 +89,12 @@ export default function ListePage(): JSX.Element {
   const sorties = filtered.filter(v => v.recyclerPlaque).length
 
   const thStyle: React.CSSProperties = {
-    fontSize: 9, fontWeight: 700, color: '#64748B', textTransform: 'uppercase',
-    letterSpacing: 0.4, padding: 8, borderBottom: '2px solid #E2E8F0',
-    textAlign: 'left', whiteSpace: 'nowrap', background: '#F8FAFF',
+    fontSize: 9, fontWeight: 700, color: 'var(--tc-muted)', textTransform: 'uppercase',
+    letterSpacing: 0.4, padding: 8, borderBottom: '2px solid var(--tc-line)',
+    textAlign: 'left', whiteSpace: 'nowrap', background: 'var(--tc-section)',
   }
   const tdStyle: React.CSSProperties = {
-    padding: 8, color: '#1E293B', borderBottom: '1px solid #F1F5F9',
+    padding: 8, color: 'var(--tc-text)', borderBottom: '1px solid var(--tc-card-bd)',
   }
 
   return (
@@ -105,13 +105,13 @@ export default function ListePage(): JSX.Element {
         {/* Barre filtres date */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '7px 10px',
-          background: '#F8FAFF', borderBottom: '1px solid #E2E8F0', flexShrink: 0, flexWrap: 'wrap',
+          background: 'var(--tc-section)', borderBottom: '1px solid var(--tc-line)', flexShrink: 0, flexWrap: 'wrap',
         }}>
-          <label style={{ fontSize: 11.5, color: '#374151', whiteSpace: 'nowrap' }}>Date Début :</label>
+          <label style={{ fontSize: 11.5, color: 'var(--tc-label-strong)', whiteSpace: 'nowrap' }}>Date Début :</label>
           <input type="date" className="light-input" value={from} onChange={e => setFrom(e.target.value)}
             style={{ padding: '3px 5px', fontSize: 11, width: 126, height: 26 }} />
-          <span style={{ color: '#94A3B8', fontWeight: 700 }}>&gt;&gt;</span>
-          <label style={{ fontSize: 11.5, color: '#374151', whiteSpace: 'nowrap' }}>Date Fin :</label>
+          <span style={{ color: 'var(--tc-subtle)', fontWeight: 700 }}>&gt;&gt;</span>
+          <label style={{ fontSize: 11.5, color: 'var(--tc-label-strong)', whiteSpace: 'nowrap' }}>Date Fin :</label>
           <input type="date" className="light-input" value={to} onChange={e => setTo(e.target.value)}
             style={{ padding: '3px 5px', fontSize: 11, width: 126, height: 26 }} />
           <button onClick={doSearch} style={{
@@ -144,13 +144,13 @@ export default function ListePage(): JSX.Element {
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={14} style={{ textAlign: 'center', padding: 30, color: '#94A3B8', fontStyle: 'italic' }}>Aucun véhicule trouvé</td></tr>
+                <tr><td colSpan={14} style={{ textAlign: 'center', padding: 30, color: 'var(--tc-subtle)', fontStyle: 'italic' }}>Aucun véhicule trouvé</td></tr>
               ) : filtered.map(v => {
                 const bg = DEST_COLORS[v.destination] ?? '#6B7280'
                 const isSelected = selectedRef === v.ref
                 const isHovered = hoveredRef === v.ref
-                const bbc = isSelected ? '#BFDBFE' : '#F1F5F9'
-                const rowBg = isSelected ? '#EFF6FF' : (isHovered ? '#F8FAFF' : undefined)
+                const bbc = isSelected ? 'var(--tc-soft-bd)' : 'var(--tc-card-bd)'
+                const rowBg = isSelected ? 'var(--tc-soft-bg)' : (isHovered ? 'var(--tc-section)' : undefined)
                 // Cellule Réf verte si véhicule sorti (variante plus foncée au survol)
                 const refBg = v.recyclerPlaque
                   ? (isHovered && !isSelected ? '#BBF7D0' : '#D1FAE5')
@@ -162,9 +162,9 @@ export default function ListePage(): JSX.Element {
                     onMouseLeave={() => setHoveredRef(null)}
                     style={{ cursor: 'pointer', background: rowBg }}
                   >
-                    <td style={{ ...tdStyle, color: '#64748B', borderBottomColor: bbc, background: refBg }}>{v.ref}</td>
-                    <td style={{ ...tdStyle, color: '#1E293B', fontWeight: 500, borderBottomColor: bbc, textTransform: 'uppercase' }}>{v.nomAcheteur || '—'}</td>
-                    <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>{v.paysResidence}/{v.paysDestination || v.paysResidence}</td>
+                    <td style={{ ...tdStyle, color: 'var(--tc-muted)', borderBottomColor: bbc, background: refBg }}>{v.ref}</td>
+                    <td style={{ ...tdStyle, color: 'var(--tc-text)', fontWeight: 500, borderBottomColor: bbc, textTransform: 'uppercase' }}>{v.nomAcheteur || '—'}</td>
+                    <td style={{ ...tdStyle, color: 'var(--tc-label)', borderBottomColor: bbc }}>{v.paysResidence}/{v.paysDestination || v.paysResidence}</td>
                     <td style={{ ...tdStyle, textAlign: 'center', borderBottomColor: bbc }}>
                       <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 3, color: destTxt(bg), background: bg }}>{v.destination}</span>
                     </td>
@@ -174,21 +174,21 @@ export default function ListePage(): JSX.Element {
                         background: '#FFF7ED', border: '1px solid #FED7AA', padding: '2px 6px', borderRadius: 3,
                       }}>{v.immat}</span>
                     </td>
-                    <td style={{ ...tdStyle, color: '#1E293B', borderBottomColor: bbc, textTransform: 'uppercase' }}>{v.marqueModele}</td>
+                    <td style={{ ...tdStyle, color: 'var(--tc-text)', borderBottomColor: bbc, textTransform: 'uppercase' }}>{v.marqueModele}</td>
                     <td style={{ ...tdStyle, fontFamily: "'Courier New', monospace", fontSize: 10, color: '#2563EB', borderBottomColor: bbc }}>{v.chassis}</td>
                     <td style={{ ...tdStyle, textAlign: 'center', color: '#7C3AED', fontWeight: 600, borderBottomColor: bbc }}>
                       {v.numTri || String(10000 + v.id).padStart(6, '0')}
                     </td>
-                    <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>{v.parc || '—'}</td>
-                    <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>{dayjs(v.date).format('DD/MM/YYYY')}</td>
-                    <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>{dayjs(v.dateTri || v.date).format('DD/MM/YYYY')}</td>
-                    <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>{v.agent}</td>
+                    <td style={{ ...tdStyle, color: 'var(--tc-label)', borderBottomColor: bbc }}>{v.parc || '—'}</td>
+                    <td style={{ ...tdStyle, color: 'var(--tc-label)', borderBottomColor: bbc }}>{dayjs(v.date).format('DD/MM/YYYY')}</td>
+                    <td style={{ ...tdStyle, color: 'var(--tc-label)', borderBottomColor: bbc }}>{dayjs(v.dateTri || v.date).format('DD/MM/YYYY')}</td>
+                    <td style={{ ...tdStyle, color: 'var(--tc-label)', borderBottomColor: bbc }}>{v.agent}</td>
                     <td style={{ ...tdStyle, textAlign: 'center', borderBottomColor: bbc }}>
                       {v.recyclerPlaque
                         ? <span style={{ color: '#16A34A', fontWeight: 700 }}>✓</span>
                         : <span style={{ color: '#CBD5E1' }}>—</span>}
                     </td>
-                    <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>
+                    <td style={{ ...tdStyle, color: 'var(--tc-label)', borderBottomColor: bbc }}>
                       {v.recyclerPlaque ? dayjs(v.date).add(1, 'day').format('DD/MM/YYYY') : ''}
                     </td>
                   </tr>
@@ -199,7 +199,7 @@ export default function ListePage(): JSX.Element {
         </div>
 
         {/* Barre statut */}
-        <div style={{ padding: '4px 10px', background: '#FFFEF0', borderTop: '1px solid #E2E8F0', fontSize: 11, color: '#475569', flexShrink: 0 }}>
+        <div style={{ padding: '4px 10px', background: 'var(--tc-warmbar)', borderTop: '1px solid var(--tc-line)', fontSize: 11, color: 'var(--tc-label)', flexShrink: 0 }}>
           Nbr de Véhicule(s) : {filtered.length} &nbsp;-&nbsp; Nbr de Véhicule(s) Sortie(s) : {sorties}
         </div>
       </div>
@@ -207,20 +207,20 @@ export default function ListePage(): JSX.Element {
       {/* ── Panneau actions droit ───────────────────────────────────── */}
       <div style={{
         width: 160, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 5,
-        padding: '7px 6px', background: '#F8FAFF', borderLeft: '1px solid #E2E8F0', overflowY: 'auto',
+        padding: '7px 6px', background: 'var(--tc-section)', borderLeft: '1px solid var(--tc-line)', overflowY: 'auto',
       }}>
         {/* Rééditer DUPLICATA */}
         <button onClick={() => { if (checkSel()) setEditionType('duplicata') }}
           style={{
             width: '100%', padding: '7px 6px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
-            border: '1px solid #BFDBFE', background: '#EFF6FF', color: '#1D4ED8', fontWeight: 700, lineHeight: 1.4,
+            border: '1px solid var(--tc-soft-bd)', background: 'var(--tc-soft-bg)', color: 'var(--tc-soft-tx)', fontWeight: 700, lineHeight: 1.4,
           }}>🖨 Rééditer un<br />DUPLICATA</button>
 
         {/* Rééditer Renouvellement */}
         <button onClick={() => { if (checkSel()) setEditionType('renouvel') }}
           style={{
             width: '100%', padding: '7px 6px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
-            border: '1px solid #BFDBFE', background: '#EFF6FF', color: '#1D4ED8', fontWeight: 700, lineHeight: 1.4,
+            border: '1px solid var(--tc-soft-bd)', background: 'var(--tc-soft-bg)', color: 'var(--tc-soft-tx)', fontWeight: 700, lineHeight: 1.4,
           }}>🖨 Rééditer un<br />Renouvellem.</button>
 
         {/* Modifier — ouvre Enregistrement + charge les données + ferme Liste */}
@@ -243,7 +243,7 @@ export default function ListePage(): JSX.Element {
         }}
           style={{
             width: '100%', padding: '5px 6px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
-            border: '1px solid #CBD5E1', background: '#fff', color: '#1E293B',
+            border: '1px solid var(--tc-fieldset-bd)', background: 'var(--tc-card)', color: 'var(--tc-text)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
           }}>✏ Modifier</button>
 
@@ -256,7 +256,7 @@ export default function ListePage(): JSX.Element {
         }}
           style={{
             width: '100%', padding: '5px 6px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
-            border: '1px solid #CBD5E1', background: '#fff', color: '#1E293B',
+            border: '1px solid var(--tc-fieldset-bd)', background: 'var(--tc-card)', color: 'var(--tc-text)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
           }}>🖨 Imprimer</button>
 
@@ -276,8 +276,8 @@ export default function ListePage(): JSX.Element {
           }}>⊖ Supprimer</button>
 
         {/* Filtrage Pointage */}
-        <fieldset style={{ border: '1px solid #E2E8F0', borderRadius: 5, padding: '6px 8px', background: '#fff', marginTop: 2, margin: 0 }}>
-          <legend style={{ fontSize: 10.5, fontWeight: 600, color: '#374151', padding: '0 3px' }}>Filtrage Pointage</legend>
+        <fieldset style={{ border: '1px solid var(--tc-line)', borderRadius: 5, padding: '6px 8px', background: 'var(--tc-card)', marginTop: 2, margin: 0 }}>
+          <legend style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--tc-label-strong)', padding: '0 3px' }}>Filtrage Pointage</legend>
           <label style={{ display: 'block', fontSize: 11, cursor: 'pointer', marginBottom: 3 }}>
             <input type="radio" name="lv-pointage" value="sortie" checked={pointage === 'sortie'}
               onChange={() => setPointage('sortie')} style={{ accentColor: '#2563EB' }} /> Sortie
@@ -293,8 +293,8 @@ export default function ListePage(): JSX.Element {
         </fieldset>
 
         {/* Filtrage Frontière */}
-        <fieldset style={{ border: '1px solid #E2E8F0', borderRadius: 5, padding: '6px 8px', background: '#fff', margin: 0 }}>
-          <legend style={{ fontSize: 10.5, fontWeight: 600, color: '#374151', padding: '0 3px' }}>Filtrage Frontière</legend>
+        <fieldset style={{ border: '1px solid var(--tc-line)', borderRadius: 5, padding: '6px 8px', background: 'var(--tc-card)', margin: 0 }}>
+          <legend style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--tc-label-strong)', padding: '0 3px' }}>Filtrage Frontière</legend>
           <input type="text" className="light-input" placeholder="ex: AFO" value={frFilter}
             onChange={e => setFrFilter(e.target.value.toUpperCase())}
             style={{ width: '100%', padding: '3px 5px', fontSize: 11, textTransform: 'uppercase', height: 26 }} />
@@ -310,7 +310,7 @@ export default function ListePage(): JSX.Element {
           if (!v) return
           if (!v.recyclerPlaque) { notification.info({ message: "Ce véhicule n'est pas encore pointé comme sorti.", placement: 'bottomRight' }); return }
           setConfirm({
-            msg: <>Décocher le pointage de sortie de ce véhicule ?<br /><small style={{ color: '#64748B' }}>Il sera considéré comme non sorti.</small></>,
+            msg: <>Décocher le pointage de sortie de ce véhicule ?<br /><small style={{ color: 'var(--tc-muted)' }}>Il sera considéré comme non sorti.</small></>,
             cb: () => { updateVehicule(v.ref, { recyclerPlaque: false }); setSelectedRef(null); setConfirm(null); notification.success({ message: '✅ Véhicule remis en NON Sortie', placement: 'bottomRight' }) }
           })
         }} style={{
@@ -322,7 +322,7 @@ export default function ListePage(): JSX.Element {
         <button onClick={() => window.dispatchEvent(new CustomEvent('mdi:close-self'))}
           style={{
             width: '100%', padding: '5px 6px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
-            border: '1px solid #CBD5E1', background: '#F1F5F9', color: '#475569', fontWeight: 600,
+            border: '1px solid var(--tc-fieldset-bd)', background: 'var(--tc-track)', color: 'var(--tc-label)', fontWeight: 600,
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
           }}>✕ Fermer</button>
       </div>
