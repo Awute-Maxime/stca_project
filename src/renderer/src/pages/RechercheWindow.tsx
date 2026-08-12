@@ -113,12 +113,12 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
   }
 
   const thStyle: React.CSSProperties = {
-    fontSize: 9, fontWeight: 700, color: '#64748B', textTransform: 'uppercase',
-    letterSpacing: 0.4, padding: 8, borderBottom: '2px solid #E2E8F0',
-    textAlign: 'left', whiteSpace: 'nowrap', background: '#F8FAFF',
+    fontSize: 9, fontWeight: 700, color: 'var(--tc-muted)', textTransform: 'uppercase',
+    letterSpacing: 0.4, padding: 8, borderBottom: '2px solid var(--tc-line)',
+    textAlign: 'left', whiteSpace: 'nowrap', background: 'var(--tc-section)',
   }
   const tdStyle: React.CSSProperties = {
-    padding: 8, color: '#1E293B', borderBottom: '1px solid #F1F5F9',
+    padding: 8, color: 'var(--tc-text)', borderBottom: '1px solid var(--tc-card-bd)',
   }
 
   return (
@@ -128,9 +128,9 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
         {/* Barre recherche */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '7px 10px',
-          background: '#F8FAFF', borderBottom: '1px solid #E2E8F0', flexShrink: 0, flexWrap: 'wrap',
+          background: 'var(--tc-section)', borderBottom: '1px solid var(--tc-line)', flexShrink: 0, flexWrap: 'wrap',
         }}>
-          <label style={{ fontSize: 11.5, color: '#374151', whiteSpace: 'nowrap' }}>{label} :</label>
+          <label style={{ fontSize: 11.5, color: 'var(--tc-label-strong)', whiteSpace: 'nowrap' }}>{label} :</label>
           <input className="light-input" value={query}
             onChange={e => setQuery(e.target.value.toUpperCase())}
             onKeyDown={e => { if (e.key === 'Enter') doSearch() }}
@@ -167,24 +167,24 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
             </thead>
             <tbody>
               {!searched ? (
-                <tr><td colSpan={11} style={{ textAlign: 'center', padding: 40, color: '#94A3B8', fontStyle: 'italic' }}>{emptyMsg}</td></tr>
+                <tr><td colSpan={11} style={{ textAlign: 'center', padding: 40, color: 'var(--tc-subtle)', fontStyle: 'italic' }}>{emptyMsg}</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={11} style={{ textAlign: 'center', padding: 30, color: '#94A3B8', fontStyle: 'italic' }}>Aucun véhicule trouvé</td></tr>
+                <tr><td colSpan={11} style={{ textAlign: 'center', padding: 30, color: 'var(--tc-subtle)', fontStyle: 'italic' }}>Aucun véhicule trouvé</td></tr>
               ) : filtered.map(v => {
                 const bg = DEST_COLORS[v.destination] ?? '#6B7280'
                 const isSel = selectedRef === v.ref
                 const isHov = hoveredRef === v.ref
-                const bbc = isSel ? '#BFDBFE' : '#F1F5F9'
-                const rowBg = isSel ? '#EFF6FF' : (isHov ? '#F8FAFF' : undefined)
+                const bbc = isSel ? 'var(--tc-soft-bd)' : 'var(--tc-card-bd)'
+                const rowBg = isSel ? 'var(--tc-soft-bg)' : (isHov ? 'var(--tc-section)' : undefined)
                 return (
                   <tr key={v.id} onClick={() => setSelectedRef(v.ref)}
                     onMouseEnter={() => setHoveredRef(v.ref)}
                     onMouseLeave={() => setHoveredRef(null)}
                     style={{ cursor: 'pointer', background: rowBg }}
                   >
-                    <td style={{ ...tdStyle, color: '#64748B', borderBottomColor: bbc }}>{v.ref}</td>
-                    <td style={{ ...tdStyle, color: '#1E293B', fontWeight: 500, borderBottomColor: bbc, textTransform: 'uppercase' }}>{v.nomAcheteur || '—'}</td>
-                    <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>{v.paysResidence}/{v.paysDestination || v.paysResidence}</td>
+                    <td style={{ ...tdStyle, color: 'var(--tc-muted)', borderBottomColor: bbc }}>{v.ref}</td>
+                    <td style={{ ...tdStyle, color: 'var(--tc-text)', fontWeight: 500, borderBottomColor: bbc, textTransform: 'uppercase' }}>{v.nomAcheteur || '—'}</td>
+                    <td style={{ ...tdStyle, color: 'var(--tc-label)', borderBottomColor: bbc }}>{v.paysResidence}/{v.paysDestination || v.paysResidence}</td>
                     <td style={{ ...tdStyle, textAlign: 'center', borderBottomColor: bbc }}>
                       <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 3, color: destTxt(bg), background: bg }}>{v.destination}</span>
                     </td>
@@ -201,14 +201,14 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
                         }}>📦 ARCHIVÉ</span>
                       )}
                     </td>
-                    <td style={{ ...tdStyle, color: '#1E293B', borderBottomColor: bbc, textTransform: 'uppercase' }}>{v.marqueModele}</td>
+                    <td style={{ ...tdStyle, color: 'var(--tc-text)', borderBottomColor: bbc, textTransform: 'uppercase' }}>{v.marqueModele}</td>
                     <td style={{ ...tdStyle, fontFamily: "'Courier New', monospace", fontSize: 10, color: '#2563EB', borderBottomColor: bbc }}>{v.chassis}</td>
                     <td style={{ ...tdStyle, textAlign: 'center', color: '#7C3AED', fontWeight: 600, borderBottomColor: bbc }}>
                       {v.numTri || String(10000 + v.id).padStart(6, '0')}
                     </td>
-                    <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>{v.parc || '—'}</td>
-                    <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>{dayjs(v.date).format('DD/MM/YYYY')}</td>
-                    <td style={{ ...tdStyle, color: '#475569', borderBottomColor: bbc }}>{v.agent}</td>
+                    <td style={{ ...tdStyle, color: 'var(--tc-label)', borderBottomColor: bbc }}>{v.parc || '—'}</td>
+                    <td style={{ ...tdStyle, color: 'var(--tc-label)', borderBottomColor: bbc }}>{dayjs(v.date).format('DD/MM/YYYY')}</td>
+                    <td style={{ ...tdStyle, color: 'var(--tc-label)', borderBottomColor: bbc }}>{v.agent}</td>
                   </tr>
                 )
               })}
@@ -217,7 +217,7 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
         </div>
 
         {/* Barre statut */}
-        <div style={{ padding: '4px 10px', background: '#FFFEF0', borderTop: '1px solid #E2E8F0', fontSize: 11, color: '#475569', flexShrink: 0 }}>
+        <div style={{ padding: '4px 10px', background: 'var(--tc-warmbar)', borderTop: '1px solid var(--tc-line)', fontSize: 11, color: 'var(--tc-label)', flexShrink: 0 }}>
           Nbr de Véhicule(s) : {filtered.length}
           {depuisArchives && filtered.length > 0 && (
             <span style={{ marginLeft: 10, color: '#92400E', fontWeight: 700 }}>
@@ -230,12 +230,12 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
       {/* Panneau actions droit */}
       <div style={{
         width: 160, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 5,
-        padding: '7px 6px', background: '#F8FAFF', borderLeft: '1px solid #E2E8F0', overflowY: 'auto',
+        padding: '7px 6px', background: 'var(--tc-section)', borderLeft: '1px solid var(--tc-line)', overflowY: 'auto',
       }}>
         <button onClick={() => { if (checkSel()) setEditionType('duplicata') }}
           style={{
             width: '100%', padding: '7px 6px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
-            border: '1px solid #BFDBFE', background: '#EFF6FF', color: '#1D4ED8', fontWeight: 700, lineHeight: 1.4,
+            border: '1px solid var(--tc-soft-bd)', background: 'var(--tc-soft-bg)', color: 'var(--tc-soft-tx)', fontWeight: 700, lineHeight: 1.4,
           }}>🖨 Rééditer un<br />DUPLICATA</button>
 
         <button onClick={() => {
@@ -262,7 +262,7 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
         }}
           style={{
             width: '100%', padding: '5px 6px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
-            border: '1px solid #CBD5E1', background: '#fff', color: '#1E293B',
+            border: '1px solid var(--tc-fieldset-bd)', background: 'var(--tc-card)', color: 'var(--tc-text)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
           }}>✏ Modifier</button>
 
@@ -288,11 +288,11 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
         <button onClick={() => { if (checkSel()) setEditionType('renouvel') }}
           style={{
             width: '100%', padding: '7px 6px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
-            border: '1px solid #BFDBFE', background: '#EFF6FF', color: '#1D4ED8', fontWeight: 700, lineHeight: 1.4,
+            border: '1px solid var(--tc-soft-bd)', background: 'var(--tc-soft-bg)', color: 'var(--tc-soft-tx)', fontWeight: 700, lineHeight: 1.4,
           }}>🖨 Rééditer un<br />Renouvellem.</button>
 
-        <fieldset style={{ border: '1px solid #E2E8F0', borderRadius: 5, padding: '6px 8px', background: '#fff', marginTop: 2, margin: 0 }}>
-          <legend style={{ fontSize: 10.5, fontWeight: 600, color: '#374151', padding: '0 3px' }}>Filtrage Frontière</legend>
+        <fieldset style={{ border: '1px solid var(--tc-line)', borderRadius: 5, padding: '6px 8px', background: 'var(--tc-card)', marginTop: 2, margin: 0 }}>
+          <legend style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--tc-label-strong)', padding: '0 3px' }}>Filtrage Frontière</legend>
           <input type="text" className="light-input" placeholder="ex: AFO" value={frFilter}
             onChange={e => setFrFilter(e.target.value.toUpperCase())}
             style={{ width: '100%', padding: '3px 5px', fontSize: 11, textTransform: 'uppercase', height: 26 }} />
