@@ -28,14 +28,14 @@ import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 const MONTANT_FIXE   = 10000
 
 const C = {
-  blue:      '#1B3A6B',
-  accent:    '#2563EB',
+  blue:      'var(--tc-heading)',
+  accent:    'var(--accent)',
   gold:      '#F59E0B',
   green:     '#16A34A',
-  text:      '#1E293B',
+  text:      'var(--tc-text)',
   muted:     '#6B7280',
-  border:    '#D1D5DB',
-  bgSection: '#F8FAFF',
+  border:    'var(--tc-th-bd)',
+  bgSection: 'var(--tc-section)',
   danger:    '#DC2626',
 }
 
@@ -245,15 +245,15 @@ function FieldBox({ label, children, style }: {
 }
 
 const FS2: CSSProperties = {
-  height: 26, background: '#fff', border: '1px solid #D1D5DB', borderRadius: 4,
-  padding: '0 26px 0 8px', color: '#1E293B', fontSize: 11.5, outline: 'none',
+  height: 26, background: 'var(--tc-card)', border: '1px solid var(--tc-th-bd)', borderRadius: 4,
+  padding: '0 26px 0 8px', color: 'var(--tc-text)', fontSize: 11.5, outline: 'none',
   cursor: 'pointer', WebkitAppearance: 'none', appearance: 'none',
   backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239CA3AF' stroke-width='1.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E\")",
   backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center',
 } as CSSProperties
 const QBTN: CSSProperties = {
   fontSize: 11, width: 22, height: 22, borderRadius: '50%',
-  background: '#E2E8F0', border: 'none', cursor: 'pointer', color: '#475569',
+  background: '#E2E8F0', border: 'none', cursor: 'pointer', color: 'var(--tc-label)',
   display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
 }
 
@@ -518,10 +518,10 @@ export default function EnregistrementPage(): JSX.Element {
   const fmtF = (n: number): string => `${n.toLocaleString('fr-FR')} F`
 
   const R: CSSProperties = { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }
-  const LBL: CSSProperties = { fontSize: 11, color: '#475569', whiteSpace: 'nowrap', width: 130, flexShrink: 0 }
+  const LBL: CSSProperties = { fontSize: 11, color: 'var(--tc-label)', whiteSpace: 'nowrap', width: 130, flexShrink: 0 }
   const LBL_SM: CSSProperties = { ...LBL, width: 110 }
-  const FS: CSSProperties = { border: '1px solid #CBD5E1', borderRadius: 5, padding: '6px 12px 10px', margin: 0 }
-  const LEG: CSSProperties = { fontSize: 10, fontWeight: 600, color: '#475569', padding: '0 6px', textTransform: 'uppercase', letterSpacing: 0.5 }
+  const FS: CSSProperties = { border: '1px solid var(--tc-fieldset-bd)', borderRadius: 5, padding: '6px 12px 10px', margin: 0 }
+  const LEG: CSSProperties = { fontSize: 10, fontWeight: 600, color: 'var(--tc-label)', padding: '0 6px', textTransform: 'uppercase', letterSpacing: 0.5 }
 
   // ── Rendu ─────────────────────────────────────────────────────────────────
   return (
@@ -531,21 +531,21 @@ export default function EnregistrementPage(): JSX.Element {
       // Agrandissement proportionnel +20% (mêmes proportions, tout plus grand)
       zoom: 1.2,
       animation: 'formEnter 0.35s cubic-bezier(0.16,1,0.3,1)',
-      background: '#F8FAFF',
+      background: 'var(--tc-section)',
     }}>
 
       {/* ── Sub-header beige ────────────────────────────────────────────── */}
       <div style={{
-        background: '#F5F3EE', borderBottom: '2px solid #E2D9C8',
+        background: 'var(--tc-subheader-bg)', borderBottom: '2px solid var(--tc-subheader-bd)',
         padding: '9px 14px', display: 'flex', alignItems: 'center', flexShrink: 0,
       }}>
         <span style={{ fontSize: 12, marginRight: 8 }}>📄</span>
-        <span style={{ color: '#1B3A6B', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase', flex: 1 }}>
+        <span style={{ color: 'var(--tc-heading)', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase', flex: 1 }}>
           {editMode ? "Modification d'un Enregistrement" : 'Enregistrement des Véhicules'}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           {progress.map((filled, i) => <ProgressDot key={i} filled={filled} />)}
-          <span style={{ fontSize: 9, color: '#64748B', marginLeft: 5 }}>
+          <span style={{ fontSize: 9, color: 'var(--tc-muted)', marginLeft: 5 }}>
             {formReady ? '✓ Prêt' : `${progressCount}/4 requis`}
           </span>
         </div>
@@ -563,15 +563,15 @@ export default function EnregistrementPage(): JSX.Element {
             ✅ Enregistrement sauvegardé — Réf. <span style={{ color: C.blue }}>{savedRef}</span>
           </span>
           <button onClick={() => setShowEdition(true)} style={{
-            height: 32, padding: '0 16px', background: '#F8FAFF', color: '#64748B',
-            border: '1px solid #D1D5DB', borderRadius: 5, fontSize: 12, cursor: 'pointer',
+            height: 32, padding: '0 16px', background: 'var(--tc-section)', color: 'var(--tc-muted)',
+            border: '1px solid var(--tc-th-bd)', borderRadius: 5, fontSize: 12, cursor: 'pointer',
             transition: 'all 0.2s',
           }}>
             🖨 Réimprimer
           </button>
           <button onClick={handleReset} style={{
-            height: 32, padding: '0 16px', background: '#F8FAFF', color: '#64748B',
-            border: '1px solid #D1D5DB', borderRadius: 5, fontSize: 12, cursor: 'pointer',
+            height: 32, padding: '0 16px', background: 'var(--tc-section)', color: 'var(--tc-muted)',
+            border: '1px solid var(--tc-th-bd)', borderRadius: 5, fontSize: 12, cursor: 'pointer',
             transition: 'all 0.2s',
           }}>
             ➕ Nouveau
@@ -582,20 +582,20 @@ export default function EnregistrementPage(): JSX.Element {
       {/* ── Barre Référence + date + IMMAT badge ───────────────────────── */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 16,
-        padding: '7px 16px', borderBottom: '1px solid #E2E8F0', background: '#F8FAFF', flexShrink: 0,
+        padding: '7px 16px', borderBottom: '1px solid var(--tc-line)', background: 'var(--tc-section)', flexShrink: 0,
       }}>
         <button
           onClick={() => window.dispatchEvent(new CustomEvent('mdi:open-window', { detail: 'listeVehicules' }))}
           style={{
             display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px',
-            background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 5,
-            color: '#1D4ED8', fontSize: 11, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
+            background: 'var(--tc-soft-bg)', border: '1px solid var(--tc-soft-bd)', borderRadius: 5,
+            color: 'var(--tc-soft-tx)', fontSize: 11, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
           }}
         >☰ Liste</button>
-        <span style={{ fontSize: 11, fontWeight: 600, color: '#475569' }}>Référence</span>
+        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--tc-label)' }}>Référence</span>
         <input className="light-input" value={savedRef ?? '0'} readOnly
-          style={{ width: 58, textAlign: 'center', fontWeight: 700, color: '#2563EB', letterSpacing: 1.5, background: '#EFF6FF', height: 26 }} />
-        <span style={{ fontSize: 11, fontWeight: 600, color: '#475569' }}>En date du</span>
+          style={{ width: 58, textAlign: 'center', fontWeight: 700, color: '#2563EB', letterSpacing: 1.5, background: 'var(--tc-soft-bg)', height: 26 }} />
+        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--tc-label)' }}>En date du</span>
         <DatePicker value={date} onChange={v => v && setDate(v)} format="DD/MM/YYYY" size="small"
           style={{ width: 136, height: 26 }} allowClear={false} disabled={saved} />
         <div style={{ flex: 1 }} />
@@ -614,17 +614,17 @@ export default function EnregistrementPage(): JSX.Element {
         }}>
           <span style={{
             position: 'absolute', top: 6, left: 12,
-            fontSize: 8.5, fontWeight: 800, color: '#1B3A6B', letterSpacing: 1, opacity: 0.55,
+            fontSize: 8.5, fontWeight: 800, color: 'var(--tc-heading)', letterSpacing: 1, opacity: 0.55,
           }}>N° IMMAT</span>
           {immatGenere ? (
             <div key={immatGenere} style={{
               fontFamily: "'Arial Narrow', 'Segoe UI', sans-serif", fontWeight: 800,
-              fontSize: 27, letterSpacing: 4, color: '#1B3A6B', lineHeight: 1.15, marginTop: 8,
+              fontSize: 27, letterSpacing: 4, color: 'var(--tc-heading)', lineHeight: 1.15, marginTop: 8,
               animation: 'immatReveal 0.4s ease',
             }}>
-              <span style={{ fontSize: 15, letterSpacing: 2.5, color: '#334155' }}>TG WZ</span>{' '}
+              <span style={{ fontSize: 15, letterSpacing: 2.5, color: 'var(--tc-muted)' }}>TG WZ</span>{' '}
               {immatGenere[0]} {immatGenere.slice(1)}{' '}
-              <span style={{ fontSize: 15, letterSpacing: 2.5, color: '#334155' }}>{destination}</span>
+              <span style={{ fontSize: 15, letterSpacing: 2.5, color: 'var(--tc-muted)' }}>{destination}</span>
             </div>
           ) : (
             <div style={{
@@ -654,7 +654,7 @@ export default function EnregistrementPage(): JSX.Element {
               normaliser={enCapitalise} placeholder="Pays de résidence" icone="🌍"
               style={{ height: 26 }} disabled={saved}
               onOpenGestion={() => ouvrirGestion('historique.pays', 'paysResidence')} />
-            <span style={{ fontSize: 11, color: '#475569', whiteSpace: 'nowrap', marginLeft: 12 }}>Pays Destination :</span>
+            <span style={{ fontSize: 11, color: 'var(--tc-label)', whiteSpace: 'nowrap', marginLeft: 12 }}>Pays Destination :</span>
             <AutoCompleteHistorique value={paysDestination} onChange={setPaysDestination} options={paysOpts}
               normaliser={enCapitalise} placeholder="Pays de destination" icone="🌍"
               style={{ height: 26 }} disabled={saved}
@@ -699,9 +699,9 @@ export default function EnregistrementPage(): JSX.Element {
               }}>{destNom}</div>
             )}
             <div style={{ minWidth: 12 }} />
-            <span style={{ fontSize: 11, color: '#475569', whiteSpace: 'nowrap' }}>Montant :</span>
+            <span style={{ fontSize: 11, color: 'var(--tc-label)', whiteSpace: 'nowrap' }}>Montant :</span>
             <input className="light-input" value={montant != null ? `${montant.toLocaleString('fr-FR')} FCFA` : '0'} readOnly
-              style={{ width: 90, textAlign: 'right', fontWeight: 700, color: '#1B3A6B', background: '#F0F4FF', height: 26 }} />
+              style={{ width: 90, textAlign: 'right', fontWeight: 700, color: 'var(--tc-heading)', background: 'var(--tc-montant-bg)', height: 26 }} />
           </div>
           {/* Marque - Modèle + N° de Tri */}
           <div style={R}>
@@ -711,7 +711,7 @@ export default function EnregistrementPage(): JSX.Element {
               placeholder="Marque et modèle du véhicule" icone="🚗"
               style={{ height: 26 }} disabled={saved}
               onOpenGestion={() => ouvrirGestion('fichier.marques')} />
-            <span style={{ fontSize: 11, color: '#475569', whiteSpace: 'nowrap', marginLeft: 12 }}>N° de Tri :</span>
+            <span style={{ fontSize: 11, color: 'var(--tc-label)', whiteSpace: 'nowrap', marginLeft: 12 }}>N° de Tri :</span>
             <HistoryInput fieldKey="numTri" history={triHist.history} value={numTri} onChange={setNumTri}
               normaliser={chiffresSeuls} className="light-input" style={{ width: 140, height: 26 }} disabled={saved} />
           </div>
@@ -722,7 +722,7 @@ export default function EnregistrementPage(): JSX.Element {
               normaliser={enCapitalise} placeholder="Maison de transit" icone="🏢"
               style={{ height: 26 }} disabled={saved}
               onOpenGestion={() => ouvrirGestion('historique.transit', 'maisonTransit')} />
-            <span style={{ fontSize: 11, color: '#475569', whiteSpace: 'nowrap', marginLeft: 12 }}>Date N° Tri :</span>
+            <span style={{ fontSize: 11, color: 'var(--tc-label)', whiteSpace: 'nowrap', marginLeft: 12 }}>Date N° Tri :</span>
             <DatePicker value={dateTri} onChange={v => v && setDateTri(v)} format="DD/MM/YYYY" size="small"
               allowClear={false} disabled={saved} style={{ width: 140, height: 26 }} />
           </div>
@@ -759,22 +759,22 @@ export default function EnregistrementPage(): JSX.Element {
 
         {/* ── Bas : ancienne immat + recycler ──────────────────────────── */}
         <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
-          <div style={{ flex: 1, border: '1px solid #CBD5E1', borderRadius: 5, padding: '7px 12px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 11, color: '#475569', marginBottom: 6 }}>
+          <div style={{ flex: 1, border: '1px solid var(--tc-fieldset-bd)', borderRadius: 5, padding: '7px 12px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 11, color: 'var(--tc-label)', marginBottom: 6 }}>
               <Checkbox checked={saisirAncienne} onChange={e => setSaisirAncienne(e.target.checked)} disabled={saved} />
               Saisir l&apos;ancienne immatriculation
             </label>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 11, color: '#475569', whiteSpace: 'nowrap' }}>Ancienne immatriculation :</span>
+              <span style={{ fontSize: 11, color: 'var(--tc-label)', whiteSpace: 'nowrap' }}>Ancienne immatriculation :</span>
               <input className="light-input" value={ancienneImmat} disabled={!saisirAncienne || saved}
                 onChange={e => setAncienneImmat(e.target.value)} style={{ flex: 1, height: 26, background: saisirAncienne ? '#fff' : '#F9FAFB' }} />
             </div>
           </div>
-          <div style={{ width: 180, border: '1px solid #CBD5E1', borderRadius: 5, padding: '7px 12px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div style={{ fontSize: 10, fontWeight: 600, color: '#475569', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
+          <div style={{ width: 180, border: '1px solid var(--tc-fieldset-bd)', borderRadius: 5, padding: '7px 12px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--tc-label)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
               Recycler &apos;Plaque Perdue&apos;
             </div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: '#1E293B', cursor: 'pointer' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: 'var(--tc-text)', cursor: 'pointer' }}>
               <Checkbox checked={!recycler} onChange={e => setRecycler(!e.target.checked)} disabled={saved} />
               NON
             </label>
@@ -783,15 +783,15 @@ export default function EnregistrementPage(): JSX.Element {
           {/* ── Récapitulatif financier (compact, 2 lignes — même hauteur que les autres) ─── */}
           <div style={{
             width: 250, border: '1px solid #DCE4F2', borderRadius: 5, padding: '7px 13px',
-            background: '#fff', boxShadow: '0 4px 12px rgba(27,58,107,0.08)',
+            background: 'var(--tc-card)', boxShadow: '0 4px 12px rgba(27,58,107,0.08)',
             display: 'flex', flexDirection: 'column', justifyContent: 'center',
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, color: '#475569', marginBottom: 5 }}>
-              <span>STCA <b style={{ color: '#1E293B', fontVariantNumeric: 'tabular-nums' }}>{fmtF(montantStca)}</b></span>
-              <span>Assur. <b style={{ color: '#1E293B', fontVariantNumeric: 'tabular-nums' }}>{montantAssur ? fmtF(montantAssur) : '—'}</b></span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, color: 'var(--tc-label)', marginBottom: 5 }}>
+              <span>STCA <b style={{ color: 'var(--tc-text)', fontVariantNumeric: 'tabular-nums' }}>{fmtF(montantStca)}</b></span>
+              <span>Assur. <b style={{ color: 'var(--tc-text)', fontVariantNumeric: 'tabular-nums' }}>{montantAssur ? fmtF(montantAssur) : '—'}</b></span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', borderTop: '1px solid #E2E8F0', paddingTop: 5 }}>
-              <span style={{ fontSize: 10.5, fontWeight: 800, color: '#1B3A6B', textTransform: 'uppercase', letterSpacing: 0.3 }}>Total facture</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', borderTop: '1px solid var(--tc-line)', paddingTop: 5 }}>
+              <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--tc-heading)', textTransform: 'uppercase', letterSpacing: 0.3 }}>Total facture</span>
               <span style={{ fontSize: 17, fontWeight: 800, color: '#16A34A', fontVariantNumeric: 'tabular-nums' }}>{fmtF(totalFacture)}</span>
             </div>
           </div>
@@ -803,16 +803,16 @@ export default function EnregistrementPage(): JSX.Element {
       {!saved && !editMode && (
         <div style={{
           display: 'flex', justifyContent: 'flex-end', gap: 8,
-          padding: '9px 14px', borderTop: '1px solid #E2E8F0', background: '#F8FAFF', flexShrink: 0,
+          padding: '9px 14px', borderTop: '1px solid var(--tc-line)', background: 'var(--tc-section)', flexShrink: 0,
         }}>
           <button onClick={handleReset} className="btn-reset" style={{
-            height: 32, padding: '0 16px', background: '#F8FAFF', color: '#64748B',
-            border: '1px solid #D1D5DB', borderRadius: 5, fontSize: 12, cursor: 'pointer',
+            height: 32, padding: '0 16px', background: 'var(--tc-section)', color: 'var(--tc-muted)',
+            border: '1px solid var(--tc-th-bd)', borderRadius: 5, fontSize: 12, cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: 6,
           }}><span className="btn-ico" role="img" aria-label="réinitialiser">🔄</span> Réinitialiser</button>
           {/* Annuler = fermer la fenêtre — prototype : closeWin('enregistrement') */}
           <button onClick={() => window.dispatchEvent(new CustomEvent('mdi:close-self'))} className="btn-annuler" style={{
-            height: 32, padding: '0 16px', background: '#F8FAFF', color: '#DC2626',
+            height: 32, padding: '0 16px', background: 'var(--tc-section)', color: '#DC2626',
             border: '1px solid #DC2626', borderRadius: 5, fontSize: 12, cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: 6,
           }}><span className="btn-ico" role="img" aria-label="annuler">✖️</span> Annuler</button>
@@ -831,7 +831,7 @@ export default function EnregistrementPage(): JSX.Element {
       {!saved && editMode && (
         <div style={{
           display: 'flex', justifyContent: 'flex-end', gap: 8,
-          padding: '9px 14px', borderTop: '1px solid #E2E8F0', background: '#FFF7ED', flexShrink: 0,
+          padding: '9px 14px', borderTop: '1px solid var(--tc-line)', background: '#FFF7ED', flexShrink: 0,
         }}>
           <button onClick={() => { setEditMode(false); handleReset(); window.dispatchEvent(new CustomEvent('mdi:close-self')) }} style={{
             height: 32, padding: '0 16px', background: '#FFF7ED', color: '#DC2626',
@@ -1122,7 +1122,7 @@ function EditionDocumentsModal({ open, reference, data, facture, ficheId, feuill
           <span style={{ color: C.blue, fontWeight: 700 }}>Edition Documents : NORMALE</span>
           {reference && (
             <span style={{
-              background: '#EFF6FF', color: C.accent,
+              background: 'var(--tc-soft-bg)', color: C.accent,
               fontSize: 11, fontWeight: 700, padding: '1px 8px', borderRadius: 4,
               marginLeft: 4,
             }}>
@@ -1164,7 +1164,7 @@ function EditionDocumentsModal({ open, reference, data, facture, ficheId, feuill
           <button onClick={onClose} style={{
             height: 30, padding: '0 14px', fontSize: 11, fontWeight: 600, cursor: 'pointer',
             border: `1px solid ${C.border}`, borderRadius: 5,
-            background: '#fff', color: C.muted,
+            background: 'var(--tc-card)', color: C.muted,
           }}>
             Fermer
           </button>
@@ -1172,7 +1172,7 @@ function EditionDocumentsModal({ open, reference, data, facture, ficheId, feuill
           <button onClick={handleApercu} style={{
             height: 30, padding: '0 14px', fontSize: 11, fontWeight: 700, cursor: 'pointer',
             border: `1px solid ${C.accent}`, borderRadius: 5,
-            background: '#EFF6FF', color: C.accent,
+            background: 'var(--tc-soft-bg)', color: C.accent,
             display: 'flex', alignItems: 'center', gap: 5,
           }}>
             👁 Aperçu
@@ -1182,7 +1182,7 @@ function EditionDocumentsModal({ open, reference, data, facture, ficheId, feuill
             border: 'none', borderRadius: 5, cursor: printing ? 'not-allowed' : 'pointer',
             background: printing
               ? '#9EB3D0'
-              : `linear-gradient(135deg, ${C.accent} 0%, ${C.blue} 100%)`,
+              : `linear-gradient(135deg, ${C.accent} 0%, #1B3A6B 100%)`,
             color: '#fff',
             display: 'flex', alignItems: 'center', gap: 5,
           }}>
@@ -1235,7 +1235,7 @@ function MarqueModeleModal({ open, onSelect, onCancel }: {
         {filtered.map(m => (
           <div key={m} onClick={() => onSelect(m)}
             style={{ padding: '7px 10px', cursor: 'pointer', borderRadius: 3, fontSize: 12, transition: 'background 0.1s' }}
-            onMouseEnter={e => (e.currentTarget.style.background = '#EFF6FF')}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--tc-soft-bg)')}
             onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
             {m}
           </div>
@@ -1268,7 +1268,7 @@ function ParcModal({ open, onSelect, onCancel }: {
         {filtered.map(p => (
           <div key={p} onClick={() => onSelect(p)}
             style={{ padding: '7px 10px', cursor: 'pointer', borderRadius: 3, fontSize: 12, transition: 'background 0.1s' }}
-            onMouseEnter={e => (e.currentTarget.style.background = '#EFF6FF')}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--tc-soft-bg)')}
             onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
             {p}
           </div>
