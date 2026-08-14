@@ -9,13 +9,13 @@ import { electronApi } from '@api/electron'
 
 // ── Palette commune ───────────────────────────────────────────────────────────
 const C = {
-  blue:   '#1B3A6B',
-  accent: '#2563EB',
+  blue:   'var(--tc-heading)',
+  accent: 'var(--accent)',
   green:  '#16A34A',
   gold:   '#F59E0B',
   muted:  '#6B7280',
-  border: '#E2E8F0',
-  bg:     '#F8FAFF',
+  border: 'var(--tc-line)',
+  bg:     'var(--tc-section)',
   danger: '#DC2626',
 }
 
@@ -23,14 +23,14 @@ const C = {
 function PageHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle?: string }): JSX.Element {
   return (
     <div style={{
-      background: '#F5F3EE', borderBottom: '2px solid #E2D9C8',
+      background: 'var(--tc-subheader-bg)', borderBottom: '2px solid var(--tc-subheader-bd)',
       padding: '10px 14px', marginBottom: 14, borderRadius: 6,
       display: 'flex', alignItems: 'center', gap: 10,
     }}>
-      <span style={{ color: '#1B3A6B', fontSize: 18 }}>{icon}</span>
+      <span style={{ color: 'var(--tc-heading)', fontSize: 18 }}>{icon}</span>
       <div>
-        <div style={{ color: '#1B3A6B', fontSize: 11, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase' }}>{title}</div>
-        {subtitle && <div style={{ color: '#64748B', fontSize: 10, marginTop: 1 }}>{subtitle}</div>}
+        <div style={{ color: 'var(--tc-heading)', fontSize: 11, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase' }}>{title}</div>
+        {subtitle && <div style={{ color: 'var(--tc-muted)', fontSize: 10, marginTop: 1 }}>{subtitle}</div>}
       </div>
     </div>
   )
@@ -234,7 +234,7 @@ export function PosteImmatWindow(): JSX.Element {
             <label style={{
               display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px',
               border: `2px solid ${mode === 'standard' ? C.accent : C.border}`,
-              borderRadius: 8, cursor: 'pointer', background: mode === 'standard' ? C.bg : '#fff',
+              borderRadius: 8, cursor: 'pointer', background: mode === 'standard' ? C.bg : 'var(--tc-card)',
               transition: 'all 0.2s',
             }}>
               <Radio value="standard" style={{ marginTop: 2 }} />
@@ -252,7 +252,7 @@ export function PosteImmatWindow(): JSX.Element {
             <label style={{
               display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px',
               border: `2px solid ${mode === 'assurance' ? C.gold : C.border}`,
-              borderRadius: 8, cursor: 'pointer', background: mode === 'assurance' ? '#FFFBEB' : '#fff',
+              borderRadius: 8, cursor: 'pointer', background: mode === 'assurance' ? '#FFFBEB' : 'var(--tc-card)',
               transition: 'all 0.2s',
             }}>
               <Radio value="assurance" style={{ marginTop: 2 }} />

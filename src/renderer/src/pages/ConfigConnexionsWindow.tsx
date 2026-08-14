@@ -8,21 +8,21 @@ import { electronApi, type AffichageConfig, type AffichageEtat } from '@api/elec
 
 // ── Palette maison ────────────────────────────────────────────────────────────
 const C = {
-  blue: '#1B3A6B', accent: '#2563EB', green: '#16A34A', gold: '#F59E0B',
-  muted: '#6B7280', border: '#E2E8F0', bg: '#F8FAFF', danger: '#DC2626',
+  blue: 'var(--tc-heading)', accent: 'var(--accent)', green: '#16A34A', gold: '#F59E0B',
+  muted: '#6B7280', border: 'var(--tc-line)', bg: 'var(--tc-section)', danger: '#DC2626',
 }
 
 function PageHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle?: string }): JSX.Element {
   return (
     <div style={{
-      background: '#F5F3EE', borderBottom: '2px solid #E2D9C8',
+      background: 'var(--tc-subheader-bg)', borderBottom: '2px solid var(--tc-subheader-bd)',
       padding: '10px 14px', marginBottom: 14, borderRadius: 6,
       display: 'flex', alignItems: 'center', gap: 10,
     }}>
       <span style={{ color: C.blue, fontSize: 18 }}>{icon}</span>
       <div>
         <div style={{ color: C.blue, fontSize: 11, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase' }}>{title}</div>
-        {subtitle && <div style={{ color: '#64748B', fontSize: 10, marginTop: 1 }}>{subtitle}</div>}
+        {subtitle && <div style={{ color: 'var(--tc-muted)', fontSize: 10, marginTop: 1 }}>{subtitle}</div>}
       </div>
     </div>
   )
@@ -75,7 +75,7 @@ function OngletPosteAffichage(): JSX.Element {
     <div>
       <div style={{
         border: `1px solid ${C.border}`, borderRadius: 8, padding: 16,
-        background: '#fff', marginBottom: 14,
+        background: 'var(--tc-card)', marginBottom: 14,
       }}>
         {/* Activation */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
