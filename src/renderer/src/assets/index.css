@@ -526,6 +526,7 @@ ul.ac-hist li .ico { font-size: 11px; opacity: 0.7; flex-shrink: 0; }
   --tc-fieldset-bd:#CBD5E1; --tc-line:#E2E8F0; --tc-label:#475569;
   --tc-soft-bg:#EFF6FF; --tc-soft-bd:#BFDBFE; --tc-soft-tx:#1D4ED8; --tc-montant-bg:#F0F4FF;
   --tc-label-strong:#374151; --tc-warmbar:#FFFEF0;
+  --tc-thead-bg:#EEF3FB; --tc-thead-bd:#D9E2F0; --tc-td-line:#EEF2F7; --tc-selected:#DBEAFE;
 }
 :root[data-theme='dark']{
   --tc-titlebar:#0A1018;
@@ -545,6 +546,7 @@ ul.ac-hist li .ico { font-size: 11px; opacity: 0.7; flex-shrink: 0; }
   --tc-fieldset-bd:#26344A; --tc-line:#223049; --tc-label:#93A1B5;
   --tc-soft-bg:#16233C; --tc-soft-bd:#2B3A52; --tc-soft-tx:#93B4F5; --tc-montant-bg:#16233C;
   --tc-label-strong:#C5CEDB; --tc-warmbar:#1A180E;
+  --tc-thead-bg:#14203A; --tc-thead-bd:#263650; --tc-td-line:#1A2333; --tc-selected:#1E3352;
 }
 
 /* ══ Mode sombre — champs de saisie partagés (.light-input) ══════════════════

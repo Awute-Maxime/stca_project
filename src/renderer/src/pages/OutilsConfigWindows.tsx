@@ -11,13 +11,13 @@ import { electronApi } from '@api/electron'
 import { WINDOW_REGISTRY } from '@windows/WINDOW_REGISTRY'
 
 const C = {
-  blue:   '#1B3A6B',
-  accent: '#2563EB',
+  blue:   'var(--tc-heading)',
+  accent: 'var(--accent)',
   green:  '#16A34A',
   gold:   '#F59E0B',
   muted:  '#6B7280',
-  border: '#E2E8F0',
-  bg:     '#F8FAFF',
+  border: 'var(--tc-line)',
+  bg:     'var(--tc-section)',
   danger: '#DC2626',
 }
 
@@ -25,14 +25,14 @@ const C = {
 function PageHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle?: string }): JSX.Element {
   return (
     <div style={{
-      background: '#F5F3EE', borderBottom: '2px solid #E2D9C8',
+      background: 'var(--tc-subheader-bg)', borderBottom: '2px solid var(--tc-subheader-bd)',
       padding: '9px 14px', marginBottom: 12, borderRadius: 6,
       display: 'flex', alignItems: 'center', gap: 10,
     }}>
-      <span style={{ color: '#1B3A6B', fontSize: 16 }}>{icon}</span>
+      <span style={{ color: 'var(--tc-heading)', fontSize: 16 }}>{icon}</span>
       <div>
-        <div style={{ color: '#1B3A6B', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase' }}>{title}</div>
-        {subtitle && <div style={{ color: '#64748B', fontSize: 9, marginTop: 1 }}>{subtitle}</div>}
+        <div style={{ color: 'var(--tc-heading)', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase' }}>{title}</div>
+        {subtitle && <div style={{ color: 'var(--tc-muted)', fontSize: 9, marginTop: 1 }}>{subtitle}</div>}
       </div>
     </div>
   )
@@ -124,19 +124,19 @@ export function TypesVehiculeWindow(): JSX.Element {
   // ── Styles table (modèle Config. Assurances) ───────────────────────────────
   // En-tête clair — même convention que nos autres tableaux (Liste, Archivage)
   const TH: React.CSSProperties = {
-    background: '#EEF3FB', color: C.blue,
+    background: 'var(--tc-thead-bg)', color: C.blue,
     fontSize: 10, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase',
-    padding: '8px 10px', textAlign: 'left', borderBottom: '2px solid #D9E2F0',
+    padding: '8px 10px', textAlign: 'left', borderBottom: '2px solid var(--tc-thead-bd)',
     whiteSpace: 'nowrap',
   }
-  const TD: React.CSSProperties = { fontSize: 12, padding: '2px 8px', borderBottom: '1px solid #EEF2F7' }
+  const TD: React.CSSProperties = { fontSize: 12, padding: '2px 8px', borderBottom: '1px solid var(--tc-td-line)' }
   const cellInput: React.CSSProperties = {
     width: '100%', border: '1px solid transparent', background: 'transparent',
     fontSize: 12, fontWeight: 600, color: C.blue, padding: '3px 6px', borderRadius: 4, outline: 'none',
   }
   const miniBtn: React.CSSProperties = {
     width: 20, height: 14, lineHeight: '12px', textAlign: 'center', cursor: 'pointer',
-    border: '1px solid #CBD5E1', background: '#fff', color: C.muted, borderRadius: 3, fontSize: 8, padding: 0,
+    border: '1px solid var(--tc-fieldset-bd)', background: 'var(--tc-card)', color: C.muted, borderRadius: 3, fontSize: 8, padding: 0,
   }
   const nbVides = Math.max(0, NB_LIGNES_GRILLE - rows.length)
 
@@ -145,7 +145,7 @@ export function TypesVehiculeWindow(): JSX.Element {
       <PageHeader icon={<CarOutlined />} title="Liste des Types de Véhicules (pour assurances)"
         subtitle="Types sélectionnés à l'enregistrement — pilotent aussi les catégories de Config. Assurances" />
 
-      <div style={{ border: '1px solid #CBD5E1', borderRadius: 6, overflow: 'hidden', marginBottom: 10 }}>
+      <div style={{ border: '1px solid var(--tc-fieldset-bd)', borderRadius: 6, overflow: 'hidden', marginBottom: 10 }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
@@ -171,7 +171,7 @@ export function TypesVehiculeWindow(): JSX.Element {
                 <td style={TD}>
                   <input value={t.nom} style={cellInput}
                     onChange={e => renommer(t.id, e.target.value)}
-                    onFocus={e => { e.currentTarget.style.border = `1px solid ${C.accent}`; e.currentTarget.style.background = '#fff' }}
+                    onFocus={e => { e.currentTarget.style.border = `1px solid ${C.accent}`; e.currentTarget.style.background = 'var(--tc-card)' }}
                     onBlur={e => { e.currentTarget.style.border = '1px solid transparent'; e.currentTarget.style.background = 'transparent' }} />
                 </td>
                 <td style={{ ...TD, textAlign: 'center', width: 96 }}>
@@ -271,14 +271,14 @@ export function ParamDestinationsWindow(): JSX.Element {
 
   // ── Styles (en-tête clair maison + boutons droits comme Config. Assurances) ──
   const TH: React.CSSProperties = {
-    background: '#EEF3FB', color: C.blue,
+    background: 'var(--tc-thead-bg)', color: C.blue,
     fontSize: 10, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase',
-    padding: '8px 10px', textAlign: 'left', borderBottom: '2px solid #D9E2F0', whiteSpace: 'nowrap',
+    padding: '8px 10px', textAlign: 'left', borderBottom: '2px solid var(--tc-thead-bd)', whiteSpace: 'nowrap',
   }
-  const TD: React.CSSProperties = { fontSize: 12, padding: '5px 10px', borderBottom: '1px solid #EEF2F7' }
+  const TD: React.CSSProperties = { fontSize: 12, padding: '5px 10px', borderBottom: '1px solid var(--tc-td-line)' }
   const btnDroit: React.CSSProperties = {
     width: '100%', padding: '8px 6px', fontSize: 11.5, borderRadius: 5, cursor: 'pointer',
-    border: '1px solid #CBD5E1', background: '#fff', color: '#1E293B', fontWeight: 600,
+    border: '1px solid var(--tc-fieldset-bd)', background: 'var(--tc-card)', color: 'var(--tc-text)', fontWeight: 600,
     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
   }
   const nbVides = Math.max(0, 12 - dests.length)
@@ -289,7 +289,7 @@ export function ParamDestinationsWindow(): JSX.Element {
         subtitle="Bureaux frontière — tarif, lettre, n° d'immatriculation et couleur de plaque pré-imprimée" />
 
       <div style={{ display: 'flex', gap: 10 }}>
-        <div style={{ flex: 1, border: '1px solid #CBD5E1', borderRadius: 6, overflow: 'hidden', alignSelf: 'flex-start' }}>
+        <div style={{ flex: 1, border: '1px solid var(--tc-fieldset-bd)', borderRadius: 6, overflow: 'hidden', alignSelf: 'flex-start' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
@@ -307,7 +307,7 @@ export function ParamDestinationsWindow(): JSX.Element {
                 return (
                   <tr key={d.code} onClick={() => setSelCode(d.code)} onDoubleClick={() => { setSelCode(d.code); ouvrirEdition(JSON.parse(JSON.stringify(d)) as DestinationParam) }}
                     className={!sel && i % 2 ? 'table-row-alt' : ''}
-                    style={{ cursor: 'pointer', background: sel ? '#DBEAFE' : undefined }}>
+                    style={{ cursor: 'pointer', background: sel ? 'var(--tc-selected)' : undefined }}>
                     <td style={{ ...TD, textAlign: 'center' }}>
                       <span title={d.couleur} style={{
                         display: 'inline-block', width: 18, height: 18, borderRadius: 4,
@@ -316,7 +316,7 @@ export function ParamDestinationsWindow(): JSX.Element {
                     </td>
                     <td style={{ ...TD, fontWeight: 700, color: C.blue }}>{d.code}</td>
                     <td style={{ ...TD, textAlign: 'right', color: C.green, fontWeight: 600 }}>{d.tarif.toLocaleString('fr-FR')}</td>
-                    <td style={{ ...TD, color: '#1E293B' }}>{d.nom}</td>
+                    <td style={{ ...TD, color: 'var(--tc-text)' }}>{d.nom}</td>
                     <td style={{ ...TD, textAlign: 'center', fontFamily: 'monospace', fontWeight: 700, color: C.accent }}>{d.lettre}</td>
                     <td style={{ ...TD, textAlign: 'right', fontFamily: 'monospace', color: C.muted }}>{String(d.numImmatActuel).padStart(4, '0')}</td>
                   </tr>
