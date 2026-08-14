@@ -9,28 +9,28 @@ import { useUtilisateurs, addUtilisateur, updateUtilisateur, removeUtilisateur, 
 
 // ── Palette ────────────────────────────────────────────────────────────────────
 const C = {
-  blue:   '#1B3A6B',
-  accent: '#2563EB',
+  blue:   'var(--tc-heading)',
+  accent: 'var(--accent)',
   gold:   '#F59E0B',
   green:  '#16A34A',
   red:    '#DC2626',
   muted:  '#6B7280',
-  border: '#E2E8F0',
-  bg:     '#F8FAFF',
+  border: 'var(--tc-line)',
+  bg:     'var(--tc-section)',
 }
 
 // Sub-header beige (modèle Enregistrement — pas de 2e bandeau bleu sous la barre de titre)
 function PageHeader(): JSX.Element {
   return (
     <div style={{
-      background: '#F5F3EE', borderBottom: '2px solid #E2D9C8',
+      background: 'var(--tc-subheader-bg)', borderBottom: '2px solid var(--tc-subheader-bd)',
       padding: '10px 14px', marginBottom: 14, borderRadius: 6,
       display: 'flex', alignItems: 'center', gap: 10,
     }}>
-      <TeamOutlined style={{ color: '#1B3A6B', fontSize: 18 }} />
+      <TeamOutlined style={{ color: 'var(--tc-heading)', fontSize: 18 }} />
       <div>
-        <div style={{ color: '#1B3A6B', fontSize: 11, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase' }}>Gestion des Utilisateurs</div>
-        <div style={{ color: '#64748B', fontSize: 10, marginTop: 1 }}>
+        <div style={{ color: 'var(--tc-heading)', fontSize: 11, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase' }}>Gestion des Utilisateurs</div>
+        <div style={{ color: 'var(--tc-muted)', fontSize: 10, marginTop: 1 }}>
           Comptes d'accès à l'application TCIT
         </div>
       </div>

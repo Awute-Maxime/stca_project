@@ -12,7 +12,7 @@ import { electronApi, type ImportPreview, type ImportReport } from '@api/electro
 // Import (lancement + rapport). Le moteur est côté main (import.ts) via IPC.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const C = { blue: '#1B3A6B', accent: '#2563EB', green: '#16A34A', gold: '#F59E0B', muted: '#6B7280', border: '#E2E8F0', bg: '#F8FAFF', danger: '#DC2626' }
+const C = { blue: 'var(--tc-heading)', accent: 'var(--accent)', green: '#16A34A', gold: '#F59E0B', muted: '#6B7280', border: 'var(--tc-line)', bg: 'var(--tc-section)', danger: '#DC2626' }
 
 // Champs cibles + alias pour la correspondance automatique (noms STCA M)
 const CHAMPS: { cle: string; libelle: string; requis: boolean; alias: string[] }[] = [
@@ -105,7 +105,7 @@ export default function ImportAssistant(): JSX.Element {
 
   // ── Styles ──────────────────────────────────────────────────────────────────
   const label9: React.CSSProperties = { fontSize: 9, color: C.muted, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase' }
-  const cell: React.CSSProperties = { fontSize: 11.5, padding: '5px 8px', borderBottom: '1px solid #EEF2F7' }
+  const cell: React.CSSProperties = { fontSize: 11.5, padding: '5px 8px', borderBottom: '1px solid var(--tc-td-line)' }
 
   return (
     <div style={{ animation: 'formEnter 0.3s ease' }}>
@@ -147,7 +147,7 @@ export default function ImportAssistant(): JSX.Element {
                 <table style={{ borderCollapse: 'collapse', fontSize: 10.5, whiteSpace: 'nowrap' }}>
                   <thead>
                     <tr>{colonnes.map(c => (
-                      <th key={c} style={{ ...cell, position: 'sticky', top: 0, background: '#EEF3FB', color: C.blue, fontWeight: 700, textAlign: 'left' }}>{c}</th>
+                      <th key={c} style={{ ...cell, position: 'sticky', top: 0, background: 'var(--tc-thead-bg)', color: C.blue, fontWeight: 700, textAlign: 'left' }}>{c}</th>
                     ))}</tr>
                   </thead>
                   <tbody>
@@ -173,8 +173,8 @@ export default function ImportAssistant(): JSX.Element {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
-                  <th style={{ ...cell, background: '#EEF3FB', color: C.blue, fontWeight: 700, textAlign: 'left', width: '45%' }}>Champ TCIT</th>
-                  <th style={{ ...cell, background: '#EEF3FB', color: C.blue, fontWeight: 700, textAlign: 'left' }}>Colonne du fichier</th>
+                  <th style={{ ...cell, background: 'var(--tc-thead-bg)', color: C.blue, fontWeight: 700, textAlign: 'left', width: '45%' }}>Champ TCIT</th>
+                  <th style={{ ...cell, background: 'var(--tc-thead-bg)', color: C.blue, fontWeight: 700, textAlign: 'left' }}>Colonne du fichier</th>
                 </tr>
               </thead>
               <tbody>
@@ -243,7 +243,7 @@ export default function ImportAssistant(): JSX.Element {
                   { l: 'Doublons ignorés', v: rapport.doublons, c: C.gold },
                   { l: 'Erreurs', v: rapport.erreurs.length, c: C.danger },
                 ].map(s => (
-                  <div key={s.l} style={{ flex: 1, textAlign: 'center', padding: '10px 6px', border: `1px solid ${C.border}`, borderRadius: 8, background: '#fff' }}>
+                  <div key={s.l} style={{ flex: 1, textAlign: 'center', padding: '10px 6px', border: `1px solid ${C.border}`, borderRadius: 8, background: 'var(--tc-card)' }}>
                     <div style={{ fontSize: 20, fontWeight: 800, color: s.c }}>{s.v.toLocaleString('fr-FR')}</div>
                     <div style={{ fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 2 }}>{s.l}</div>
                   </div>

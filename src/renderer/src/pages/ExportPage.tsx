@@ -11,7 +11,7 @@ import ImportAssistant from './ImportAssistant'
 // arriveront en Phase 3 (une fois l'app basculée sur la base de données).
 // ─────────────────────────────────────────────────────────────────────────────
 
-const C = { blue: '#1B3A6B', muted: '#6B7280' }
+const C = { blue: 'var(--tc-heading)', muted: '#6B7280' }
 
 function AVenir({ quoi }: { quoi: string }): JSX.Element {
   return (
@@ -33,7 +33,7 @@ export default function ExportPage(): JSX.Element {
     <div style={{ animation: 'formEnter 0.3s ease' }}>
       {/* Sub-header beige (modèle validé) */}
       <div style={{
-        background: '#F5F3EE', borderBottom: '2px solid #E2D9C8',
+        background: 'var(--tc-subheader-bg)', borderBottom: '2px solid var(--tc-subheader-bd)',
         padding: '9px 14px', marginBottom: 12, borderRadius: 6,
         display: 'flex', alignItems: 'center', gap: 8,
       }}>
