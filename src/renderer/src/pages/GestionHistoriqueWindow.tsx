@@ -13,8 +13,8 @@ import {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const C = {
-  blue: '#1B3A6B', accent: '#2563EB', muted: '#64748B',
-  border: '#E2E8F0', red: '#DC2626', bg: '#F8FAFF',
+  blue: 'var(--tc-heading)', accent: 'var(--accent)', muted: 'var(--tc-muted)',
+  border: 'var(--tc-line)', red: '#DC2626', bg: 'var(--tc-section)',
 }
 
 // Champ du formulaire ciblé par défaut (si la fenêtre est ouverte depuis le menu,
@@ -75,7 +75,7 @@ export default function GestionHistoriqueWindow({ domaine }: { domaine: DomaineH
     <div style={{ animation: 'formEnter 0.3s ease', display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Sub-header beige */}
       <div style={{
-        background: '#F5F3EE', borderBottom: '2px solid #E2D9C8',
+        background: 'var(--tc-subheader-bg)', borderBottom: '2px solid var(--tc-subheader-bd)',
         padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 11,
       }}>
         <span style={{ fontSize: 20 }}>{cfg.icone}</span>
@@ -119,7 +119,7 @@ export default function GestionHistoriqueWindow({ domaine }: { domaine: DomaineH
         {/* En-tête clair */}
         <div style={{
           display: 'flex', alignItems: 'center', padding: '7px 12px',
-          background: '#EEF3FB', borderBottom: '2px solid #DCE6F5', borderRadius: '6px 6px 0 0',
+          background: 'var(--tc-thead-bg)', borderBottom: '2px solid var(--tc-thead-bd)', borderRadius: '6px 6px 0 0',
           fontSize: 10.5, fontWeight: 800, color: C.blue, textTransform: 'uppercase', letterSpacing: 0.4,
         }}>
           <span style={{ width: 30 }}>#</span>
@@ -142,7 +142,7 @@ export default function GestionHistoriqueWindow({ domaine }: { domaine: DomaineH
               onDoubleClick={() => { if (editing !== v) charger(v) }}
               style={{
                 display: 'flex', alignItems: 'center', gap: 8, padding: '7px 12px',
-                borderBottom: `1px solid #F1F5F9`, fontSize: 12, cursor: 'pointer',
+                borderBottom: `1px solid var(--tc-card-bd)`, fontSize: 12, cursor: 'pointer',
               }}
             >
               <span style={{ width: 22, color: C.muted, fontSize: 10.5 }}>{i + 1}</span>
@@ -156,15 +156,15 @@ export default function GestionHistoriqueWindow({ domaine }: { domaine: DomaineH
                   style={{ flex: 1, height: 26 }}
                 />
               ) : (
-                <span style={{ flex: 1, color: '#1E293B', fontWeight: 600 }}>{v}</span>
+                <span style={{ flex: 1, color: 'var(--tc-text)', fontWeight: 600 }}>{v}</span>
               )}
               <div style={{ width: 102, display: 'flex', justifyContent: 'flex-end', gap: 4 }}>
                 <button title="Charger cette valeur dans le champ" onClick={e => { e.stopPropagation(); charger(v) }}
                   style={{ width: 26, height: 26, border: `1px solid #A7D8B8`, borderRadius: 6, background: '#F0FDF4', cursor: 'pointer', color: '#16A34A', fontSize: 12 }}>📥</button>
                 <button title="Modifier" onClick={e => { e.stopPropagation(); lancerEdit(v) }}
-                  style={{ width: 26, height: 26, border: `1px solid ${C.border}`, borderRadius: 6, background: '#fff', cursor: 'pointer', color: C.accent }}>✎</button>
+                  style={{ width: 26, height: 26, border: `1px solid ${C.border}`, borderRadius: 6, background: 'var(--tc-card)', cursor: 'pointer', color: C.accent }}>✎</button>
                 <button title="Supprimer" onClick={e => { e.stopPropagation(); removeHistorique(domaine, v) }}
-                  style={{ width: 26, height: 26, border: `1px solid #FCA5A5`, borderRadius: 6, background: '#fff', cursor: 'pointer', color: C.red }}>🗑</button>
+                  style={{ width: 26, height: 26, border: `1px solid #FCA5A5`, borderRadius: 6, background: 'var(--tc-card)', cursor: 'pointer', color: C.red }}>🗑</button>
               </div>
             </div>
           ))}
@@ -178,7 +178,7 @@ export default function GestionHistoriqueWindow({ domaine }: { domaine: DomaineH
           <div style={{ flex: 1 }} />
           {liste.length > 0 && (
             <button onClick={viderTout}
-              style={{ height: 30, padding: '0 14px', border: `1px solid #FCA5A5`, borderRadius: 6, background: '#fff', color: C.red, fontSize: 11.5, fontWeight: 600, cursor: 'pointer', marginRight: 8 }}>
+              style={{ height: 30, padding: '0 14px', border: `1px solid #FCA5A5`, borderRadius: 6, background: 'var(--tc-card)', color: C.red, fontSize: 11.5, fontWeight: 600, cursor: 'pointer', marginRight: 8 }}>
               Vider tout
             </button>
           )}

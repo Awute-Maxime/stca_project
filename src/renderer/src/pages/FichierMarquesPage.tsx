@@ -66,9 +66,9 @@ export default function FichierMarquesPage(): JSX.Element {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       {/* En-tête pleine largeur */}
       <div style={{
-        background: '#F5F3EE', color: '#1B3A6B', fontWeight: 700,
+        background: 'var(--tc-subheader-bg)', color: 'var(--tc-heading)', fontWeight: 700,
         padding: '6px 10px', textAlign: 'center', fontSize: 11.5,
-        borderBottom: '2px solid #E2D9C8', flexShrink: 0,
+        borderBottom: '2px solid var(--tc-subheader-bd)', flexShrink: 0,
       }}>Marques - Modèles</div>
 
       {/* Corps : table + sidebar */}
@@ -84,14 +84,14 @@ export default function FichierMarquesPage(): JSX.Element {
                   onDoubleClick={openEdit}
                   style={{
                     cursor: 'pointer',
-                    background: selectedId === m.id ? '#EFF6FF' : undefined,
+                    background: selectedId === m.id ? 'var(--tc-soft-bg)' : undefined,
                   }}
-                  onMouseEnter={e => { if (selectedId !== m.id) (e.currentTarget.firstChild as HTMLElement).style.background = '#F8FAFF' }}
+                  onMouseEnter={e => { if (selectedId !== m.id) (e.currentTarget.firstChild as HTMLElement).style.background = 'var(--tc-section)' }}
                   onMouseLeave={e => { if (selectedId !== m.id) (e.currentTarget.firstChild as HTMLElement).style.background = '' }}
                 >
                   <td style={{
-                    padding: '3px 10px', color: '#1E293B', fontSize: 11.5,
-                    borderBottom: selectedId === m.id ? '1px solid #BFDBFE' : '1px solid #F1F5F9',
+                    padding: '3px 10px', color: 'var(--tc-text)', fontSize: 11.5,
+                    borderBottom: selectedId === m.id ? '1px solid var(--tc-soft-bd)' : '1px solid var(--tc-card-bd)',
                   }}>{m.nom}</td>
                 </tr>
               ))}
@@ -103,7 +103,7 @@ export default function FichierMarquesPage(): JSX.Element {
       {/* Panneau actions droit */}
       <div style={{
         width: 130, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 4,
-        padding: '6px 5px', background: '#F1F3F6', borderLeft: '1px solid #CBD5E1',
+        padding: '6px 5px', background: 'var(--tc-track)', borderLeft: '1px solid var(--tc-fieldset-bd)',
       }}>
         <button onClick={openAdd}
           style={btnStyle('#B0C4DE', 'linear-gradient(to bottom, #fff, #E8EEF4)', '#1E293B', { fontWeight: 700 })}>
