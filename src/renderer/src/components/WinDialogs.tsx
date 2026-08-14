@@ -9,13 +9,13 @@ export function WinAlert({ message, onClose }: { message: ReactNode; onClose: ()
       zIndex: 9999, pointerEvents: 'none',
     }}>
       <div style={{
-        pointerEvents: 'auto', background: '#fff', border: '2px solid #F59E0B',
+        pointerEvents: 'auto', background: 'var(--tc-card)', border: '2px solid #F59E0B',
         borderRadius: 10, boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
         padding: '22px 32px', maxWidth: 380, textAlign: 'center',
         animation: 'formEnter 0.18s ease',
       }}>
         <div style={{ fontSize: 28, marginBottom: 8 }}>⚠️</div>
-        <div style={{ fontSize: 12.5, color: '#1E293B', fontWeight: 600, lineHeight: 1.7 }}>{message}</div>
+        <div style={{ fontSize: 12.5, color: 'var(--tc-text)', fontWeight: 600, lineHeight: 1.7 }}>{message}</div>
         <button onClick={onClose} style={{
           marginTop: 14, padding: '5px 22px', background: '#F59E0B', color: '#fff',
           border: 'none', borderRadius: 5, fontSize: 12, fontWeight: 700, cursor: 'pointer',
@@ -35,14 +35,14 @@ export function WinConfirm({ message, onOui, onNon }: {
       zIndex: 9999, pointerEvents: 'none',
     }}>
       <div style={{
-        pointerEvents: 'auto', background: '#fff', border: '1px solid #CBD5E1',
+        pointerEvents: 'auto', background: 'var(--tc-card)', border: '1px solid var(--tc-fieldset-bd)',
         borderRadius: 8, boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
         padding: '24px 32px', maxWidth: 360, textAlign: 'center',
         animation: 'formEnter 0.18s ease',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 16 }}>
           <span style={{ fontSize: 32, lineHeight: 1 }}>⚠️</span>
-          <span style={{ fontSize: 13, fontWeight: 600, color: '#1E293B', lineHeight: 1.5, textAlign: 'left' }}>{message}</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--tc-text)', lineHeight: 1.5, textAlign: 'left' }}>{message}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
           <button onClick={onOui} style={{
@@ -50,8 +50,8 @@ export function WinConfirm({ message, onOui, onNon }: {
             border: 'none', borderRadius: 5, fontSize: 12, fontWeight: 700, cursor: 'pointer',
           }}>Oui</button>
           <button onClick={onNon} style={{
-            padding: '6px 28px', background: '#F1F5F9', color: '#1E293B',
-            border: '1px solid #CBD5E1', borderRadius: 5, fontSize: 12, fontWeight: 600, cursor: 'pointer',
+            padding: '6px 28px', background: 'var(--tc-track)', color: 'var(--tc-text)',
+            border: '1px solid var(--tc-fieldset-bd)', borderRadius: 5, fontSize: 12, fontWeight: 600, cursor: 'pointer',
           }}>Non</button>
         </div>
       </div>
@@ -90,14 +90,14 @@ export function EditionDocsModal({ type, onClose, onPrint, onApercu }: {
       display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 800,
     }}>
       <div style={{
-        background: '#fff', border: '1px solid #E2E8F0', borderRadius: 10,
+        background: 'var(--tc-card)', border: '1px solid var(--tc-line)', borderRadius: 10,
         boxShadow: '0 20px 60px rgba(0,0,0,0.15)', width: 340, padding: 0,
         animation: 'formEnter 0.2s ease',
       }}>
         {/* Titlebar */}
         <div style={{
           display: 'flex', alignItems: 'center', padding: '14px 20px',
-          borderBottom: '1px solid #E2E8F0', background: '#1B3A6B', borderRadius: '10px 10px 0 0',
+          borderBottom: '1px solid var(--tc-line)', background: 'var(--tc-titlebar)', borderRadius: '10px 10px 0 0',
         }}>
           <span style={{ fontSize: 12, marginRight: 8 }}>🖨</span>
           <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: '#fff' }}>{title}</span>
@@ -108,22 +108,22 @@ export function EditionDocsModal({ type, onClose, onPrint, onApercu }: {
         </div>
 
         {/* Body */}
-        <div style={{ background: '#fff', padding: '14px 16px' }}>
-          <fieldset style={{ border: '1px solid #CBD5E1', borderRadius: 6, padding: '10px 14px', margin: 0 }}>
-            <legend style={{ fontSize: 11, fontWeight: 700, color: '#1B3A6B', padding: '0 6px' }}>Documents à imprimer</legend>
+        <div style={{ background: 'var(--tc-card)', padding: '14px 16px' }}>
+          <fieldset style={{ border: '1px solid var(--tc-fieldset-bd)', borderRadius: 6, padding: '10px 14px', margin: 0 }}>
+            <legend style={{ fontSize: 11, fontWeight: 700, color: 'var(--tc-heading)', padding: '0 6px' }}>Documents à imprimer</legend>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {DOC_OPTIONS.map((opt, i) => {
-                if (opt.value === 'sep') return <hr key={i} style={{ border: 'none', borderTop: '1px solid #E2E8F0', margin: '4px 0' }} />
+                if (opt.value === 'sep') return <hr key={i} style={{ border: 'none', borderTop: '1px solid var(--tc-line)', margin: '4px 0' }} />
                 return (
                   <label key={opt.value} style={{
                     display: 'flex', alignItems: 'center', gap: 8,
                     padding: opt.highlight ? '5px 6px' : '4px 6px',
                     borderRadius: opt.highlight ? 4 : 0,
-                    background: opt.highlight ? '#EFF6FF' : 'transparent',
+                    background: opt.highlight ? 'var(--tc-soft-bg)' : 'transparent',
                     cursor: 'pointer',
                     fontSize: opt.highlight ? 12 : 11.5,
                     fontWeight: opt.highlight ? 700 : 400,
-                    color: opt.highlight ? '#1B3A6B' : '#1E293B',
+                    color: opt.highlight ? 'var(--tc-heading)' : 'var(--tc-text)',
                   }}>
                     <input type="radio" name="ed-doc" value={opt.value}
                       checked={selected === opt.value} onChange={() => setSelected(opt.value)}
@@ -137,7 +137,7 @@ export function EditionDocsModal({ type, onClose, onPrint, onApercu }: {
 
           {/* Bas : Prévisualiser + Aperçu + Imprimer */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, gap: 8 }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: '#475569', cursor: 'pointer' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: 'var(--tc-label)', cursor: 'pointer' }}>
               <input type="checkbox" checked={preview} onChange={e => setPreview(e.target.checked)}
                 style={{ accentColor: '#2563EB' }} /> Prévisualiser
             </label>
@@ -145,7 +145,7 @@ export function EditionDocsModal({ type, onClose, onPrint, onApercu }: {
               {onApercu && (
                 <button onClick={() => onApercu(selected)} style={{
                   display: 'flex', alignItems: 'center', gap: 5, padding: '6px 14px',
-                  background: '#EFF6FF', color: '#2563EB', border: '1px solid #2563EB',
+                  background: 'var(--tc-soft-bg)', color: '#2563EB', border: '1px solid #2563EB',
                   borderRadius: 5, fontSize: 12, fontWeight: 700, cursor: 'pointer',
                 }}>👁 Aperçu</button>
               )}
