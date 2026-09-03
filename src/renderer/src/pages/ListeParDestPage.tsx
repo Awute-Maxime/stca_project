@@ -66,25 +66,25 @@ export default function ListeParDestPage(): JSX.Element {
   // En-têtes — style prototype buildDest
   const thStyle: React.CSSProperties = {
     textAlign: 'center', padding: '8px 14px',
-    fontSize: 11.5, color: '#475569', fontWeight: 700,
+    fontSize: 11.5, color: 'var(--tc-label)', fontWeight: 700,
     borderBottom: '2px solid #CBD5E1', letterSpacing: 0.4,
-    background: '#EEF2F9',
+    background: 'var(--tc-thead-bg)',
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--tc-card)', overflow: 'hidden' }}>
 
       {/* ── Toolbar — dates + Rechercher + Imprimer (comme le vrai STCA) ── */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 8,
         padding: '8px 12px', borderBottom: '2px solid #CBD5E1',
-        background: '#F0F4FF', flexShrink: 0, flexWrap: 'wrap',
+        background: 'var(--tc-montant-bg)', flexShrink: 0, flexWrap: 'wrap',
       }}>
-        <label style={{ fontSize: 11.5, color: '#374151', whiteSpace: 'nowrap' }}>Du :</label>
+        <label style={{ fontSize: 11.5, color: 'var(--tc-label-strong)', whiteSpace: 'nowrap' }}>Du :</label>
         <input type="date" className="light-input" value={from}
           onChange={e => setFrom(e.target.value)}
           style={{ padding: '3px 5px', fontSize: 11, width: 126, height: 26 }} />
-        <label style={{ fontSize: 11.5, color: '#374151', whiteSpace: 'nowrap' }}>au :</label>
+        <label style={{ fontSize: 11.5, color: 'var(--tc-label-strong)', whiteSpace: 'nowrap' }}>au :</label>
         <input type="date" className="light-input" value={to}
           onChange={e => setTo(e.target.value)}
           style={{ padding: '3px 5px', fontSize: 11, width: 126, height: 26 }} />
@@ -94,7 +94,7 @@ export default function ListeParDestPage(): JSX.Element {
           display: 'flex', alignItems: 'center', gap: 5,
         }}>🔍 Rechercher</button>
         <button onClick={openApercu} title="Imprimer" style={{
-          height: 32, padding: '0 14px', background: '#EFF6FF', color: '#1D4ED8',
+          height: 32, padding: '0 14px', background: 'var(--tc-soft-bg)', color: 'var(--tc-soft-tx)',
           border: '1px solid #BFDBFE', borderRadius: 5, fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
           display: 'flex', alignItems: 'center', gap: 5,
         }}>🖨 Imprimer</button>
@@ -103,11 +103,11 @@ export default function ListeParDestPage(): JSX.Element {
       {/* ── Table Frontières | Nombre | Enregistré le ─────────────────── */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {!active ? (
-          <div style={{ textAlign: 'center', padding: 40, color: '#94A3B8', fontStyle: 'italic' }}>
+          <div style={{ textAlign: 'center', padding: 40, color: 'var(--tc-subtle)', fontStyle: 'italic' }}>
             Cliquez sur Rechercher pour afficher la liste
           </div>
         ) : rows.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 40, color: '#94A3B8', fontStyle: 'italic' }}>
+          <div style={{ textAlign: 'center', padding: 40, color: 'var(--tc-subtle)', fontStyle: 'italic' }}>
             Aucun véhicule pour cette période
           </div>
         ) : (
@@ -123,11 +123,11 @@ export default function ListeParDestPage(): JSX.Element {
               {rows.map((r, i) => (
                 <tr key={`${r.code}-${r.date}`} style={{
                   borderBottom: '1px solid #F1F5F9',
-                  background: i % 2 === 0 ? '#fff' : '#F8FAFF',
+                  background: i % 2 === 0 ? 'var(--tc-card)' : 'var(--tc-section)',
                 }}>
                   <td style={{ textAlign: 'center', padding: '7px 14px', color: '#2563EB', fontWeight: 700 }}>{r.code}</td>
                   <td style={{ textAlign: 'center', padding: '7px 14px', color: '#DC2626', fontWeight: 700 }}>{r.n}</td>
-                  <td style={{ textAlign: 'center', padding: '7px 14px', color: '#475569' }}>{dayjs(r.date).format('DD/MM/YYYY')}</td>
+                  <td style={{ textAlign: 'center', padding: '7px 14px', color: 'var(--tc-label)' }}>{dayjs(r.date).format('DD/MM/YYYY')}</td>
                 </tr>
               ))}
             </tbody>
@@ -138,8 +138,8 @@ export default function ListeParDestPage(): JSX.Element {
       {/* ── Barre bas : compteurs + Fermer (comme le vrai STCA) ────────── */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 10,
-        padding: '6px 10px', background: '#FFFEF0', borderTop: '1px solid #E2E8F0',
-        fontSize: 11, color: '#475569', flexShrink: 0,
+        padding: '6px 10px', background: 'var(--tc-warmbar)', borderTop: '1px solid var(--tc-line)',
+        fontSize: 11, color: 'var(--tc-label)', flexShrink: 0,
       }}>
         <span>
           {active
@@ -149,7 +149,7 @@ export default function ListeParDestPage(): JSX.Element {
         <div style={{ flex: 1 }} />
         <button onClick={() => window.dispatchEvent(new CustomEvent('mdi:close-self'))} style={{
           padding: '5px 16px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
-          border: '1px solid #FECACA', background: '#FFF5F5', color: '#DC2626', fontWeight: 600,
+          border: '1px solid var(--tc-err-bd)', background: 'var(--tc-err-bg)', color: '#DC2626', fontWeight: 600,
           display: 'flex', alignItems: 'center', gap: 5,
         }}>✕ Fermer</button>
       </div>

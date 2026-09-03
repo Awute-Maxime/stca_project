@@ -56,18 +56,18 @@ export default function DestinationPage(): JSX.Element {
 
   const thStyle: React.CSSProperties = {
     textAlign: 'center', padding: '8px 14px',
-    fontSize: 11.5, color: '#475569', fontWeight: 700,
-    borderBottom: '2px solid #CBD5E1', letterSpacing: 0.4,
+    fontSize: 11.5, color: 'var(--tc-label)', fontWeight: 700,
+    borderBottom: '2px solid var(--tc-fieldset-bd)', letterSpacing: 0.4,
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--tc-card)' }}>
 
       {/* ── Barre filtres date ─────────────────────────────────────────── */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 8,
-        padding: '10px 12px', borderBottom: '2px solid #CBD5E1',
-        background: '#F0F4FF', flexShrink: 0,
+        padding: '10px 12px', borderBottom: '2px solid var(--tc-fieldset-bd)',
+        background: 'var(--tc-montant-bg)', flexShrink: 0,
       }}>
         <input type="date" className="light-input" value={from}
           onChange={e => setFrom(e.target.value)}
@@ -82,8 +82,8 @@ export default function DestinationPage(): JSX.Element {
           }}>🔍</button>
         <button onClick={doReset}
           style={{
-            padding: '5px 14px', background: '#E2E8F0', color: '#475569',
-            border: '1px solid #CBD5E1', borderRadius: 4, cursor: 'pointer', fontSize: 13, lineHeight: 1,
+            padding: '5px 14px', background: 'var(--tc-track)', color: 'var(--tc-label)',
+            border: '1px solid var(--tc-fieldset-bd)', borderRadius: 4, cursor: 'pointer', fontSize: 13, lineHeight: 1,
           }}>↩</button>
       </div>
 
@@ -91,7 +91,7 @@ export default function DestinationPage(): JSX.Element {
       <div style={{ flex: 1, overflowY: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ background: '#EEF2F9' }}>
+            <tr style={{ background: 'var(--tc-thead-bg)' }}>
               <th style={thStyle}>Frontières</th>
               <th style={thStyle}>Nombre</th>
               <th style={thStyle}>Enregistré le</th>
@@ -99,24 +99,24 @@ export default function DestinationPage(): JSX.Element {
           </thead>
           <tbody>
             {rows.map(([code, d]) => (
-              <tr key={code} style={{ borderBottom: '1px solid #F1F5F9' }}>
+              <tr key={code} style={{ borderBottom: '1px solid var(--tc-card-bd)' }}>
                 <td style={{ textAlign: 'center', padding: '8px 14px', color: '#2563EB', fontWeight: 700 }}>{code}</td>
                 <td style={{ textAlign: 'center', padding: '8px 14px', color: '#DC2626', fontWeight: 700 }}>{d.n}</td>
-                <td style={{ textAlign: 'center', padding: '8px 14px', color: '#475569' }}>{dayjs(d.dt).format('DD/MM/YYYY')}</td>
+                <td style={{ textAlign: 'center', padding: '8px 14px', color: 'var(--tc-label)' }}>{dayjs(d.dt).format('DD/MM/YYYY')}</td>
               </tr>
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={3} style={{ textAlign: 'center', padding: 40, color: '#94A3B8', fontStyle: 'italic' }}>
+                <td colSpan={3} style={{ textAlign: 'center', padding: 40, color: 'var(--tc-subtle)', fontStyle: 'italic' }}>
                   {active ? 'Aucun véhicule pour cette période' : 'Sélectionnez une période puis cliquez sur 🔍'}
                 </td>
               </tr>
             )}
           </tbody>
           <tfoot>
-            <tr style={{ background: '#F1F5F9' }}>
-              <td style={{ padding: '8px 14px', fontSize: 12, fontWeight: 700, color: '#1E293B', borderTop: '2px solid #94A3B8' }}>Somme</td>
-              <td style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#DC2626', borderTop: '2px solid #94A3B8' }}>{total}</td>
+            <tr style={{ background: 'var(--tc-track)' }}>
+              <td style={{ padding: '8px 14px', fontSize: 12, fontWeight: 700, color: 'var(--tc-text)', borderTop: '2px solid var(--tc-subtle)' }}>Somme</td>
+              <td style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#DC2626', borderTop: '2px solid var(--tc-subtle)' }}>{total}</td>
               <td style={{ borderTop: '2px solid #94A3B8' }} />
             </tr>
           </tfoot>
@@ -126,13 +126,13 @@ export default function DestinationPage(): JSX.Element {
       {/* ── Boutons bas ────────────────────────────────────────────────── */}
       <div style={{
         display: 'flex', justifyContent: 'flex-end', gap: 8,
-        padding: '8px 12px', borderTop: '1px solid #E2E8F0',
-        background: '#F8FAFF', flexShrink: 0,
+        padding: '8px 12px', borderTop: '1px solid var(--tc-line)',
+        background: 'var(--tc-section)', flexShrink: 0,
       }}>
         <button onClick={() => window.dispatchEvent(new CustomEvent('mdi:close-self'))}
           style={{
-            height: 32, padding: '0 16px', background: '#F8FAFF', color: '#64748B',
-            border: '1px solid #D1D5DB', borderRadius: 5, fontSize: 12, cursor: 'pointer',
+            height: 32, padding: '0 16px', background: 'var(--tc-section)', color: 'var(--tc-muted)',
+            border: '1px solid var(--tc-th-bd)', borderRadius: 5, fontSize: 12, cursor: 'pointer',
           }}>Fermer</button>
         <button onClick={openApercu}
           style={{
