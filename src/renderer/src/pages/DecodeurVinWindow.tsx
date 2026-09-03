@@ -197,7 +197,7 @@ export default function DecodeurVinWindow(): JSX.Element {
               return (
                 <div key={i} className="dv-cell" style={ch
                   ? { background: ZONE_COUL[zoneVin(i)] }
-                  : { background: '#EEF2F8', color: '#AEB9CA', boxShadow: 'inset 0 0 0 1px #E4EAF2' }}>
+                  : { background: 'var(--tc-track)', color: 'var(--tc-subtle)', boxShadow: 'inset 0 0 0 1px var(--tc-line)' }}>
                   <small>{i + 1}</small>
                   {ch ?? ''}
                 </div>
@@ -248,7 +248,7 @@ export default function DecodeurVinWindow(): JSX.Element {
         {/* Catégorie suggérée — TOUJOURS affichée */}
         <div className="dv-cat" style={{
           display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10, padding: '10px 14px', borderRadius: 12,
-          background: dec?.categorie ? 'linear-gradient(135deg,#FEF9EE,#FFF)' : '#F8FAFC',
+          background: dec?.categorie ? 'linear-gradient(135deg,var(--tc-warn-bg),var(--tc-card))' : 'var(--tc-section)',
           border: `1.5px solid ${dec?.categorie ? '#FCD9A0' : C.line}`,
         }}>
           <span className="dv-cat__emoji" style={{ fontSize: 30 }}>{dec?.categorie ? EMOJI_CAT[dec.categorie] : '❓'}</span>
