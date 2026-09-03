@@ -27,11 +27,11 @@ import {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const C = {
-  blue:   '#1B3A6B',
-  accent: '#2563EB',
+  blue:   'var(--tc-heading)',
+  accent: 'var(--accent)',
   green:  '#16A34A',
   muted:  '#6B7280',
-  border: '#E2E8F0',
+  border: 'var(--tc-line)',
   danger: '#DC2626',
 }
 
@@ -122,7 +122,7 @@ export default function ArchivagePage(): JSX.Element {
     },
     {
       title: 'Nom et prénom', dataIndex: 'nomAcheteur', ellipsis: true,
-      render: v => <span style={{ fontSize: 11.5, fontWeight: 600, color: '#1E293B' }}>{v}</span>,
+      render: v => <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--tc-text)' }}>{v}</span>,
     },
     {
       title: 'Code', dataIndex: 'destination', width: 58, align: 'center' as const,
@@ -205,7 +205,7 @@ export default function ArchivagePage(): JSX.Element {
 
       {/* Sub-header beige (modèle validé) + Quitter comme le vrai STCA */}
       <div style={{
-        background: '#F5F3EE', borderBottom: '2px solid #E2D9C8',
+        background: 'var(--tc-subheader-bg)', borderBottom: '2px solid var(--tc-subheader-bd)',
         padding: '9px 14px', marginBottom: 8, borderRadius: 6,
         display: 'flex', alignItems: 'center', gap: 8,
       }}>
@@ -213,7 +213,7 @@ export default function ArchivagePage(): JSX.Element {
         <span style={{ color: C.blue, fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase', flex: 1 }}>
           Archivage des enregistrements
         </span>
-        <span style={{ color: '#64748B', fontSize: 10.5 }}>
+        <span style={{ color: 'var(--tc-muted)', fontSize: 10.5 }}>
           🚗 <strong>{actifs.length}</strong> actifs · ⏳ <strong>{eligibles.length}</strong> éligibles · 📦 <strong>{archives.length}</strong> archivés
         </span>
         <button onClick={() => window.dispatchEvent(new CustomEvent('mdi:close-self'))} style={{
@@ -241,7 +241,7 @@ export default function ArchivagePage(): JSX.Element {
               <>
                 {/* Bandeau d'action : tout archiver, ou une période bornée */}
                 <div style={{
-                  border: '1px solid #BFDBFE', background: '#F8FBFF', borderRadius: 8,
+                  border: '1px solid var(--tc-soft-bd)', background: 'var(--tc-soft-bg)', borderRadius: 8,
                   padding: '10px 14px', marginBottom: 8,
                   display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
                 }}>

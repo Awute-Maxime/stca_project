@@ -527,6 +527,10 @@ ul.ac-hist li .ico { font-size: 11px; opacity: 0.7; flex-shrink: 0; }
   --tc-soft-bg:#EFF6FF; --tc-soft-bd:#BFDBFE; --tc-soft-tx:#1D4ED8; --tc-montant-bg:#F0F4FF;
   --tc-label-strong:#374151; --tc-warmbar:#FFFEF0;
   --tc-thead-bg:#EEF3FB; --tc-thead-bd:#D9E2F0; --tc-td-line:#EEF2F7; --tc-selected:#DBEAFE;
+  /* teintes sémantiques pastel (statuts) */
+  --tc-ok-bg:#F0FDF4; --tc-ok-bd:#BBF7D0;
+  --tc-warn-bg:#FFFBEB; --tc-warn-bd:#FDE68A;
+  --tc-err-bg:#FEF2F2; --tc-err-bd:#FECACA;
 }
 :root[data-theme='dark']{
   --tc-titlebar:#0A1018;
@@ -547,6 +551,10 @@ ul.ac-hist li .ico { font-size: 11px; opacity: 0.7; flex-shrink: 0; }
   --tc-soft-bg:#16233C; --tc-soft-bd:#2B3A52; --tc-soft-tx:#93B4F5; --tc-montant-bg:#16233C;
   --tc-label-strong:#C5CEDB; --tc-warmbar:#1A180E;
   --tc-thead-bg:#14203A; --tc-thead-bd:#263650; --tc-td-line:#1A2333; --tc-selected:#1E3352;
+  /* teintes sémantiques pastel (statuts) */
+  --tc-ok-bg:#0C1A12; --tc-ok-bd:#1F6B3F;
+  --tc-warn-bg:#1F1A0C; --tc-warn-bd:#6B531F;
+  --tc-err-bg:#1F0E0E; --tc-err-bd:#6B2B2B;
 }
 
 /* ══ Mode sombre — champs de saisie partagés (.light-input) ══════════════════

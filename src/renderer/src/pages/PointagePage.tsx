@@ -8,13 +8,13 @@ import { type MockVehicule } from '@mock/vehicules'
 import { useVehicules, updateVehicule } from '@mock/vehiculesStore'
 
 const C = {
-  blue:   '#1B3A6B',
-  accent: '#2563EB',
+  blue:   'var(--tc-heading)',
+  accent: 'var(--accent)',
   green:  '#16A34A',
   gold:   '#F59E0B',
   muted:  '#6B7280',
-  border: '#E2E8F0',
-  bg:     '#F8FAFF',
+  border: 'var(--tc-line)',
+  bg:     'var(--tc-section)',
   danger: '#DC2626',
 }
 
@@ -101,7 +101,7 @@ export default function PointagePage(): JSX.Element {
             style={{ width: 90 }}
           />
         ) : (
-          <span style={{ color: '#D1D5DB', fontSize: 11 }}>—</span>
+          <span style={{ color: 'var(--tc-subtle)', fontSize: 11 }}>—</span>
         )
       },
     },
@@ -112,7 +112,7 @@ export default function PointagePage(): JSX.Element {
         return p.pointe ? (
           <Tooltip title="Dépointer">
             <Button size="small"
-              style={{ background: '#F0FDF4', borderColor: '#86EFAC', color: C.green, fontWeight: 600, fontSize: 10 }}
+              style={{ background: 'var(--tc-ok-bg)', borderColor: 'var(--tc-ok-bd)', color: C.green, fontWeight: 600, fontSize: 10 }}
               icon={<CheckCircleOutlined />}
               onClick={() => handlePointer(row)}>
               Pointé
@@ -136,17 +136,17 @@ export default function PointagePage(): JSX.Element {
     <div style={{ animation: 'formEnter 0.3s ease' }}>
       {/* Header — sub-header beige (modèle Enregistrement, pas de 2e bandeau bleu) */}
       <div style={{
-        background: '#F5F3EE', borderBottom: '2px solid #E2D9C8',
+        background: 'var(--tc-subheader-bg)', borderBottom: '2px solid var(--tc-subheader-bd)',
         padding: '9px 14px', marginBottom: 10, borderRadius: 6,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <CheckCircleOutlined style={{ color: '#1B3A6B', fontSize: 15 }} />
-          <span style={{ color: '#1B3A6B', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase' }}>
+          <CheckCircleOutlined style={{ color: 'var(--tc-heading)', fontSize: 15 }} />
+          <span style={{ color: 'var(--tc-heading)', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase' }}>
             Pointage / Dépointage — Sortie des Véhicules
           </span>
         </div>
-        <span style={{ color: '#64748B', fontSize: 10 }}>
+        <span style={{ color: 'var(--tc-muted)', fontSize: 10 }}>
           {dayjs().format('DD/MM/YYYY')}
         </span>
       </div>
@@ -154,10 +154,10 @@ export default function PointagePage(): JSX.Element {
       {/* Stats */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
         {[
-          { label: 'Véhicules pointés', value: nbPointe, color: C.green, bg: '#F0FDF4', border: '#BBF7D0' },
-          { label: 'En attente de sortie', value: nbRestant, color: C.gold, bg: '#FFFBEB', border: '#FDE68A' },
-          { label: 'Total en liste', value: filtered.length, color: C.blue, bg: C.bg, border: '#DDEAFF' },
-          { label: 'Taux de sortie', value: `${tauxSortie}%`, color: C.accent, bg: C.bg, border: '#DDEAFF' },
+          { label: 'Véhicules pointés', value: nbPointe, color: C.green, bg: 'var(--tc-ok-bg)', border: 'var(--tc-ok-bd)' },
+          { label: 'En attente de sortie', value: nbRestant, color: C.gold, bg: 'var(--tc-warn-bg)', border: 'var(--tc-warn-bd)' },
+          { label: 'Total en liste', value: filtered.length, color: C.blue, bg: C.bg, border: 'var(--tc-soft-bd)' },
+          { label: 'Taux de sortie', value: `${tauxSortie}%`, color: C.accent, bg: C.bg, border: 'var(--tc-soft-bd)' },
         ].map(s => (
           <div key={s.label} style={{
             flex: 1, padding: '8px 12px', background: s.bg,
