@@ -122,21 +122,21 @@ export default function EditionAssureurWindow(): JSX.Element {
 
   // ── Styles ────────────────────────────────────────────────────────────────
   const THM: React.CSSProperties = {
-    background: '#EEF3FB', color: '#1B3A6B', fontSize: 10.5, fontWeight: 700,
-    padding: '5px 8px', textAlign: 'center', borderBottom: '1px solid #D7E3F4', lineHeight: 1.25,
+    background: 'var(--tc-thead-bg)', color: 'var(--tc-heading)', fontSize: 10.5, fontWeight: 700,
+    padding: '5px 8px', textAlign: 'center', borderBottom: '1px solid var(--tc-thead-bd)', lineHeight: 1.25,
   }
-  const TDM: React.CSSProperties = { padding: '4px 6px', borderBottom: '1px solid #EEF2F7', textAlign: 'center' }
+  const TDM: React.CSSProperties = { padding: '4px 6px', borderBottom: '1px solid var(--tc-td-line)', textAlign: 'center' }
 
   return (
     <div style={{ animation: 'formEnter 0.3s ease', paddingBottom: 8 }}>
       {/* Sub-header beige (modèle validé) */}
       <div style={{
-        background: '#F5F3EE', borderBottom: '2px solid #E2D9C8',
+        background: 'var(--tc-subheader-bg)', borderBottom: '2px solid var(--tc-subheader-bd)',
         padding: '9px 14px', marginBottom: 12, borderRadius: 6,
         display: 'flex', alignItems: 'center', gap: 8,
       }}>
-        <SafetyCertificateOutlined style={{ color: '#1B3A6B', fontSize: 15 }} />
-        <span style={{ color: '#1B3A6B', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase', flex: 1 }}>
+        <SafetyCertificateOutlined style={{ color: 'var(--tc-heading)', fontSize: 15 }} />
+        <span style={{ color: 'var(--tc-heading)', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase', flex: 1 }}>
           Création / Modification d&apos;un assureur
         </span>
       </div>
@@ -144,15 +144,15 @@ export default function EditionAssureurWindow(): JSX.Element {
       {/* Nom + coordonnées (disposition de la capture) */}
       <div style={{ display: 'flex', gap: 14, marginBottom: 12 }}>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#1B3A6B', marginBottom: 4 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--tc-heading)', marginBottom: 4 }}>
             Nom de l&apos;assurance ou groupement
           </div>
           <input className="light-input" value={edition.nom}
             onChange={e => setEdition({ ...edition, nom: e.target.value })}
-            style={{ width: '100%', height: 28, fontWeight: 700, color: '#1D4ED8', textAlign: 'center', textTransform: 'uppercase' }} />
+            style={{ width: '100%', height: 28, fontWeight: 700, color: 'var(--tc-soft-tx)', textAlign: 'center', textTransform: 'uppercase' }} />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#1B3A6B', marginBottom: 4 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--tc-heading)', marginBottom: 4 }}>
             Coordonnées ( adresse cp ville tel etc … )
           </div>
           <input className="light-input" value={edition.coordonnees}
@@ -170,7 +170,7 @@ export default function EditionAssureurWindow(): JSX.Element {
           height: 26, padding: '0 10px', borderRadius: 4, cursor: 'pointer', fontSize: 11.5,
           border: '1px solid #BBF7D0', background: '#F0FDF4', color: '#16A34A', fontWeight: 700,
         }}>➕ Ajouter un type</button>
-        <span style={{ fontSize: 10.5, color: '#64748B', alignSelf: 'center' }}>
+        <span style={{ fontSize: 10.5, color: 'var(--tc-muted)', alignSelf: 'center' }}>
           Tarif brut = Tarif − Taxe &nbsp;·&nbsp; Commission STCA = brut × % &nbsp;·&nbsp; Montant à restituer = Tarif − Commission
         </span>
       </div>
@@ -202,7 +202,7 @@ export default function EditionAssureurWindow(): JSX.Element {
                   <InputNumber size="small" value={t.tarif} min={0} step={500} style={{ width: 90 }}
                     onChange={v => majTarif(i, { tarif: v ?? 0 })} />
                 </td>
-                <td style={{ ...TDM, fontWeight: 700, color: '#1B3A6B', fontSize: 11.5 }}>{fmt(brutDe(t))}</td>
+                <td style={{ ...TDM, fontWeight: 700, color: 'var(--tc-heading)', fontSize: 11.5 }}>{fmt(brutDe(t))}</td>
                 <td style={TDM}>
                   <InputNumber size="small" value={t.taxe} min={0} step={1} style={{ width: 76 }}
                     onChange={v => majTarif(i, { taxe: v ?? 0 })} />
@@ -213,7 +213,7 @@ export default function EditionAssureurWindow(): JSX.Element {
                     onChange={v => majTarif(i, { commissionPct: v ?? 0 })} />
                 </td>
                 <td style={{ ...TDM, fontWeight: 700, color: '#16A34A', fontSize: 11.5 }}>{fmt(commissionDe(t))}</td>
-                <td style={{ ...TDM, fontWeight: 700, color: '#1B3A6B', fontSize: 11.5 }}>{fmt(montantARestituerDe(t))}</td>
+                <td style={{ ...TDM, fontWeight: 700, color: 'var(--tc-heading)', fontSize: 11.5 }}>{fmt(montantARestituerDe(t))}</td>
                 <td style={TDM}>
                   <button title="Supprimer cette ligne" onClick={() => setEdition({
                     ...edition, tarifs: edition.tarifs.filter((_, j) => j !== i),
@@ -230,10 +230,10 @@ export default function EditionAssureurWindow(): JSX.Element {
 
       {/* ── Détail des primes constituant le tarif (Feuillet N°3) ─────────── */}
       <div style={{ margin: '16px 0 4px', display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-        <span style={{ fontSize: 11.5, fontWeight: 700, color: '#1B3A6B' }}>
+        <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--tc-heading)' }}>
           Détail des primes constituant le tarif
         </span>
-        <span style={{ fontSize: 10, color: '#64748B' }}>
+        <span style={{ fontSize: 10, color: 'var(--tc-muted)' }}>
           (imprimé sur le Feuillet N°3 — Cond. Part.) · le Tarif TTC est FIXÉ en haut et ne change jamais ici ·
           seules R.C. et Individuelle fluctuent pour retomber sur le Tarif — le reste est statique
         </span>
@@ -257,7 +257,7 @@ export default function EditionAssureurWindow(): JSX.Element {
               const d = detailDe(t)
               return (
                 <tr key={i}>
-                  <td style={{ ...TDM, textAlign: 'left', fontWeight: 600, fontSize: 11.5, color: '#1E293B' }}>
+                  <td style={{ ...TDM, textAlign: 'left', fontWeight: 600, fontSize: 11.5, color: 'var(--tc-text)' }}>
                     {t.type || '—'}
                   </td>
                   <td style={TDM}>
@@ -272,7 +272,7 @@ export default function EditionAssureurWindow(): JSX.Element {
                     <InputNumber size="small" value={d.individuelle} min={0} step={100} style={{ width: 82 }}
                       onChange={v => majDetail(i, { individuelle: v ?? 0 })} />
                   </td>
-                  <td style={{ ...TDM, fontWeight: 700, color: '#1B3A6B', fontSize: 11.5 }}>
+                  <td style={{ ...TDM, fontWeight: 700, color: 'var(--tc-heading)', fontSize: 11.5 }}>
                     {fmt(d.rc + d.cedeao + d.individuelle)}
                   </td>
                   <td style={TDM}>
@@ -283,7 +283,7 @@ export default function EditionAssureurWindow(): JSX.Element {
                     <InputNumber size="small" value={t.taxe} min={0} step={1} style={{ width: 74 }}
                       onChange={v => majTarif(i, { taxe: v ?? 0 })} />
                   </td>
-                  <td style={{ ...TDM, fontWeight: 700, color: '#1D4ED8', fontSize: 11.5 }}>{fmt(t.tarif)}</td>
+                  <td style={{ ...TDM, fontWeight: 700, color: 'var(--tc-soft-tx)', fontSize: 11.5 }}>{fmt(t.tarif)}</td>
                 </tr>
               )
             })}

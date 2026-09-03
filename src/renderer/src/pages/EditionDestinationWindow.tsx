@@ -16,7 +16,7 @@ import {
 // synchronise seule ; auto-fermeture.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const C = { blue: '#1B3A6B', accent: '#2563EB', green: '#16A34A', danger: '#DC2626', muted: '#64748B' }
+const C = { blue: 'var(--tc-heading)', accent: 'var(--accent)', green: '#16A34A', danger: '#DC2626', muted: 'var(--tc-muted)' }
 
 function chargerPayload(): { destination: DestinationParam | null } {
   try {
@@ -70,7 +70,7 @@ export default function EditionDestinationWindow(): JSX.Element {
   const label: React.CSSProperties = { fontSize: 12, fontWeight: 700, color: C.blue, marginBottom: 4, display: 'block' }
   const champ: React.CSSProperties = {
     width: '100%', height: 34, padding: '0 10px', fontSize: 13, borderRadius: 6,
-    border: '1px solid #CBD5E1', outline: 'none', color: '#1E293B', boxSizing: 'border-box',
+    border: '1px solid var(--tc-fieldset-bd)', outline: 'none', color: 'var(--tc-text)', boxSizing: 'border-box',
   }
   const estPerso = !PALETTE_PLAQUES.some(p => p.hex.toLowerCase() === couleur.toLowerCase())
 
@@ -78,7 +78,7 @@ export default function EditionDestinationWindow(): JSX.Element {
     <div style={{ animation: 'formEnter 0.3s ease', padding: 4 }}>
       {/* Sub-header beige (modèle validé) */}
       <div style={{
-        background: '#F5F3EE', borderBottom: '2px solid #E2D9C8',
+        background: 'var(--tc-subheader-bg)', borderBottom: '2px solid var(--tc-subheader-bd)',
         padding: '9px 14px', marginBottom: 14, borderRadius: 6,
         display: 'flex', alignItems: 'center', gap: 8,
       }}>
@@ -124,7 +124,7 @@ export default function EditionDestinationWindow(): JSX.Element {
         </div>
 
         {/* Couleur de la plaque pré-imprimée */}
-        <div style={{ border: '1px solid #BFDBFE', background: '#F8FBFF', borderRadius: 8, padding: '10px 12px' }}>
+        <div style={{ border: '1px solid var(--tc-soft-bd)', background: 'var(--tc-soft-bg)', borderRadius: 8, padding: '10px 12px' }}>
           <label style={{ ...label, marginBottom: 8 }}>
             Couleur de la plaque pré-imprimée
             <span style={{ fontWeight: 400, color: C.muted, marginLeft: 6 }}>— liée à cette destination</span>
@@ -165,7 +165,7 @@ export default function EditionDestinationWindow(): JSX.Element {
           }}>✓ Valider</button>
           <button onClick={fermer} style={{
             height: 36, padding: '0 22px', borderRadius: 6, cursor: 'pointer',
-            border: '1px solid #CBD5E1', background: '#fff', color: '#1E293B', fontSize: 13, fontWeight: 600,
+            border: '1px solid var(--tc-fieldset-bd)', background: 'var(--tc-card)', color: 'var(--tc-text)', fontSize: 13, fontWeight: 600,
           }}>Fermer</button>
         </div>
       </div>
