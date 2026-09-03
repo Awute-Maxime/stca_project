@@ -148,7 +148,7 @@ function HistoryInput({
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 borderRadius: 3, transition: 'color 0.15s',
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#2563EB' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--accent)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#9CA3AF' }}
               onMouseDown={e => e.preventDefault()}
             >
@@ -181,7 +181,7 @@ function ProgressDot({ filled }: { filled: boolean }): JSX.Element {
   return (
     <span style={{
       width: 8, height: 8, borderRadius: '50%',
-      background: filled ? '#2563EB' : '#CBD5E1',
+      background: filled ? 'var(--accent)' : '#CBD5E1',
       display: 'inline-block',
     }} />
   )
@@ -594,7 +594,7 @@ export default function EnregistrementPage(): JSX.Element {
         >☰ Liste</button>
         <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--tc-label)' }}>Référence</span>
         <input className="light-input" value={savedRef ?? '0'} readOnly
-          style={{ width: 58, textAlign: 'center', fontWeight: 700, color: '#2563EB', letterSpacing: 1.5, background: 'var(--tc-soft-bg)', height: 26 }} />
+          style={{ width: 58, textAlign: 'center', fontWeight: 700, color: 'var(--accent)', letterSpacing: 1.5, background: 'var(--tc-soft-bg)', height: 26 }} />
         <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--tc-label)' }}>En date du</span>
         <DatePicker value={date} onChange={v => v && setDate(v)} format="DD/MM/YYYY" size="small"
           style={{ width: 136, height: 26 }} allowClear={false} disabled={saved} />
@@ -665,7 +665,7 @@ export default function EnregistrementPage(): JSX.Element {
         {/* ── Section Description du véhicule ──────────────────────────── */}
         <fieldset style={FS}>
           <legend style={LEG}>Description du véhicule</legend>
-          <div style={{ textAlign: 'center', fontSize: 11, fontWeight: 600, color: '#2563EB', marginBottom: 6 }}>
+          <div style={{ textAlign: 'center', fontSize: 11, fontWeight: 600, color: 'var(--accent)', marginBottom: 6 }}>
             Véhicule sortant du Parc
           </div>
           {/* Véhicule à assurer + Description */}
@@ -817,7 +817,7 @@ export default function EnregistrementPage(): JSX.Element {
             display: 'flex', alignItems: 'center', gap: 6,
           }}><span className="btn-ico" role="img" aria-label="annuler">✖️</span> Annuler</button>
           <button onClick={handleEnregistrer} disabled={loading || !formReady} className="btn-save" style={{
-            height: 32, padding: '0 22px', background: loading || !formReady ? '#9CA3AF' : '#2563EB',
+            height: 32, padding: '0 22px', background: loading || !formReady ? '#9CA3AF' : 'var(--accent)',
             color: '#fff', border: 'none', borderRadius: 5, fontSize: 12, fontWeight: 700,
             cursor: loading || !formReady ? 'default' : 'pointer',
             display: 'flex', alignItems: 'center', gap: 6,

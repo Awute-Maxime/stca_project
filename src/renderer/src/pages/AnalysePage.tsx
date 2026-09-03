@@ -178,7 +178,7 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
     display: 'flex', justifyContent: 'flex-end', gap: 8,
   }
   const be: React.CSSProperties = {
-    height: 32, padding: '0 22px', background: '#2563EB', color: '#fff',
+    height: 32, padding: '0 22px', background: 'var(--accent)', color: '#fff',
     border: 'none', borderRadius: 5, fontSize: 12, fontWeight: 700,
     cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
   }
@@ -247,7 +247,7 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
                   />
                   <button style={{
                     display: 'flex', alignItems: 'center', gap: 5,
-                    padding: '5px 16px', background: '#2563EB', color: '#fff',
+                    padding: '5px 16px', background: 'var(--accent)', color: '#fff',
                     border: 'none', borderRadius: 5, fontSize: 12, fontWeight: 600, cursor: 'pointer',
                   }} onClick={handlePasswordOk}>OK ✔</button>
                 </div>
@@ -334,7 +334,7 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
                 <button key={t.key} onClick={() => setTcitTab(t.key)} style={{
                   padding: '10px 16px', background: 'none', border: 'none', cursor: 'pointer',
                   fontSize: 12,
-                  color: tcitTab === t.key ? '#2563EB' : '#64748B',
+                  color: tcitTab === t.key ? 'var(--accent)' : '#64748B',
                   fontWeight: tcitTab === t.key ? 700 : 400,
                   borderBottom: tcitTab === t.key ? '3px solid #2563EB' : '3px solid transparent',
                 }}>{t.label}</button>
@@ -413,7 +413,7 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
                         <input type="radio" name="anl-groupby"
                           checked={groupBy === r.v}
                           onChange={() => setGroupBy(r.v)}
-                          style={{ accentColor: '#2563EB' }} />
+                          style={{ accentColor: 'var(--accent)' }} />
                         {r.l}
                       </label>
                     ))}
@@ -490,7 +490,7 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
                       background: i % 2 === 0 ? 'var(--tc-card)' : 'var(--tc-section)',
                       borderBottom: '1px solid var(--tc-card-bd)',
                     }}>
-                      <td style={{ padding: '6px 10px', fontWeight: 600, color: '#2563EB' }}>{v.ref}</td>
+                      <td style={{ padding: '6px 10px', fontWeight: 600, color: 'var(--accent)' }}>{v.ref}</td>
                       <td style={{ padding: '6px 10px', color: 'var(--tc-text)' }}>{v.nomAcheteur}</td>
                       <td style={{ padding: '6px 10px', color: 'var(--tc-label)' }}>{v.paysDestination}</td>
                       <td style={{ padding: '6px 10px', color: 'var(--tc-label)' }}>{v.typeVehicule}</td>

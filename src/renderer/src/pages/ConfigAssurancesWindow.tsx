@@ -100,7 +100,7 @@ export default function ConfigAssurancesWindow(): JSX.Element {
           {[true, false].map(v => (
             <label key={String(v)} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 700, cursor: 'pointer', color: v ? '#16A34A' : '#DC2626' }}>
               <input type="radio" name="mise-en-service" checked={imprimer === v}
-                onChange={() => setImprimer(v)} style={{ accentColor: '#2563EB' }} />
+                onChange={() => setImprimer(v)} style={{ accentColor: 'var(--accent)' }} />
               {v ? 'OUI' : 'NON'}
             </label>
           ))}

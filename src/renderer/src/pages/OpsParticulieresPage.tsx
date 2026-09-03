@@ -67,7 +67,7 @@ export default function OpsParticulieresPage(): JSX.Element {
                       {op.user}
                     </td>
                     <td style={{ padding: '5px 8px', fontSize: 11, lineHeight: 1.6 }}>
-                      <span style={{ color: '#2563EB', fontWeight: 600 }}>{op.type} &gt;&gt;</span><br />
+                      <span style={{ color: 'var(--accent)', fontWeight: 600 }}>{op.type} &gt;&gt;</span><br />
                       VIN = {op.vin}<br />
                       Date = {op.dop}<br />
                       N&apos;Immat. = {op.immat}

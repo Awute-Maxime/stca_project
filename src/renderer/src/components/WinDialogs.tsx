@@ -46,7 +46,7 @@ export function WinConfirm({ message, onOui, onNon }: {
         </div>
         <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
           <button onClick={onOui} style={{
-            padding: '6px 28px', background: '#2563EB', color: '#fff',
+            padding: '6px 28px', background: 'var(--accent)', color: '#fff',
             border: 'none', borderRadius: 5, fontSize: 12, fontWeight: 700, cursor: 'pointer',
           }}>Oui</button>
           <button onClick={onNon} style={{
@@ -127,7 +127,7 @@ export function EditionDocsModal({ type, onClose, onPrint, onApercu }: {
                   }}>
                     <input type="radio" name="ed-doc" value={opt.value}
                       checked={selected === opt.value} onChange={() => setSelected(opt.value)}
-                      style={{ accentColor: '#2563EB' }} />
+                      style={{ accentColor: 'var(--accent)' }} />
                     {opt.label}
                   </label>
                 )
@@ -139,19 +139,19 @@ export function EditionDocsModal({ type, onClose, onPrint, onApercu }: {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, gap: 8 }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: 'var(--tc-label)', cursor: 'pointer' }}>
               <input type="checkbox" checked={preview} onChange={e => setPreview(e.target.checked)}
-                style={{ accentColor: '#2563EB' }} /> Prévisualiser
+                style={{ accentColor: 'var(--accent)' }} /> Prévisualiser
             </label>
             <div style={{ display: 'flex', gap: 8 }}>
               {onApercu && (
                 <button onClick={() => onApercu(selected)} style={{
                   display: 'flex', alignItems: 'center', gap: 5, padding: '6px 14px',
-                  background: 'var(--tc-soft-bg)', color: '#2563EB', border: '1px solid #2563EB',
+                  background: 'var(--tc-soft-bg)', color: 'var(--accent)', border: '1px solid #2563EB',
                   borderRadius: 5, fontSize: 12, fontWeight: 700, cursor: 'pointer',
                 }}>👁 Aperçu</button>
               )}
               <button onClick={() => onPrint(selected, preview)} style={{
                 display: 'flex', alignItems: 'center', gap: 6, padding: '6px 18px',
-                background: '#2563EB', color: '#fff', border: 'none', borderRadius: 5,
+                background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 5,
                 fontSize: 12, fontWeight: 700, cursor: 'pointer',
               }}>🖨 Imprimer</button>
             </div>

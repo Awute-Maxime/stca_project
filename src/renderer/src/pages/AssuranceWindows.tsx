@@ -178,7 +178,7 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
                   style={{ width: 110, padding: '4px 8px', fontSize: 13, height: 26 }} />
                 <button onClick={handlePwdOk} style={{
                   display: 'flex', alignItems: 'center', gap: 5,
-                  padding: '5px 16px', background: '#2563EB', color: '#fff',
+                  padding: '5px 16px', background: 'var(--accent)', color: '#fff',
                   border: 'none', borderRadius: 5, fontSize: 12, fontWeight: 600, cursor: 'pointer',
                 }}>OK ✔</button>
               </div>
@@ -312,7 +312,7 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
         <input type="date" className="light-input" value={to} onChange={e => setTo(e.target.value)}
           style={{ padding: '4px 6px', fontSize: 12, width: 132, height: 28 }} />
         <button onClick={doSearch} style={{
-          padding: '6px 18px', background: '#2563EB', color: '#fff',
+          padding: '6px 18px', background: 'var(--accent)', color: '#fff',
           border: 'none', borderRadius: 5, fontSize: 12, fontWeight: 700, cursor: 'pointer',
           display: 'flex', alignItems: 'center', gap: 6,
         }}>🔍 Rechercher</button>
@@ -376,7 +376,7 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
                   <td style={{ ...tdStyle, color: 'var(--tc-label)' }}>{v.paysResidence}/{v.paysDestination || v.paysResidence}</td>
                   <td style={{ ...tdStyle, color: 'var(--tc-label)' }}>{v.typeVehicule}</td>
                   <td style={{ ...tdStyle, textTransform: 'uppercase' }}>{v.marqueModele}</td>
-                  <td style={{ ...tdStyle, fontFamily: "'Courier New', monospace", fontSize: 10, color: '#2563EB' }}>{v.chassis}</td>
+                  <td style={{ ...tdStyle, fontFamily: "'Courier New', monospace", fontSize: 10, color: 'var(--accent)' }}>{v.chassis}</td>
                   <td style={tdStyle}>
                     <span style={{
                       fontFamily: "'Courier New', monospace", fontWeight: 700, color: '#D97706', fontSize: 10.5,

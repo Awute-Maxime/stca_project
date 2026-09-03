@@ -96,7 +96,7 @@ export default function NavSidebar({ onSelect, activeId, onOpenParametres }: Nav
                 position: 'absolute',
                 left: 0, top: '20%', bottom: '20%',
                 width: 3, borderRadius: '0 3px 3px 0',
-                background: '#60A5FA',
+                background: 'var(--accent)',
               }} />
             )}
             <span className="nav-ico" style={{ fontSize: 18 }}>{item.icon}</span>

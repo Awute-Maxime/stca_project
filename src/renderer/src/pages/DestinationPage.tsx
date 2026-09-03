@@ -77,7 +77,7 @@ export default function DestinationPage(): JSX.Element {
           style={{ width: 128, height: 26 }} />
         <button onClick={doSearch}
           style={{
-            padding: '5px 14px', background: '#2563EB', color: '#fff',
+            padding: '5px 14px', background: 'var(--accent)', color: '#fff',
             border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 13, lineHeight: 1,
           }}>🔍</button>
         <button onClick={doReset}
@@ -100,7 +100,7 @@ export default function DestinationPage(): JSX.Element {
           <tbody>
             {rows.map(([code, d]) => (
               <tr key={code} style={{ borderBottom: '1px solid var(--tc-card-bd)' }}>
-                <td style={{ textAlign: 'center', padding: '8px 14px', color: '#2563EB', fontWeight: 700 }}>{code}</td>
+                <td style={{ textAlign: 'center', padding: '8px 14px', color: 'var(--accent)', fontWeight: 700 }}>{code}</td>
                 <td style={{ textAlign: 'center', padding: '8px 14px', color: '#DC2626', fontWeight: 700 }}>{d.n}</td>
                 <td style={{ textAlign: 'center', padding: '8px 14px', color: 'var(--tc-label)' }}>{dayjs(d.dt).format('DD/MM/YYYY')}</td>
               </tr>
@@ -136,7 +136,7 @@ export default function DestinationPage(): JSX.Element {
           }}>Fermer</button>
         <button onClick={openApercu}
           style={{
-            height: 32, padding: '0 22px', background: '#2563EB', color: '#fff',
+            height: 32, padding: '0 22px', background: 'var(--accent)', color: '#fff',
             border: 'none', borderRadius: 5, fontSize: 12, fontWeight: 700, cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: 6,
           }}>🖨 Imprimer le rapport</button>

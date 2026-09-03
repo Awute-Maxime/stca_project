@@ -64,14 +64,14 @@ button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid #2563EB;
+  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
 /* ── Cohérence des cases / radios natives ─────────── */
 input[type='checkbox'],
 input[type='radio'] {
-  accent-color: #2563EB;
+  accent-color: var(--accent);
 }
 
 /* ── Champs date natifs : indicateur calendrier discret (inchangé) ──── */
@@ -81,7 +81,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
 input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 
 /* DatePicker Ant Design : icône calendrier BLEUE + rebond animé au survol */
-.ant-picker .ant-picker-suffix { color: #2563EB; transition: transform 0.2s cubic-bezier(0.2, 0.7, 0.3, 1.5); display: inline-flex; }
+.ant-picker .ant-picker-suffix { color: var(--accent); transition: transform 0.2s cubic-bezier(0.2, 0.7, 0.3, 1.5); display: inline-flex; }
 .ant-picker:hover .ant-picker-suffix { transform: scale(1.22) rotate(-6deg); }
 @media (prefers-reduced-motion: reduce) { .ant-picker:hover .ant-picker-suffix { transform: none; } }
 
@@ -91,7 +91,7 @@ tbody tr { transition: background 0.12s ease; }
 /* ── Notifications Ant aux couleurs TCIT ──────────── */
 .ant-notification-notice {
   border-radius: 10px !important;
-  border-left: 3px solid #2563EB !important;
+  border-left: 3px solid var(--accent) !important;
   box-shadow: 0 12px 40px rgba(15, 40, 80, 0.16), 0 2px 8px rgba(15, 40, 80, 0.08) !important;
 }
 
@@ -187,7 +187,7 @@ input.light-input {
   box-sizing: border-box;
 }
 input.light-input:focus {
-  border-color: #2563EB;
+  border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
 }
 /* Survol : la bordure s'éclaire en bleu + légère ombre (transition douce) */
@@ -203,7 +203,7 @@ input.light-input--chassis:hover:not(:focus) {
 input.light-input::placeholder { color: #9CA3AF; font-weight: 400; }
 input.light-input[disabled]    { background: #F3F4F6; color: #9CA3AF; cursor: default; }
 input.light-input--clickable   { cursor: pointer; }
-input.light-input--clickable:hover { border-color: #2563EB; }
+input.light-input--clickable:hover { border-color: var(--accent); }
 input.light-input--req         { background: #EFF6FF; }
 input.light-input--warm        { background: #FFFEF0 !important; }
 /* N° de Châssis : info critique → champ plus GRAND et bien plus évident que les
@@ -216,7 +216,7 @@ input.light-input--chassis {
 input.light-input--chassis:focus { border-color: #DC2626; box-shadow: 0 0 0 3px rgba(220,38,38,0.14); }
 input.light-input--chassis::placeholder { color: #B0838A; font-weight: 400; font-size: 12px; letter-spacing: normal; font-family: 'Segoe UI', sans-serif; }
 input.light-input--amount      { color: #16A34A; font-weight: 700; background: #F0FDF4 !important; }
-input.light-input--ref         { color: #2563EB; font-weight: 700; background: #EFF6FF !important; letter-spacing: 1px; }
+input.light-input--ref         { color: var(--accent); font-weight: 700; background: #EFF6FF !important; letter-spacing: 1px; }
 
 /* ── Filled state (input has a value) ──────────────────── */
 input.light-input--filled {
@@ -284,7 +284,7 @@ ul.ac-hist li {
   cursor: pointer; transition: background 0.1s;
 }
 ul.ac-hist li.actif { background: #EFF4FF; }
-ul.ac-hist li b { color: #2563EB; }
+ul.ac-hist li b { color: var(--accent); }
 ul.ac-hist li .ico { font-size: 11px; opacity: 0.7; flex-shrink: 0; }
 @media (prefers-reduced-motion: reduce) { ul.ac-hist { animation: none; } }
 
@@ -335,12 +335,12 @@ ul.ac-hist li .ico { font-size: 11px; opacity: 0.7; flex-shrink: 0; }
 /* Bouton « Décoder le VIN » (à côté du champ Châssis) */
 .btn-decoder-vin {
   height: 34px; padding: 0 14px; flex-shrink: 0; white-space: nowrap;
-  border: 1.5px solid #2563EB; border-radius: 6px; cursor: pointer;
-  background: rgba(37,99,235,0.08); color: #2563EB; font-size: 12px; font-weight: 700;
+  border: 1.5px solid var(--accent); border-radius: 6px; cursor: pointer;
+  background: rgba(37,99,235,0.08); color: var(--accent); font-size: 12px; font-weight: 700;
   display: inline-flex; align-items: center; gap: 5px;
   transition: background 0.18s, box-shadow 0.18s, transform 0.1s;
 }
-.btn-decoder-vin:hover:not(:disabled) { background: #2563EB; color: #fff; box-shadow: 0 4px 12px rgba(37,99,235,0.35); }
+.btn-decoder-vin:hover:not(:disabled) { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(37,99,235,0.35); }
 .btn-decoder-vin:active:not(:disabled) { transform: scale(0.96); }
 .btn-decoder-vin:disabled { opacity: 0.5; cursor: default; }
 
@@ -358,12 +358,12 @@ ul.ac-hist li .ico { font-size: 11px; opacity: 0.7; flex-shrink: 0; }
 .dv-btn:active:not(:disabled) { transform: scale(0.96); }
 .dv-btn:disabled { opacity: 0.55; cursor: default; box-shadow: none; }
 
-.dv-btn--primary { background: #2563EB; color: #fff; box-shadow: 0 2px 8px rgba(37,99,235,0.28); }
+.dv-btn--primary { background: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(37,99,235,0.28); }
 .dv-btn--primary:hover:not(:disabled) { box-shadow: 0 6px 18px rgba(37,99,235,0.5); transform: translateY(-1px); }
 .dv-btn--primary:hover:not(:disabled) .dv-ico { animation: dvLoupe 0.6s ease; }
 
-.dv-btn--online { background: #fff; border: 1.5px solid #2563EB; color: #2563EB; }
-.dv-btn--online:hover:not(:disabled) { background: #2563EB; color: #fff; box-shadow: 0 5px 15px rgba(37,99,235,0.35); transform: translateY(-1px); }
+.dv-btn--online { background: #fff; border: 1.5px solid var(--accent); color: var(--accent); }
+.dv-btn--online:hover:not(:disabled) { background: var(--accent); color: #fff; box-shadow: 0 5px 15px rgba(37,99,235,0.35); transform: translateY(-1px); }
 .dv-btn--online:hover:not(:disabled) .dv-ico { animation: dvSpin 0.9s ease; }
 
 .dv-btn--apply { background: linear-gradient(135deg,#16A34A,#12813d); color: #fff; box-shadow: 0 2px 8px rgba(22,163,74,0.3); }
@@ -379,7 +379,7 @@ ul.ac-hist li .ico { font-size: 11px; opacity: 0.7; flex-shrink: 0; }
   border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff;
   display: inline-block; animation: dvSpin 0.7s linear infinite;
 }
-.dv-ring--blue { border-color: rgba(37,99,235,0.25); border-top-color: #2563EB; }
+.dv-ring--blue { border-color: rgba(37,99,235,0.25); border-top-color: var(--accent); }
 
 @keyframes dvSpin { to { transform: rotate(360deg); } }
 @keyframes dvLoupe {
@@ -420,10 +420,10 @@ ul.ac-hist li .ico { font-size: 11px; opacity: 0.7; flex-shrink: 0; }
 .dv-step__mark svg { width: 25px; height: 25px; }
 
 /* Statuts : PLUS DE CERCLE — seulement la couleur de l'icône + la marque par-dessus */
-.dv-step.is-encours .dv-step__dot { color: #2563EB; }
+.dv-step.is-encours .dv-step__dot { color: var(--accent); }
 .dv-step.is-encours .dv-step__icon { animation: dvGlow 1.4s ease-in-out infinite; }
 .dv-step.is-encours .dv-step__lbl,
-.dv-step.is-encours .dv-step__sub { color: #2563EB; }
+.dv-step.is-encours .dv-step__sub { color: var(--accent); }
 
 .dv-step.is-ok .dv-step__dot { color: #16A34A; }
 .dv-step.is-ok .dv-step__lbl { color: #16A34A; }
@@ -509,6 +509,9 @@ ul.ac-hist li .ico { font-size: 11px; opacity: 0.7; flex-shrink: 0; }
    clair. Seul le bloc [data-theme=dark] recolore la coquille (titre, menu,
    statut, sidebar, titres MDI, bureau). */
 :root{
+  /* Couleur d'accent — pilotée par la Personnalisation (branding.json).
+     Valeur par défaut = bleu TCIT : sans personnalisation, rien ne change. */
+  --accent:#2563EB;
   --tc-titlebar:#1B3A6B;
   --tc-sb-from:#1E4080; --tc-sb-to:#112654;
   --tc-statusbar-end:#1B3A6B;

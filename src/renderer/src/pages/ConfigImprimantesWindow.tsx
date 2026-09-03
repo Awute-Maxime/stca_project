@@ -189,7 +189,7 @@ export function ConfigImprimantesWindow(): JSX.Element {
         .cfgimp-nav-item.actif { background: rgba(255,255,255,0.14); color: #fff; }
         .cfgimp-nav-item.actif::before {
           content: ''; position: absolute; left: -8px; top: 22%; bottom: 22%;
-          width: 3px; border-radius: 0 3px 3px 0; background: #60A5FA;
+          width: 3px; border-radius: 0 3px 3px 0; background: var(--accent);
         }
         .cfgimp-pave-btn {
           border: 1px solid var(--tc-fieldset-bd); border-radius: 8px; background: var(--tc-section);
@@ -326,13 +326,13 @@ export function ConfigImprimantesWindow(): JSX.Element {
                 <label style={RADIO}>
                   <input type="radio" name="fact-cb" checked={!cfg.factureAvecCodeBarre}
                     onChange={() => setCfg(prev => ({ ...prev, factureAvecCodeBarre: false }))}
-                    style={{ accentColor: '#2563EB' }} />
+                    style={{ accentColor: 'var(--accent)' }} />
                   Sans Code Barre
                 </label>
                 <label style={RADIO}>
                   <input type="radio" name="fact-cb" checked={cfg.factureAvecCodeBarre}
                     onChange={() => setCfg(prev => ({ ...prev, factureAvecCodeBarre: true }))}
-                    style={{ accentColor: '#2563EB' }} />
+                    style={{ accentColor: 'var(--accent)' }} />
                   Avec Code Barre
                 </label>
               </div>
@@ -347,7 +347,7 @@ export function ConfigImprimantesWindow(): JSX.Element {
                   <label key={t} style={RADIO}>
                     <input type="radio" name="type-f12" checked={cfg.typeFeuillets12 === t}
                       onChange={() => setCfg(prev => ({ ...prev, typeFeuillets12: t }))}
-                      style={{ accentColor: '#2563EB' }} />
+                      style={{ accentColor: 'var(--accent)' }} />
                     {t === 'rouleau' ? 'Rouleau' : 'Laser'}
                   </label>
                 ))}
@@ -372,7 +372,7 @@ export function ConfigImprimantesWindow(): JSX.Element {
             <label style={{ ...RADIO, fontWeight: 700, color: '#1D4ED8', marginTop: 14 }}>
               <input type="checkbox" checked={cfg.imprimerFicheId}
                 onChange={e => setCfg(prev => ({ ...prev, imprimerFicheId: e.target.checked }))}
-                style={{ accentColor: '#2563EB' }} />
+                style={{ accentColor: 'var(--accent)' }} />
               Imprimer Fiche ID Véhicule
             </label>
           )}

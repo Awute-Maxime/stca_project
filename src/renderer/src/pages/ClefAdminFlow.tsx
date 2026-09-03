@@ -70,7 +70,7 @@ export default function ClefAdminFlow({ onClose }: { onClose: () => void }): JSX
   }
   const okBtn: React.CSSProperties = {
     display: 'flex', alignItems: 'center', gap: 5, padding: '5px 16px',
-    background: '#2563EB', color: '#fff', border: 'none', borderRadius: 5,
+    background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 5,
     fontSize: 12, fontWeight: 600, cursor: 'pointer',
   }
   const usbBtn: React.CSSProperties = {

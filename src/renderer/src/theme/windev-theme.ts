@@ -8,8 +8,8 @@ export const appColors = {
   // Sidebar navigation
   sidebarBg:        '#1B3A6B',
   sidebarText:      '#FFFFFF',
-  sidebarHoverBg:   '#2563EB',
-  sidebarActiveBg:  '#2563EB',
+  sidebarHoverBg:   'var(--accent)',
+  sidebarActiveBg:  'var(--accent)',
 
   // Barre de menus
   menuBarBg:        '#FFFFFF',
@@ -30,7 +30,7 @@ export const appColors = {
   statusBarBorder:  'rgba(255,255,255,0.2)',
 
   // Boutons d'action
-  btnValiderBg:     '#2563EB',
+  btnValiderBg:     'var(--accent)',
   btnAnnulerBg:     '#6B7280',
 
   // Inputs
@@ -38,7 +38,7 @@ export const appColors = {
   inputRequiredBg:  '#EFF6FF',
 
   // Accents
-  accentBlue:       '#2563EB',
+  accentBlue:       'var(--accent)',
   accentGold:       '#F59E0B',
   accentDanger:     '#DC2626',
 

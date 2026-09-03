@@ -115,7 +115,7 @@ export default function ListePage(): JSX.Element {
           <input type="date" className="light-input" value={to} onChange={e => setTo(e.target.value)}
             style={{ padding: '3px 5px', fontSize: 11, width: 126, height: 26 }} />
           <button onClick={doSearch} style={{
-            height: 32, padding: '0 12px', background: '#2563EB', color: '#fff',
+            height: 32, padding: '0 12px', background: 'var(--accent)', color: '#fff',
             border: 'none', borderRadius: 5, fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: 4,
           }}>🔍 Rechercher</button>
@@ -175,7 +175,7 @@ export default function ListePage(): JSX.Element {
                       }}>{v.immat}</span>
                     </td>
                     <td style={{ ...tdStyle, color: 'var(--tc-text)', borderBottomColor: bbc, textTransform: 'uppercase' }}>{v.marqueModele}</td>
-                    <td style={{ ...tdStyle, fontFamily: "'Courier New', monospace", fontSize: 10, color: '#2563EB', borderBottomColor: bbc }}>{v.chassis}</td>
+                    <td style={{ ...tdStyle, fontFamily: "'Courier New', monospace", fontSize: 10, color: 'var(--accent)', borderBottomColor: bbc }}>{v.chassis}</td>
                     <td style={{ ...tdStyle, textAlign: 'center', color: '#7C3AED', fontWeight: 600, borderBottomColor: bbc }}>
                       {v.numTri || String(10000 + v.id).padStart(6, '0')}
                     </td>
@@ -280,15 +280,15 @@ export default function ListePage(): JSX.Element {
           <legend style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--tc-label-strong)', padding: '0 3px' }}>Filtrage Pointage</legend>
           <label style={{ display: 'block', fontSize: 11, cursor: 'pointer', marginBottom: 3 }}>
             <input type="radio" name="lv-pointage" value="sortie" checked={pointage === 'sortie'}
-              onChange={() => setPointage('sortie')} style={{ accentColor: '#2563EB' }} /> Sortie
+              onChange={() => setPointage('sortie')} style={{ accentColor: 'var(--accent)' }} /> Sortie
           </label>
           <label style={{ display: 'block', fontSize: 11, cursor: 'pointer', marginBottom: 3 }}>
             <input type="radio" name="lv-pointage" value="non_sortie" checked={pointage === 'non_sortie'}
-              onChange={() => setPointage('non_sortie')} style={{ accentColor: '#2563EB' }} /> NON sortie
+              onChange={() => setPointage('non_sortie')} style={{ accentColor: 'var(--accent)' }} /> NON sortie
           </label>
           <label style={{ display: 'block', fontSize: 11, cursor: 'pointer' }}>
             <input type="radio" name="lv-pointage" value="toutes" checked={pointage === 'toutes'}
-              onChange={() => setPointage('toutes')} style={{ accentColor: '#2563EB' }} /> Toutes
+              onChange={() => setPointage('toutes')} style={{ accentColor: 'var(--accent)' }} /> Toutes
           </label>
         </fieldset>
 

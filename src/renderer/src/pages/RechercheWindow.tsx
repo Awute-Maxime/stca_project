@@ -141,7 +141,7 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
               fontFamily: isImmat ? undefined : "'Courier New', monospace",
             }} />
           <button onClick={doSearch} style={{
-            height: 32, padding: '0 12px', background: '#2563EB', color: '#fff',
+            height: 32, padding: '0 12px', background: 'var(--accent)', color: '#fff',
             border: 'none', borderRadius: 5, fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: 4,
           }}>🔍 Rechercher</button>
@@ -202,7 +202,7 @@ export default function RechercheWindow({ mode }: Props): JSX.Element {
                       )}
                     </td>
                     <td style={{ ...tdStyle, color: 'var(--tc-text)', borderBottomColor: bbc, textTransform: 'uppercase' }}>{v.marqueModele}</td>
-                    <td style={{ ...tdStyle, fontFamily: "'Courier New', monospace", fontSize: 10, color: '#2563EB', borderBottomColor: bbc }}>{v.chassis}</td>
+                    <td style={{ ...tdStyle, fontFamily: "'Courier New', monospace", fontSize: 10, color: 'var(--accent)', borderBottomColor: bbc }}>{v.chassis}</td>
                     <td style={{ ...tdStyle, textAlign: 'center', color: '#7C3AED', fontWeight: 600, borderBottomColor: bbc }}>
                       {v.numTri || String(10000 + v.id).padStart(6, '0')}
                     </td>

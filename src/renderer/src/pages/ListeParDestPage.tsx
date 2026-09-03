@@ -89,7 +89,7 @@ export default function ListeParDestPage(): JSX.Element {
           onChange={e => setTo(e.target.value)}
           style={{ padding: '3px 5px', fontSize: 11, width: 126, height: 26 }} />
         <button onClick={doSearch} style={{
-          height: 32, padding: '0 14px', background: '#2563EB', color: '#fff',
+          height: 32, padding: '0 14px', background: 'var(--accent)', color: '#fff',
           border: 'none', borderRadius: 5, fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
           display: 'flex', alignItems: 'center', gap: 5,
         }}>🔍 Rechercher</button>
@@ -125,7 +125,7 @@ export default function ListeParDestPage(): JSX.Element {
                   borderBottom: '1px solid #F1F5F9',
                   background: i % 2 === 0 ? 'var(--tc-card)' : 'var(--tc-section)',
                 }}>
-                  <td style={{ textAlign: 'center', padding: '7px 14px', color: '#2563EB', fontWeight: 700 }}>{r.code}</td>
+                  <td style={{ textAlign: 'center', padding: '7px 14px', color: 'var(--accent)', fontWeight: 700 }}>{r.code}</td>
                   <td style={{ textAlign: 'center', padding: '7px 14px', color: '#DC2626', fontWeight: 700 }}>{r.n}</td>
                   <td style={{ textAlign: 'center', padding: '7px 14px', color: 'var(--tc-label)' }}>{dayjs(r.date).format('DD/MM/YYYY')}</td>
                 </tr>

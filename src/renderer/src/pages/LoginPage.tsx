@@ -292,7 +292,7 @@ export default function LoginPage(): JSX.Element {
               disabled={loading}
               style={{
                 flex: 2, height: 36,
-                background: loading ? 'rgba(37,99,235,0.4)' : 'linear-gradient(135deg, #2563EB 0%, #1B3A6B 100%)',
+                background: loading ? 'rgba(37,99,235,0.4)' : 'linear-gradient(135deg, var(--accent) 0%, #1B3A6B 100%)',
                 border: '1px solid rgba(37,99,235,0.5)', borderRadius: 8,
                 color: '#FFFFFF', fontSize: 12, fontWeight: 600,
                 cursor: loading ? 'not-allowed' : 'pointer',

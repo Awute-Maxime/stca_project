@@ -158,7 +158,7 @@ export default function FichierMarquesPage(): JSX.Element {
                 style={{ width: '100%', boxSizing: 'border-box', padding: '4px 6px', fontSize: 12, display: 'block', height: 26 }} />
               <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 14 }}>
                 <button onClick={() => void dialogValidate()} style={{
-                  padding: '4px 20px', background: '#2563EB', color: '#fff',
+                  padding: '4px 20px', background: 'var(--accent)', color: '#fff',
                   border: '1px solid #1D4ED8', borderRadius: 3, fontSize: 12, fontWeight: 700, cursor: 'pointer',
                 }}>✓ Valider</button>
                 <button onClick={() => setDialogOpen(false)} style={{

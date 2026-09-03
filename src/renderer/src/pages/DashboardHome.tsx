@@ -8,7 +8,7 @@ const { Text } = Typography
 
 // DEST_COLORS lu depuis destinationsStore (couleur de plaque éditable, source unique)
 const TYPE_COLORS: Record<string, string> = {
-  'Voiture': '#2563EB', 'Camion': '#D97706', 'Moto': '#DC2626',
+  'Voiture': 'var(--accent)', 'Camion': '#D97706', 'Moto': '#DC2626',
   'Bus': '#16A34A', 'Pick-up': '#7C3AED', 'Minibus': '#0891B2',
 }
 
@@ -156,7 +156,7 @@ export default function DashboardHome(): JSX.Element {
                 <div className="jauge-fill" style={{
                   height: '100%', borderRadius: 3,
                   width: `${r.pct}%`,
-                  background: DEST_COLORS[r.code] ?? '#2563EB',
+                  background: DEST_COLORS[r.code] ?? 'var(--accent)',
                 }} />
               </div>
               {/* Count — prototype: .frn */}
@@ -212,7 +212,7 @@ export default function DashboardHome(): JSX.Element {
           </thead>
           <tbody>
             {derniers.map(v => {
-              const bg = DEST_COLORS[v.destination] ?? '#2563EB'
+              const bg = DEST_COLORS[v.destination] ?? 'var(--accent)'
               return (
                 <tr key={v.id}
                   onMouseEnter={e => { e.currentTarget.querySelectorAll('td').forEach(td => { (td as HTMLElement).style.background = 'var(--tc-row-hover)' }) }}
