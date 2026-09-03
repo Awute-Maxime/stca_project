@@ -1,6 +1,6 @@
 import { app, shell, BrowserWindow, ipcMain, screen } from 'electron'
 import { join } from 'path'
-import { dbCounts, disconnectPrisma } from './db'
+import { dbCounts, disconnectPrisma, preparerBase } from './db'
 import { pickCsvFile, previewCsv, runImport, type Mapping } from './import'
 import {
   categoriesList, categoriesSaveAll,
@@ -502,6 +502,10 @@ function createWindow(): void {
 // ── App lifecycle ─────────────────────────────────────────────────────────────
 app.whenReady().then(() => {
   app.setAppUserModelId('tg.tcit')
+
+  // 1re installation : copie la base livrée vers userData (aucun effet en dev,
+  // ni si la base de l'utilisateur existe déjà). DOIT précéder toute requête.
+  preparerBase()
 
   setupMdiIPC()
 

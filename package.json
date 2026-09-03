@@ -1,6 +1,6 @@
 {
   "name": "tcit-desktop",
-  "version": "0.1.0",
+  "version": "0.9.0-test",
   "description": "TCIT — Togolaise de Contrôle et d'Immatriculation Transit",
   "main": "./out/main/index.js",
   "author": "Awute Maxime",
@@ -63,13 +63,32 @@
   "build": {
     "appId": "tg.tcit.desktop",
     "productName": "TCIT",
+    "files": [
+      "out/**",
+      "resources/**",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "**/node_modules/.prisma/**",
+      "**/node_modules/@prisma/client/**",
+      "**/node_modules/prisma/**"
+    ],
+    "extraResources": [
+      {
+        "from": "prisma/stca.db",
+        "to": "stca.db"
+      }
+    ],
     "win": {
       "target": "nsis",
-      "icon": "resources/icon.ico"
+      "icon": "resources/icon.ico",
+      "artifactName": "TCIT-Setup-${version}.${ext}"
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "TCIT"
     }
   }
 }

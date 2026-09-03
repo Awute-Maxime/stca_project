@@ -1,5 +1,6 @@
 import { app } from 'electron'
 import { join } from 'path'
+import { existsSync, copyFileSync, mkdirSync } from 'fs'
 import { PrismaClient } from '@prisma/client'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -7,15 +8,42 @@ import { PrismaClient } from '@prisma/client'
 // renderer y accède par IPC). Le chemin de la base est passé explicitement à
 // Prisma (chemin ABSOLU) — plus fiable qu'une URL relative dans Electron.
 //  - Dev  : prisma/stca.db à la racine du projet (celle créée par la migration).
-//  - Prod : userData/stca.db (à copier/migrer au 1er lancement — Phase 4).
+//  - Prod : userData/stca.db, COPIÉE au 1er lancement depuis la base livrée
+//    avec l'installeur (resources/stca.db). La base de travail vit ainsi dans
+//    userData (inscriptible, conservée aux mises à jour) et jamais dans
+//    Program Files (lecture seule).
 // ─────────────────────────────────────────────────────────────────────────────
 
-function dbUrl(): string {
-  const chemin = app.isPackaged
+/** Chemin de la base de travail (dev : dépôt ; prod : userData). */
+function cheminBase(): string {
+  return app.isPackaged
     ? join(app.getPath('userData'), 'stca.db')
     : join(app.getAppPath(), 'prisma', 'stca.db')
+}
+
+/**
+ * Prépare la base au démarrage (prod uniquement) : si userData/stca.db n'existe
+ * pas encore — première installation — on y copie la base livrée dans les
+ * ressources de l'application. Idempotent : ne réécrit JAMAIS une base
+ * existante (les données de l'utilisateur sont préservées à chaque mise à jour).
+ */
+export function preparerBase(): void {
+  if (!app.isPackaged) return
+  const cible = cheminBase()
+  if (existsSync(cible)) return
+  const source = join(process.resourcesPath, 'stca.db')
+  if (!existsSync(source)) {
+    console.error('[db] base livrée introuvable :', source)
+    return
+  }
+  mkdirSync(app.getPath('userData'), { recursive: true })
+  copyFileSync(source, cible)
+  console.log('[db] base initialisée depuis les ressources →', cible)
+}
+
+function dbUrl(): string {
   // URL file: avec slashs avant (compatible Windows)
-  return 'file:' + chemin.replace(/\\/g, '/')
+  return 'file:' + cheminBase().replace(/\\/g, '/')
 }
 
 let prisma: PrismaClient | null = null
