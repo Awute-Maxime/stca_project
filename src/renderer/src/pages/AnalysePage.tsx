@@ -157,13 +157,13 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
     display: 'flex', alignItems: 'center', justifyContent: 'center',
   }
   const mb2: React.CSSProperties = {
-    background: '#fff', border: '1px solid #E2E8F0', borderRadius: 10,
+    background: 'var(--tc-card)', border: '1px solid var(--tc-line)', borderRadius: 10,
     boxShadow: '0 20px 60px rgba(0,0,0,0.15)', display: 'flex', flexDirection: 'column',
     animation: 'formEnter 0.2s ease',
   }
   const mh: React.CSSProperties = {
     display: 'flex', alignItems: 'center', padding: '14px 20px',
-    background: '#1B3A6B', borderRadius: '10px 10px 0 0', color: '#fff',
+    background: 'var(--tc-titlebar)', borderRadius: '10px 10px 0 0', color: '#fff',
     fontSize: 13, fontWeight: 700,
   }
   const mhc: React.CSSProperties = {
@@ -173,8 +173,8 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
     borderRadius: 4, transition: 'all 0.15s',
   }
   const mft: React.CSSProperties = {
-    padding: '12px 20px', borderTop: '1px solid #E2E8F0',
-    background: '#F8FAFF', borderRadius: '0 0 10px 10px',
+    padding: '12px 20px', borderTop: '1px solid var(--tc-line)',
+    background: 'var(--tc-section)', borderRadius: '0 0 10px 10px',
     display: 'flex', justifyContent: 'flex-end', gap: 8,
   }
   const be: React.CSSProperties = {
@@ -183,11 +183,11 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
     cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
   }
   const bc: React.CSSProperties = {
-    height: 34, padding: '0 16px', background: '#fff', color: '#374151',
+    height: 34, padding: '0 16px', background: 'var(--tc-card)', color: 'var(--tc-label-strong)',
     border: '1px solid #D1D5DB', borderRadius: 5, fontSize: 12, cursor: 'pointer',
   }
   const bs: React.CSSProperties = {
-    height: 32, padding: '0 16px', background: '#F8FAFF', color: '#64748B',
+    height: 32, padding: '0 16px', background: 'var(--tc-section)', color: 'var(--tc-muted)',
     border: '1px solid #D1D5DB', borderRadius: 5, fontSize: 12, cursor: 'pointer',
   }
   const fi: React.CSSProperties = {
@@ -209,7 +209,7 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
   /*  RENDER                                                           */
   /* ================================================================ */
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--tc-card)' }}>
 
       {/* ============================================================ */}
       {/*  Step 1: Password                                            */}
@@ -229,7 +229,7 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
             <div style={{ padding: '20px 24px' }}>
               {/* Inner card — prototype exact */}
               <div style={{
-                border: '1px solid #E2E8F0', background: '#F8FAFF',
+                border: '1px solid var(--tc-line)', background: 'var(--tc-section)',
                 borderRadius: 6, padding: '14px 16px', marginBottom: 16,
               }}>
                 <p style={{ color: '#DC2626', fontSize: 11.5, margin: '0 0 14px', lineHeight: 1.5 }}>
@@ -254,7 +254,7 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
               </div>
 
               {/* USB section — prototype: text-align center, border-top */}
-              <div style={{ textAlign: 'center', borderTop: '1px solid #E2E8F0', paddingTop: 14 }}>
+              <div style={{ textAlign: 'center', borderTop: '1px solid var(--tc-line)', paddingTop: 14 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 12 }}>
                   <span style={{ fontSize: 26, lineHeight: 1 }}>⚠️</span>
                   <span style={{ fontSize: 11.5, color: '#92400E' }}>Ou déverrouiller par la clé USB :</span>
@@ -262,7 +262,7 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
                 <div style={{ display: 'flex', justifyContent: 'center', gap: 10 }}>
                   <button style={{
                     display: 'flex', alignItems: 'center', gap: 6, padding: '6px 16px',
-                    background: '#F1F5F9', color: '#475569', border: '1px solid #CBD5E1',
+                    background: 'var(--tc-track)', color: 'var(--tc-label)', border: '1px solid var(--tc-fieldset-bd)',
                     borderRadius: 5, fontSize: 12, cursor: 'pointer',
                   }}>⚡ Lire Clé USB</button>
                   <button style={bc} onClick={closeWindow}>Annuler</button>
@@ -289,14 +289,14 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
             <div style={{ padding: '20px 24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
                 <span style={{ fontSize: 28 }}>&#8505;&#65039;</span>
-                <span style={{ fontSize: 12.5, color: '#1E293B' }}>
+                <span style={{ fontSize: 12.5, color: 'var(--tc-text)' }}>
                   Veuillez choisir un secteur à analyser
                 </span>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button style={be} onClick={() => setStep('tcit_config')}>TCIT</button>
                 <button style={{
-                  height: 32, padding: '0 22px', background: '#fff', color: '#374151',
+                  height: 32, padding: '0 22px', background: 'var(--tc-card)', color: 'var(--tc-label-strong)',
                   border: '1px solid #D1D5DB', borderRadius: 5, fontSize: 12, fontWeight: 700,
                   cursor: 'pointer',
                 }} onClick={() => setStep('assurance')}>ASSURANCE</button>
@@ -323,8 +323,8 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
 
             {/* Tabs */}
             <div style={{
-              display: 'flex', borderBottom: '1px solid #E2E8F0', padding: '0 20px',
-              background: '#fff',
+              display: 'flex', borderBottom: '1px solid var(--tc-line)', padding: '0 20px',
+              background: 'var(--tc-card)',
             }}>
               {([
                 { key: 'detail' as TcitTab, label: 'Rapports détaillés' },
@@ -346,24 +346,24 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
               {/* Date fields */}
               <div style={{ display: 'flex', gap: 20, marginBottom: 12 }}>
                 <div>
-                  <label style={{ fontSize: 11, color: '#64748B', fontWeight: 600, display: 'block', marginBottom: 4 }}>
+                  <label style={{ fontSize: 11, color: 'var(--tc-muted)', fontWeight: 600, display: 'block', marginBottom: 4 }}>
                     Date de début
                   </label>
                   <input type="date" value={dateFrom}
                     onChange={e => { setDateFrom(e.target.value); setPeriodPreset('') }}
                     style={{ ...fi, width: 130 }} />
-                  <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>
+                  <div style={{ fontSize: 10, color: 'var(--tc-subtle)', marginTop: 2 }}>
                     {frDayName(dateFrom)}
                   </div>
                 </div>
                 <div>
-                  <label style={{ fontSize: 11, color: '#64748B', fontWeight: 600, display: 'block', marginBottom: 4 }}>
+                  <label style={{ fontSize: 11, color: 'var(--tc-muted)', fontWeight: 600, display: 'block', marginBottom: 4 }}>
                     Date de fin
                   </label>
                   <input type="date" value={dateTo}
                     onChange={e => { setDateTo(e.target.value); setPeriodPreset('') }}
                     style={{ ...fi, width: 130 }} />
-                  <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>
+                  <div style={{ fontSize: 10, color: 'var(--tc-subtle)', marginTop: 2 }}>
                     {frDayName(dateTo)}
                   </div>
                 </div>
@@ -371,7 +371,7 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
 
               {/* Period preset */}
               <div style={{ marginBottom: 14 }}>
-                <label style={{ fontSize: 11, color: '#64748B', fontWeight: 600, display: 'block', marginBottom: 4 }}>
+                <label style={{ fontSize: 11, color: 'var(--tc-muted)', fontWeight: 600, display: 'block', marginBottom: 4 }}>
                   Période prédéfinie
                 </label>
                 <select value={periodPreset} onChange={e => handlePeriodPreset(e.target.value)}
@@ -394,10 +394,10 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
               {/* GroupBy fieldset — hidden for annual */}
               {tcitTab !== 'annual' && (
                 <fieldset style={{
-                  border: '1px solid #E2E8F0', borderRadius: 6, padding: '10px 14px',
+                  border: '1px solid var(--tc-line)', borderRadius: 6, padding: '10px 14px',
                   marginBottom: 14,
                 }}>
-                  <legend style={{ fontSize: 11, color: '#64748B', fontWeight: 600, padding: '0 6px' }}>
+                  <legend style={{ fontSize: 11, color: 'var(--tc-muted)', fontWeight: 600, padding: '0 6px' }}>
                     Totaliser les montants par
                   </legend>
                   <div style={{ display: 'flex', gap: 16 }}>
@@ -408,7 +408,7 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
                     ]).map(r => (
                       <label key={r.v} style={{
                         display: 'flex', alignItems: 'center', gap: 5,
-                        fontSize: 12, color: '#1E293B', cursor: 'pointer',
+                        fontSize: 12, color: 'var(--tc-text)', cursor: 'pointer',
                       }}>
                         <input type="radio" name="anl-groupby"
                           checked={groupBy === r.v}
@@ -448,7 +448,7 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
             {/* Filters bar */}
             <div style={{
               display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px',
-              borderBottom: '1px solid #E2E8F0', background: '#F8FAFF', flexShrink: 0,
+              borderBottom: '1px solid var(--tc-line)', background: 'var(--tc-section)', flexShrink: 0,
             }}>
               <input type="date" value={assurFrom}
                 onChange={e => setAssurFrom(e.target.value)}
@@ -475,7 +475,7 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
             <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
                 <thead>
-                  <tr style={{ background: '#1B3A6B', color: '#fff' }}>
+                  <tr style={{ background: 'var(--tc-titlebar)', color: '#fff' }}>
                     {['Réf', 'Nom', 'Transit/Pays', 'Type', 'Marque et modèle', 'N° Chassis', 'Immatriculation', 'Destination', 'N° Police'].map(h => (
                       <th key={h} style={{
                         padding: '8px 10px', fontSize: 11, fontWeight: 700,
@@ -487,16 +487,16 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
                 <tbody>
                   {assurFiltered.map((v, i) => (
                     <tr key={v.id} style={{
-                      background: i % 2 === 0 ? '#fff' : '#F8FAFF',
-                      borderBottom: '1px solid #F1F5F9',
+                      background: i % 2 === 0 ? 'var(--tc-card)' : 'var(--tc-section)',
+                      borderBottom: '1px solid var(--tc-card-bd)',
                     }}>
                       <td style={{ padding: '6px 10px', fontWeight: 600, color: '#2563EB' }}>{v.ref}</td>
-                      <td style={{ padding: '6px 10px', color: '#1E293B' }}>{v.nomAcheteur}</td>
-                      <td style={{ padding: '6px 10px', color: '#475569' }}>{v.paysDestination}</td>
-                      <td style={{ padding: '6px 10px', color: '#475569' }}>{v.typeVehicule}</td>
-                      <td style={{ padding: '6px 10px', color: '#1E293B' }}>{v.marqueModele}</td>
-                      <td style={{ padding: '6px 10px', color: '#64748B', fontFamily: 'monospace', fontSize: 10 }}>{v.chassis}</td>
-                      <td style={{ padding: '6px 10px', fontWeight: 700, color: '#1B3A6B' }}>{v.immat}</td>
+                      <td style={{ padding: '6px 10px', color: 'var(--tc-text)' }}>{v.nomAcheteur}</td>
+                      <td style={{ padding: '6px 10px', color: 'var(--tc-label)' }}>{v.paysDestination}</td>
+                      <td style={{ padding: '6px 10px', color: 'var(--tc-label)' }}>{v.typeVehicule}</td>
+                      <td style={{ padding: '6px 10px', color: 'var(--tc-text)' }}>{v.marqueModele}</td>
+                      <td style={{ padding: '6px 10px', color: 'var(--tc-muted)', fontFamily: 'monospace', fontSize: 10 }}>{v.chassis}</td>
+                      <td style={{ padding: '6px 10px', fontWeight: 700, color: 'var(--tc-heading)' }}>{v.immat}</td>
                       <td style={{ padding: '6px 10px', textAlign: 'center' }}>
                         <span style={{
                           fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 3,
@@ -504,12 +504,12 @@ export default function AnalysePage({ onClose }: { onClose: () => void }): JSX.E
                           background: DEST_COLORS[v.destination] ?? '#6B7280',
                         }}>{v.destination}</span>
                       </td>
-                      <td style={{ padding: '6px 10px', color: '#475569' }}>{randomPolice(v.id)}</td>
+                      <td style={{ padding: '6px 10px', color: 'var(--tc-label)' }}>{randomPolice(v.id)}</td>
                     </tr>
                   ))}
                   {assurFiltered.length === 0 && (
                     <tr>
-                      <td colSpan={9} style={{ textAlign: 'center', padding: 40, color: '#94A3B8', fontStyle: 'italic' }}>
+                      <td colSpan={9} style={{ textAlign: 'center', padding: 40, color: 'var(--tc-subtle)', fontStyle: 'italic' }}>
                         Aucun véhicule pour cette période
                       </td>
                     </tr>
