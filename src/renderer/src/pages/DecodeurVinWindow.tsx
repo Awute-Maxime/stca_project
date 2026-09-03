@@ -15,8 +15,8 @@ import { electronApi, type VinEnLigne } from '@api/electron'
 // ─────────────────────────────────────────────────────────────────────────────
 
 const C = {
-  navy: '#1B3A6B', accent: '#2563EB', gold: '#F59E0B', green: '#16A34A',
-  red: '#DC2626', muted: '#64748B', ink: '#1E293B', line: '#E2E8F0', bg: '#F8FAFF',
+  navy: 'var(--tc-heading)', accent: 'var(--accent)', gold: '#F59E0B', green: '#16A34A',
+  red: '#DC2626', muted: 'var(--tc-muted)', ink: 'var(--tc-text)', line: 'var(--tc-line)', bg: 'var(--tc-section)',
 }
 const ZONE_COUL = { wmi: C.accent, vds: C.gold, vis: C.green }
 const EMOJI_CAT: Record<Categorie, string> = { Voiture: '🚗', Camion: '🚛', Autre: '🚐' }
@@ -154,7 +154,7 @@ export default function DecodeurVinWindow(): JSX.Element {
   return (
     <div style={{ background: C.bg, minHeight: '100%' }}>
       {/* Sub-header beige */}
-      <div style={{ background: '#F5F3EE', borderBottom: '2px solid #E2D9C8', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 9 }}>
+      <div style={{ background: 'var(--tc-subheader-bg)', borderBottom: '2px solid var(--tc-subheader-bd)', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 9 }}>
         <span style={{ fontSize: 18 }} className={travail ? 'dv-globe' : undefined}>🔎</span>
         <div>
           <div style={{ fontSize: 12, fontWeight: 800, color: C.navy, letterSpacing: 0.6, textTransform: 'uppercase' }}>Décodage du numéro de châssis (VIN)</div>
@@ -165,7 +165,7 @@ export default function DecodeurVinWindow(): JSX.Element {
       <div style={{ padding: '12px 16px' }}>
         {/* Saisie */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
-          <span style={{ fontSize: 12, color: '#475569', whiteSpace: 'nowrap' }}>N° de châssis :</span>
+          <span style={{ fontSize: 12, color: 'var(--tc-label)', whiteSpace: 'nowrap' }}>N° de châssis :</span>
           <input
             className="light-input" value={vin} maxLength={17} disabled={travail}
             onChange={e => setVin(e.target.value.replace(/\s+/g, '').toUpperCase())}
@@ -189,7 +189,7 @@ export default function DecodeurVinWindow(): JSX.Element {
         </div>
 
         {/* Décomposition — TOUJOURS affichée ; les cases se remplissent à la saisie */}
-        <div style={{ background: '#fff', border: `1px solid ${C.line}`, borderRadius: 10, padding: 10, marginBottom: 10 }}>
+        <div style={{ background: 'var(--tc-card)', border: `1px solid ${C.line}`, borderRadius: 10, padding: 10, marginBottom: 10 }}>
           <div style={{ fontSize: 9.5, fontWeight: 800, color: C.muted, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 }}>Décomposition</div>
           <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
             {Array.from({ length: 17 }, (_, i) => {
@@ -212,13 +212,13 @@ export default function DecodeurVinWindow(): JSX.Element {
         </div>
 
         {/* Résultat — TOUJOURS affiché ; valeurs remplies au décodage */}
-        <div style={{ background: '#fff', border: `1px solid ${C.line}`, borderRadius: 10, padding: '10px 14px', marginBottom: 10 }}>
+        <div style={{ background: 'var(--tc-card)', border: `1px solid ${C.line}`, borderRadius: 10, padding: '10px 14px', marginBottom: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12.5, fontWeight: 700, marginBottom: 6, color: res ? (res.structureValide ? C.green : C.red) : C.muted }}>
             {res ? (res.structureValide ? '✓ Structure VIN valide (17 caractères)' : `✗ ${res.raisonInvalide}`) : 'En attente d’un décodage'}
             {res && (
               <span style={{
                 marginLeft: 'auto', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 10,
-                background: res.source === 'en ligne' ? '#EFF6FF' : '#F1F5F9', color: res.source === 'en ligne' ? C.accent : C.muted,
+                background: res.source === 'en ligne' ? 'var(--tc-soft-bg)' : 'var(--tc-track)', color: res.source === 'en ligne' ? C.accent : C.muted,
               }}>
                 {res.source === 'en ligne'
                   ? <><span className="dv-globe">🌐</span> Source : NHTSA en ligne</>
@@ -380,8 +380,8 @@ function Lien({ on }: { on: boolean }): JSX.Element {
 function KV({ k, v }: { k: string; v: string }): JSX.Element {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, borderBottom: '1px dashed #EDF1F8', paddingBottom: 4 }}>
-      <span style={{ color: '#64748B' }}>{k}</span>
-      <span style={{ fontWeight: 700, color: '#1E293B' }}>{v}</span>
+      <span style={{ color: 'var(--tc-muted)' }}>{k}</span>
+      <span style={{ fontWeight: 700, color: 'var(--tc-text)' }}>{v}</span>
     </div>
   )
 }
