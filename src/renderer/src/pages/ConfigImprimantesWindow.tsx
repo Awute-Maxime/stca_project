@@ -163,17 +163,17 @@ export function ConfigImprimantesWindow(): JSX.Element {
 
   // ── Styles réutilisés ─────────────────────────────────────────────────────
   const LBL: React.CSSProperties = {
-    fontSize: 10, fontWeight: 700, color: '#64748B', textTransform: 'uppercase',
+    fontSize: 10, fontWeight: 700, color: 'var(--tc-muted)', textTransform: 'uppercase',
     letterSpacing: 0.6, display: 'block', marginBottom: 6,
   }
-  const RADIO: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#1E293B', cursor: 'pointer' }
-  const FS: React.CSSProperties = { border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px 14px', marginTop: 14 }
-  const LEG: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: '#475569', padding: '0 6px', textTransform: 'uppercase', letterSpacing: 0.5 }
+  const RADIO: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--tc-text)', cursor: 'pointer' }
+  const FS: React.CSSProperties = { border: '1px solid var(--tc-fieldset-bd)', borderRadius: 8, padding: '8px 14px', marginTop: 14 }
+  const LEG: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: 'var(--tc-label)', padding: '0 6px', textTransform: 'uppercase', letterSpacing: 0.5 }
 
   return (
     <div style={{
       margin: -8, height: 'calc(100vh - 32px)',
-      display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#fff',
+      display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--tc-card)',
     }}>
       <style>{`
         @keyframes cfgPanEntre { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: translateX(0); } }
@@ -192,29 +192,29 @@ export function ConfigImprimantesWindow(): JSX.Element {
           width: 3px; border-radius: 0 3px 3px 0; background: #60A5FA;
         }
         .cfgimp-pave-btn {
-          border: 1px solid #CBD5E1; border-radius: 8px; background: #F8FAFF;
-          font-size: 14px; color: #1B3A6B; cursor: pointer; font-weight: 700;
+          border: 1px solid var(--tc-fieldset-bd); border-radius: 8px; background: var(--tc-section);
+          font-size: 14px; color: var(--tc-heading); cursor: pointer; font-weight: 700;
           transition: background 0.12s ease, transform 0.1s ease;
         }
-        .cfgimp-pave-btn:hover { background: #EFF6FF; }
-        .cfgimp-pave-btn:active { transform: scale(0.92); background: #DBEAFE; }
+        .cfgimp-pave-btn:hover { background: var(--tc-soft-bg); }
+        .cfgimp-pave-btn:active { transform: scale(0.92); background: var(--tc-selected); }
         .cfgimp-btn-test {
           height: 32px; padding: 0 16px; border-radius: 8px; cursor: pointer;
-          border: 1px solid #BFDBFE; background: #EFF6FF; color: #1D4ED8;
+          border: 1px solid var(--tc-soft-bd); background: var(--tc-soft-bg); color: var(--tc-soft-tx);
           font-size: 11.5px; font-weight: 700;
           transition: transform 0.12s ease, box-shadow 0.15s ease;
         }
         .cfgimp-btn-test:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(37,99,235,0.18); }
         .cfgimp-select {
-          width: 100%; height: 30px; border: 1px solid #CBD5E1; border-radius: 7px;
-          padding: 0 10px; font-size: 12px; background: #fff; color: #1E293B;
+          width: 100%; height: 30px; border: 1px solid var(--tc-fieldset-bd); border-radius: 7px;
+          padding: 0 10px; font-size: 12px; background: var(--tc-card); color: var(--tc-text);
           transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
         .cfgimp-select:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); outline: none; }
         .cfgimp-dim {
-          width: 66px; height: 28px; border: 1px solid #CBD5E1; border-radius: 7px;
-          padding: 0 6px; font-size: 12.5px; font-weight: 700; color: #1D4ED8;
-          text-align: center; background: #fff;
+          width: 66px; height: 28px; border: 1px solid var(--tc-fieldset-bd); border-radius: 7px;
+          padding: 0 6px; font-size: 12.5px; font-weight: 700; color: var(--tc-soft-tx);
+          text-align: center; background: var(--tc-card);
           transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
         .cfgimp-dim:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); outline: none; }
@@ -222,14 +222,14 @@ export function ConfigImprimantesWindow(): JSX.Element {
 
       {/* ── Bandeau beige (modèle Enregistrement) ─────────────────────────── */}
       <div style={{
-        background: '#F5F3EE', borderBottom: '2px solid #E2D9C8', flexShrink: 0,
+        background: 'var(--tc-subheader-bg)', borderBottom: '2px solid var(--tc-subheader-bd)', flexShrink: 0,
         padding: '9px 14px', display: 'flex', alignItems: 'center', gap: 8,
       }}>
         <PrinterOutlined style={{ color: '#1B3A6B', fontSize: 15 }} />
         <span style={{ color: '#1B3A6B', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase', flex: 1 }}>
           Configuration des éditions et imprimantes
         </span>
-        <span style={{ fontSize: 10.5, color: '#64748B' }}>
+        <span style={{ fontSize: 10.5, color: 'var(--tc-muted)' }}>
           Imprimante par défaut du système :&nbsp;
           <strong style={{ color: '#16A34A' }}>{parDefaut || 'détection…'}</strong>
         </span>
@@ -241,7 +241,7 @@ export function ConfigImprimantesWindow(): JSX.Element {
         {/* Navigation latérale */}
         <div style={{
           width: 98, flexShrink: 0, overflowY: 'auto',
-          background: 'linear-gradient(180deg, #1E4080, #112654)',
+          background: 'linear-gradient(180deg, var(--tc-sb-from), var(--tc-sb-to))',
           padding: '12px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
         }}>
           {DOCS.map(d => (
@@ -262,11 +262,11 @@ export function ConfigImprimantesWindow(): JSX.Element {
             <div style={{
               width: 46, height: 46, borderRadius: 12, fontSize: 24, flexShrink: 0,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: '#EFF6FF', border: '1px solid #BFDBFE',
+              background: 'var(--tc-soft-bg)', border: '1px solid var(--tc-soft-bd)',
             }}>{doc.ico}</div>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: '#1B3A6B' }}>{doc.nom}</div>
-              <div style={{ fontSize: 11, color: '#64748B' }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--tc-heading)' }}>{doc.nom}</div>
+              <div style={{ fontSize: 11, color: 'var(--tc-muted)' }}>
                 {dims ? `${cmTexte(dims.largeurMm)} × ${cmTexte(dims.hauteurMm)} cm — pré-imprimé` : doc.dims}
               </div>
             </div>
@@ -297,12 +297,12 @@ export function ConfigImprimantesWindow(): JSX.Element {
             <div style={{ marginTop: 14, maxWidth: 430 }}>
               <span style={LBL}>Dimensions du papier (cm)</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 11.5, color: '#374151' }}>Largeur :</span>
+                <span style={{ fontSize: 11.5, color: 'var(--tc-label-strong)' }}>Largeur :</span>
                 <input type="number" className="cfgimp-dim" step={0.1} min={3} max={45}
                   value={Number((dims.largeurMm / 10).toFixed(2))}
                   onChange={e => majDimension('largeurMm', parseFloat(e.target.value))} />
                 <span style={{ color: '#94A3B8', fontSize: 13, fontWeight: 700 }}>×</span>
-                <span style={{ fontSize: 11.5, color: '#374151' }}>Hauteur :</span>
+                <span style={{ fontSize: 11.5, color: 'var(--tc-label-strong)' }}>Hauteur :</span>
                 <input type="number" className="cfgimp-dim" step={0.1} min={3} max={45}
                   value={Number((dims.hauteurMm / 10).toFixed(2))}
                   onChange={e => majDimension('hauteurMm', parseFloat(e.target.value))} />
@@ -310,7 +310,7 @@ export function ConfigImprimantesWindow(): JSX.Element {
                   title="Revenir au format d'origine du document"
                   style={{
                     height: 28, padding: '0 10px', fontSize: 10.5, borderRadius: 7, cursor: 'pointer',
-                    border: '1px solid #CBD5E1', background: '#fff', color: '#475569',
+                    border: '1px solid var(--tc-fieldset-bd)', background: 'var(--tc-card)', color: 'var(--tc-label)',
                   }}>
                   ↺ {cmTexte(DIMENSIONS_DEFAUT[doc.cal].largeurMm)} × {cmTexte(DIMENSIONS_DEFAUT[doc.cal].hauteurMm)}
                 </button>
@@ -357,13 +357,13 @@ export function ConfigImprimantesWindow(): JSX.Element {
 
           {doc.cle === 'feuillet3' && (
             <div style={{ ...FS, maxWidth: 430, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 11.5, fontWeight: 700, color: '#1B3A6B', whiteSpace: 'nowrap' }}>Nom Etat Cond. Part. :</span>
+              <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--tc-heading)', whiteSpace: 'nowrap' }}>Nom Etat Cond. Part. :</span>
               <input className="light-input" value={cfg.nomEtatCondPart}
                 onChange={e => setCfg(prev => ({ ...prev, nomEtatCondPart: e.target.value }))}
                 style={{ flex: 1, height: 26, fontWeight: 600, color: '#1D4ED8' }} />
               <button title="Nom du modèle d'état utilisé pour le Feuillet N°3" style={{
-                width: 26, height: 26, border: '1px solid #CBD5E1', borderRadius: 4, flexShrink: 0,
-                background: '#F8FAFF', color: '#1B3A6B', fontWeight: 700, cursor: 'help',
+                width: 26, height: 26, border: '1px solid var(--tc-fieldset-bd)', borderRadius: 4, flexShrink: 0,
+                background: 'var(--tc-section)', color: 'var(--tc-heading)', fontWeight: 700, cursor: 'help',
               }}>?</button>
             </div>
           )}
@@ -394,7 +394,7 @@ export function ConfigImprimantesWindow(): JSX.Element {
                   <button className="cfgimp-pave-btn" title="Vers la gauche de 0,5 mm" onClick={() => majCalibrage(-0.5, 0)}>◀</button>
                   <button onClick={resetCalibrage} title="Réinitialiser (décalage 0,0 — échelle 100 %)" style={{
                     fontSize: 12, fontWeight: 700, color: '#1D4ED8', border: '1px dashed #BFDBFE',
-                    borderRadius: 8, background: '#fff', cursor: 'pointer',
+                    borderRadius: 8, background: 'var(--tc-card)', cursor: 'pointer',
                   }}>↺</button>
                   <button className="cfgimp-pave-btn" title="Vers la droite de 0,5 mm" onClick={() => majCalibrage(0.5, 0)}>▶</button>
                   <span />
@@ -414,7 +414,7 @@ export function ConfigImprimantesWindow(): JSX.Element {
                   { titre: 'Hauteur',  valeur: cal.ey, moins: [0, -0.5] as const, plus: [0, 0.5] as const },
                 ]).map(l => (
                   <div key={l.titre} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
-                    <span style={{ fontSize: 11.5, color: '#374151', width: 52 }}>{l.titre} :</span>
+                    <span style={{ fontSize: 11.5, color: 'var(--tc-label-strong)', width: 52 }}>{l.titre} :</span>
                     <button className="cfgimp-pave-btn" style={{ width: 26, height: 26 }}
                       title={`Réduire de 0,5 %`} onClick={() => majEchelle(l.moins[0], l.moins[1])}>−</button>
                     <span style={{
@@ -429,7 +429,7 @@ export function ConfigImprimantesWindow(): JSX.Element {
                 <button className="cfgimp-btn-test" style={{ marginTop: 10 }} onClick={testImpression}>
                   🖨 Imprimer une page de test
                 </button>
-                <div style={{ fontSize: 10, color: '#64748B', marginTop: 10, lineHeight: 1.5, maxWidth: 240 }}>
+                <div style={{ fontSize: 10, color: 'var(--tc-muted)', marginTop: 10, lineHeight: 1.5, maxWidth: 240 }}>
                   Imprimez la page de test sur le pré-imprimé réel, mesurez le décalage constaté
                   (ex. « 2 mm trop bas » → ▲ jusqu&apos;à −2,0 mm), puis réimprimez.
                 </div>
@@ -472,7 +472,7 @@ export function ConfigImprimantesWindow(): JSX.Element {
           ) : (
             <div style={{
               marginTop: 18, maxWidth: 430, padding: '10px 14px', borderRadius: 8,
-              background: '#F8FAFC', border: '1px solid #E2E8F0', fontSize: 11, color: '#64748B', lineHeight: 1.5,
+              background: 'var(--tc-section)', border: '1px solid var(--tc-line)', fontSize: 11, color: 'var(--tc-muted)', lineHeight: 1.5,
             }}>
               ℹ La facture est imprimée en entier sur papier A4 vierge :
               aucun calibrage de position n&apos;est nécessaire pour ce document.
@@ -484,7 +484,7 @@ export function ConfigImprimantesWindow(): JSX.Element {
       {/* ── Pied : Valider / Fermer ───────────────────────────────────────── */}
       <div style={{
         flexShrink: 0, display: 'flex', justifyContent: 'center', gap: 12,
-        padding: '10px 0', borderTop: '1px solid #E2E8F0', background: '#F8FAFF',
+        padding: '10px 0', borderTop: '1px solid var(--tc-line)', background: 'var(--tc-section)',
       }}>
         <button onClick={valider} style={{
           height: 32, padding: '0 26px', background: '#16A34A', color: '#fff',

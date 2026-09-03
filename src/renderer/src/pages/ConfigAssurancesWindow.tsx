@@ -60,41 +60,41 @@ export default function ConfigAssurancesWindow(): JSX.Element {
   // ── Styles ────────────────────────────────────────────────────────────────
   const btnDroit: React.CSSProperties = {
     width: '100%', padding: '8px 6px', fontSize: 11.5, borderRadius: 5, cursor: 'pointer',
-    border: '1px solid #CBD5E1', background: '#fff', color: '#1E293B', fontWeight: 600,
+    border: '1px solid var(--tc-fieldset-bd)', background: 'var(--tc-card)', color: 'var(--tc-text)', fontWeight: 600,
   }
   const TH: React.CSSProperties = {
-    background: 'linear-gradient(180deg, #2B5AA8, #1B3A6B)', color: '#fff',
+    background: 'linear-gradient(180deg, var(--tc-mdi-from), var(--tc-mdi-to))', color: '#fff',
     fontSize: 11, fontWeight: 700, padding: '6px 10px', textAlign: 'left',
   }
-  const TD: React.CSSProperties = { fontSize: 11.5, padding: '6px 10px', borderBottom: '1px solid #EEF2F7' }
+  const TD: React.CSSProperties = { fontSize: 11.5, padding: '6px 10px', borderBottom: '1px solid var(--tc-td-line)' }
 
   return (
     <div style={{ animation: 'formEnter 0.3s ease' }}>
       {/* Sub-header beige (modèle validé) */}
       <div style={{
-        background: '#F5F3EE', borderBottom: '2px solid #E2D9C8',
+        background: 'var(--tc-subheader-bg)', borderBottom: '2px solid var(--tc-subheader-bd)',
         padding: '9px 14px', marginBottom: 10, borderRadius: 6,
         display: 'flex', alignItems: 'center', gap: 8,
       }}>
-        <SafetyCertificateOutlined style={{ color: '#1B3A6B', fontSize: 15 }} />
-        <span style={{ color: '#1B3A6B', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase', flex: 1 }}>
+        <SafetyCertificateOutlined style={{ color: 'var(--tc-heading)', fontSize: 15 }} />
+        <span style={{ color: 'var(--tc-heading)', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase', flex: 1 }}>
           Liste d&apos;assureur ou Groupement d&apos;assurance
         </span>
-        <span style={{ color: '#64748B', fontSize: 10.5 }}>
+        <span style={{ color: 'var(--tc-muted)', fontSize: 10.5 }}>
           {cfg.assureurs.length} assureur(s)
         </span>
       </div>
 
       {/* ── Mise en service des fonctions Assurances (capture 1) ──────────── */}
       <div style={{
-        border: '1px solid #BFDBFE', background: '#F8FBFF', borderRadius: 8,
+        border: '1px solid var(--tc-soft-bd)', background: 'var(--tc-soft-bg)', borderRadius: 8,
         padding: '10px 14px', marginBottom: 10,
       }}>
-        <div style={{ fontSize: 12.5, fontWeight: 700, color: '#1D4ED8', marginBottom: 8 }}>
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--tc-soft-tx)', marginBottom: 8 }}>
           &raquo;&raquo; Mise en service des fonctions Assurances
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: '#1E293B' }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--tc-text)' }}>
             Imprimer Facture + Cond. Part. + Assurances :
           </span>
           {[true, false].map(v => (
@@ -126,8 +126,8 @@ export default function ConfigAssurancesWindow(): JSX.Element {
                 const sel = a.id === selId
                 return (
                   <tr key={a.id} onClick={() => setSelId(a.id)} onDoubleClick={() => { setSelId(a.id); ouvrirModification() }}
-                    style={{ cursor: 'pointer', background: sel ? '#DBEAFE' : undefined }}>
-                    <td style={{ ...TD, fontWeight: 700, color: '#1B3A6B', textTransform: 'uppercase' }}>{a.nom}</td>
+                    style={{ cursor: 'pointer', background: sel ? 'var(--tc-selected)' : undefined }}>
+                    <td style={{ ...TD, fontWeight: 700, color: 'var(--tc-heading)', textTransform: 'uppercase' }}>{a.nom}</td>
                     <td style={TD}>{a.coordonnees}</td>
                   </tr>
                 )
