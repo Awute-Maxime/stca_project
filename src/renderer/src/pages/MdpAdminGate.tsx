@@ -41,13 +41,13 @@ export default function MdpAdminGate({ titre, message, onOk, onClose }: {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
   }
   const carte: React.CSSProperties = {
-    background: '#fff', border: '1px solid #E2E8F0', borderRadius: 10,
+    background: 'var(--tc-card)', border: '1px solid var(--tc-line)', borderRadius: 10,
     boxShadow: '0 20px 60px rgba(0,0,0,0.15)', width: 470, padding: 0,
     animation: 'formEnter 0.2s ease',
   }
   const titreBar: React.CSSProperties = {
     display: 'flex', alignItems: 'center', padding: '14px 20px',
-    borderBottom: '1px solid #E2E8F0', background: '#1B3A6B', borderRadius: '10px 10px 0 0',
+    borderBottom: '1px solid var(--tc-line)', background: 'var(--tc-titlebar)', borderRadius: '10px 10px 0 0',
   }
   const fermerBtn: React.CSSProperties = {
     width: 26, height: 26, background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)',
@@ -60,11 +60,11 @@ export default function MdpAdminGate({ titre, message, onOk, onClose }: {
   }
   const usbBtn: React.CSSProperties = {
     display: 'flex', alignItems: 'center', gap: 6, padding: '6px 16px',
-    background: '#F1F5F9', color: '#475569', border: '1px solid #CBD5E1',
+    background: 'var(--tc-track)', color: 'var(--tc-label)', border: '1px solid var(--tc-fieldset-bd)',
     borderRadius: 5, fontSize: 12, cursor: 'pointer',
   }
   const annulerBtn: React.CSSProperties = {
-    height: 34, padding: '0 16px', background: '#fff', color: '#374151',
+    height: 34, padding: '0 16px', background: 'var(--tc-card)', color: 'var(--tc-label-strong)',
     border: '1px solid #D1D5DB', borderRadius: 5, fontSize: 12, cursor: 'pointer',
   }
 
@@ -79,14 +79,14 @@ export default function MdpAdminGate({ titre, message, onOk, onClose }: {
 
         <div style={{ padding: '20px 24px' }}>
           <div style={{
-            border: '1px solid #E2E8F0', background: '#F8FAFF',
+            border: '1px solid var(--tc-line)', background: 'var(--tc-section)',
             borderRadius: 6, padding: '14px 16px', marginBottom: 16,
           }}>
             <p style={{ color: '#DC2626', fontSize: 11.5, margin: '0 0 14px', lineHeight: 1.5 }}>
               {message}
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <label style={{ fontSize: 11.5, whiteSpace: 'nowrap', color: '#374151', fontWeight: 700 }}>» Mot de passe Admin. :</label>
+              <label style={{ fontSize: 11.5, whiteSpace: 'nowrap', color: 'var(--tc-label-strong)', fontWeight: 700 }}>» Mot de passe Admin. :</label>
               <input type="password" className="light-input" value={mdp}
                 onChange={e => { setMdp(e.target.value); setErreur(null) }}
                 onKeyDown={e => { if (e.key === 'Enter') void valider() }}

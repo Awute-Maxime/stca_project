@@ -56,13 +56,13 @@ export default function ClefAdminFlow({ onClose }: { onClose: () => void }): JSX
     display: 'flex', alignItems: 'center', justifyContent: 'center',
   }
   const carte: React.CSSProperties = {
-    background: '#fff', border: '1px solid #E2E8F0', borderRadius: 10,
+    background: 'var(--tc-card)', border: '1px solid var(--tc-line)', borderRadius: 10,
     boxShadow: '0 20px 60px rgba(0,0,0,0.15)', width: 470, padding: 0,
     animation: 'formEnter 0.2s ease',
   }
   const titre: React.CSSProperties = {
     display: 'flex', alignItems: 'center', padding: '14px 20px',
-    borderBottom: '1px solid #E2E8F0', background: '#1B3A6B', borderRadius: '10px 10px 0 0',
+    borderBottom: '1px solid var(--tc-line)', background: 'var(--tc-titlebar)', borderRadius: '10px 10px 0 0',
   }
   const fermerBtn: React.CSSProperties = {
     width: 26, height: 26, background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)',
@@ -75,11 +75,11 @@ export default function ClefAdminFlow({ onClose }: { onClose: () => void }): JSX
   }
   const usbBtn: React.CSSProperties = {
     display: 'flex', alignItems: 'center', gap: 6, padding: '6px 16px',
-    background: '#F1F5F9', color: '#475569', border: '1px solid #CBD5E1',
+    background: 'var(--tc-track)', color: 'var(--tc-label)', border: '1px solid var(--tc-fieldset-bd)',
     borderRadius: 5, fontSize: 12, cursor: 'pointer',
   }
   const annulerBtn: React.CSSProperties = {
-    height: 34, padding: '0 16px', background: '#fff', color: '#374151',
+    height: 34, padding: '0 16px', background: 'var(--tc-card)', color: 'var(--tc-label-strong)',
     border: '1px solid #D1D5DB', borderRadius: 5, fontSize: 12, cursor: 'pointer',
   }
   const champ: React.CSSProperties = { width: 130, padding: '4px 8px', fontSize: 13, height: 26 }
@@ -97,14 +97,14 @@ export default function ClefAdminFlow({ onClose }: { onClose: () => void }): JSX
 
           <div style={{ padding: '20px 24px' }}>
             <div style={{
-              border: '1px solid #E2E8F0', background: '#F8FAFF',
+              border: '1px solid var(--tc-line)', background: 'var(--tc-section)',
               borderRadius: 6, padding: '14px 16px', marginBottom: 16,
             }}>
               <p style={{ color: '#DC2626', fontSize: 11.5, margin: '0 0 14px', lineHeight: 1.5 }}>
                 Donnez le mot de passe de forçage pour accéder aux fonctions d&apos;Administrateur de TCIT.
               </p>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <label style={{ fontSize: 11.5, whiteSpace: 'nowrap', color: '#374151', fontWeight: 700 }}>» Mot de passe Admin. :</label>
+                <label style={{ fontSize: 11.5, whiteSpace: 'nowrap', color: 'var(--tc-label-strong)', fontWeight: 700 }}>» Mot de passe Admin. :</label>
                 <input type="password" className="light-input" value={mdp}
                   onChange={e => { setMdp(e.target.value); setErreur(null) }}
                   onKeyDown={e => { if (e.key === 'Enter') void validerSaisie() }}
@@ -145,14 +145,14 @@ export default function ClefAdminFlow({ onClose }: { onClose: () => void }): JSX
 
         <div style={{ padding: '20px 24px' }}>
           <div style={{
-            border: '1px solid #E2E8F0', background: '#F8FAFF',
+            border: '1px solid var(--tc-line)', background: 'var(--tc-section)',
             borderRadius: 6, padding: '14px 16px', marginBottom: 16,
           }}>
-            <p style={{ color: '#1E293B', fontSize: 11.5, margin: '0 0 14px', lineHeight: 1.5 }}>
+            <p style={{ color: 'var(--tc-text)', fontSize: 11.5, margin: '0 0 14px', lineHeight: 1.5 }}>
               Permet de configurer le mot de passe de forçage pour les fonctions d&apos;Administrateur de TCIT.
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <label style={{ fontSize: 12, whiteSpace: 'nowrap', color: '#1E293B', fontWeight: 700 }}>» Mot de passe Admin. :</label>
+              <label style={{ fontSize: 12, whiteSpace: 'nowrap', color: 'var(--tc-text)', fontWeight: 700 }}>» Mot de passe Admin. :</label>
               <input type="password" className="light-input" value={nouveauMdp}
                 onChange={e => { setNouveauMdp(e.target.value); setErreur(null) }}
                 onKeyDown={e => { if (e.key === 'Enter') void validerConfig() }}
