@@ -13,8 +13,8 @@ const ROW_STYLE: React.CSSProperties = {
 export function CopyrightWindow(): JSX.Element {
   return (
     <div style={{ textAlign: 'center', padding: '8px 0' }}>
-      <CopyrightOutlined style={{ fontSize: 36, color: '#1B3A6B', marginBottom: 10 }} />
-      <Title level={5} style={{ color: '#1B3A6B', marginBottom: 4 }}>TCIT — Togolaise de Contrôle et d'Immatriculation Transit</Title>
+      <CopyrightOutlined style={{ fontSize: 36, color: 'var(--tc-heading)', marginBottom: 10 }} />
+      <Title level={5} style={{ color: 'var(--tc-heading)', marginBottom: 4 }}>TCIT — Togolaise de Contrôle et d'Immatriculation Transit</Title>
       <Text type="secondary" style={{ fontSize: 12 }}>Togolaise de Contrôle et d'Immatriculation Transit (TCIT)</Text>
       <Divider style={{ margin: '12px 0' }} />
       <Text style={{ fontSize: 12 }}>© 2024 TCIT — Tous droits réservés</Text>
@@ -28,8 +28,8 @@ export function VersionWindow(): JSX.Element {
   return (
     <div style={{ padding: '4px 0' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <InfoCircleOutlined style={{ fontSize: 28, color: '#1B3A6B' }} />
-        <Title level={5} style={{ margin: 0, color: '#1B3A6B' }}>Informations de version</Title>
+        <InfoCircleOutlined style={{ fontSize: 28, color: 'var(--tc-heading)' }} />
+        <Title level={5} style={{ margin: 0, color: 'var(--tc-heading)' }}>Informations de version</Title>
       </div>
       <div style={ROW_STYLE}>
         <Text type="secondary">Application</Text>
@@ -65,8 +65,8 @@ export function IdReseauWindow(): JSX.Element {
   return (
     <div style={{ padding: '4px 0' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <GlobalOutlined style={{ fontSize: 28, color: '#1B3A6B' }} />
-        <Title level={5} style={{ margin: 0, color: '#1B3A6B' }}>Identification réseau du poste</Title>
+        <GlobalOutlined style={{ fontSize: 28, color: 'var(--tc-heading)' }} />
+        <Title level={5} style={{ margin: 0, color: 'var(--tc-heading)' }}>Identification réseau du poste</Title>
       </div>
       <div style={ROW_STYLE}>
         <Text type="secondary">ID Poste</Text>

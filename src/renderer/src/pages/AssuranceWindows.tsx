@@ -11,17 +11,17 @@ function destTxt(bg: string): string {
 }
 
 const thStyle: React.CSSProperties = {
-  fontSize: 9, fontWeight: 700, color: '#64748B', textTransform: 'uppercase',
+  fontSize: 9, fontWeight: 700, color: 'var(--tc-muted)', textTransform: 'uppercase',
   letterSpacing: 0.4, padding: 8, borderBottom: '2px solid #E2E8F0',
-  textAlign: 'left', whiteSpace: 'nowrap', background: '#F8FAFF',
+  textAlign: 'left', whiteSpace: 'nowrap', background: 'var(--tc-section)',
 }
 const tdStyle: React.CSSProperties = {
-  padding: 8, color: '#1E293B', borderBottom: '1px solid #F1F5F9',
+  padding: 8, color: 'var(--tc-text)', borderBottom: '1px solid var(--tc-card-bd)',
 }
 
 export function AnalyseAssuranceWindow(): JSX.Element {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94A3B8', fontSize: 13 }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--tc-subtle)', fontSize: 13 }}>
       Gain généré par les assurances — accessible via le bouton Analyse → ASSURANCE
     </div>
   )
@@ -145,13 +145,13 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
     return (
       <div style={OV}>
         <div style={{
-          background: '#fff', border: '1px solid #E2E8F0', borderRadius: 10,
+          background: 'var(--tc-card)', border: '1px solid var(--tc-line)', borderRadius: 10,
           boxShadow: '0 20px 60px rgba(0,0,0,0.15)', width: 450, padding: 0,
         }}>
           {/* Titlebar */}
           <div style={{
             display: 'flex', alignItems: 'center', padding: '14px 20px',
-            borderBottom: '1px solid #E2E8F0', background: '#1B3A6B', borderRadius: '10px 10px 0 0',
+            borderBottom: '1px solid var(--tc-line)', background: 'var(--tc-titlebar)', borderRadius: '10px 10px 0 0',
           }}>
             <span style={{ fontSize: 12, marginRight: 8 }}>🔒</span>
             <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: '#fff' }}>Saisie du mot de passe de Configuration</span>
@@ -163,14 +163,14 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
 
           <div style={{ padding: '20px 24px' }}>
             <div style={{
-              border: '1px solid #E2E8F0', background: '#F8FAFF',
+              border: '1px solid var(--tc-line)', background: 'var(--tc-section)',
               borderRadius: 6, padding: '14px 16px', marginBottom: 16,
             }}>
               <p style={{ color: '#DC2626', fontSize: 11.5, margin: '0 0 14px', lineHeight: 1.5 }}>
                 Donnez le mot de passe de forçage pour accéder aux fonctions d&apos;Administrateur de TCIT.
               </p>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <label style={{ fontSize: 11.5, whiteSpace: 'nowrap', color: '#374151' }}>» Mot de passe Admin. :</label>
+                <label style={{ fontSize: 11.5, whiteSpace: 'nowrap', color: 'var(--tc-label-strong)' }}>» Mot de passe Admin. :</label>
                 <input type="password" className="light-input" value={password}
                   onChange={e => setPassword(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') handlePwdOk() }}
@@ -191,11 +191,11 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
               <div style={{ display: 'flex', justifyContent: 'center', gap: 10 }}>
                 <button style={{
                   display: 'flex', alignItems: 'center', gap: 6, padding: '6px 16px',
-                  background: '#F1F5F9', color: '#475569', border: '1px solid #CBD5E1',
+                  background: 'var(--tc-track)', color: 'var(--tc-label)', border: '1px solid var(--tc-fieldset-bd)',
                   borderRadius: 5, fontSize: 12, cursor: 'pointer',
                 }}>⚡ Lire Clé USB</button>
                 <button onClick={() => closeWindow()} style={{
-                  height: 34, padding: '0 16px', background: '#fff', color: '#374151',
+                  height: 34, padding: '0 16px', background: 'var(--tc-card)', color: 'var(--tc-label-strong)',
                   border: '1px solid #D1D5DB', borderRadius: 5, fontSize: 12, cursor: 'pointer',
                 }}>Annuler</button>
               </div>
@@ -208,7 +208,7 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
 
   // ── En-tête tableau — style STCA II (fond rosé/saumon) ───────────────────
   const mrTh: React.CSSProperties = {
-    fontSize: 10, fontWeight: 700, color: '#1E293B',
+    fontSize: 10, fontWeight: 700, color: 'var(--tc-text)',
     padding: '6px 8px', borderBottom: '2px solid #E8A0A0',
     textAlign: 'left', whiteSpace: 'nowrap',
     background: '#F5E0E0',
@@ -218,7 +218,7 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
     return (
       <div style={{
         position: 'fixed', bottom: 40, left: winPos.x, zIndex: 800,
-        background: '#1B3A6B', borderRadius: 6, padding: '6px 14px',
+        background: 'var(--tc-titlebar)', borderRadius: 6, padding: '6px 14px',
         display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
         boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
       }} onClick={() => setMinimized(false)}>
@@ -243,7 +243,7 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
       left: winPos.x, top: winPos.y,
       width: maximized ? '100%' : winSize.w, height: maximized ? '100%' : winSize.h,
       display: 'flex', flexDirection: 'column',
-      background: '#fff', borderRadius: maximized ? 0 : 6, overflow: 'hidden',
+      background: 'var(--tc-card)', borderRadius: maximized ? 0 : 6, overflow: 'hidden',
       boxShadow: '0 20px 60px rgba(0,0,0,0.25), 0 4px 12px rgba(0,0,0,0.15)',
       border: maximized ? 'none' : '1px solid rgba(0,0,0,0.12)',
       pointerEvents: 'auto',
@@ -255,7 +255,7 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
         onMouseDown={handleDragStart}
         onDoubleClick={toggleMaximize}
         style={{
-          height: 32, background: '#1B3A6B',
+          height: 32, background: 'var(--tc-titlebar)',
           display: 'flex', alignItems: 'center', padding: '0 10px', flexShrink: 0,
           cursor: maximized ? 'default' : 'move', userSelect: 'none',
         }}
@@ -305,7 +305,7 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
       {/* ── Toolbar — bien espacée sur toute la largeur ────────────── */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 10, padding: '8px 14px',
-        background: '#F8FAFF', borderBottom: '1px solid #E2E8F0', flexShrink: 0,
+        background: 'var(--tc-section)', borderBottom: '1px solid var(--tc-line)', flexShrink: 0,
       }}>
         <input type="date" className="light-input" value={from} onChange={e => setFrom(e.target.value)}
           style={{ padding: '4px 6px', fontSize: 12, width: 132, height: 28 }} />
@@ -323,19 +323,19 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
           }
           setPrintDialog(true)
         }} style={{
-          padding: '6px 18px', background: '#EFF6FF', color: '#1D4ED8',
+          padding: '6px 18px', background: 'var(--tc-soft-bg)', color: 'var(--tc-soft-tx)',
           border: '1px solid #BFDBFE', borderRadius: 5, fontSize: 12, fontWeight: 700, cursor: 'pointer',
           display: 'flex', alignItems: 'center', gap: 6,
         }}>🖨 Imprimer</button>
         <button onClick={closeWindow} style={{
-          padding: '6px 14px', background: '#FFF5F5', color: '#DC2626',
+          padding: '6px 14px', background: 'var(--tc-err-bg)', color: '#DC2626',
           border: '1px solid #FECACA', borderRadius: 5, fontSize: 12, fontWeight: 600, cursor: 'pointer',
           display: 'flex', alignItems: 'center', gap: 5,
         }}>✕ Quitter</button>
 
         <div style={{ flex: 1 }} />
 
-        <label style={{ fontSize: 12, color: '#374151', fontWeight: 600, whiteSpace: 'nowrap' }}>Assurance</label>
+        <label style={{ fontSize: 12, color: 'var(--tc-label-strong)', fontWeight: 600, whiteSpace: 'nowrap' }}>Assurance</label>
         <select className="light-input" value={assurFilter} onChange={e => setAssurFilter(e.target.value)}
           style={{ fontSize: 12, padding: '4px 8px', width: 220, height: 28 }}>
           <option value="">POOL TPV VT - MOTO</option>
@@ -364,7 +364,7 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
           </thead>
           <tbody>
             {filtered.length === 0 ? (
-              <tr><td colSpan={13} style={{ textAlign: 'center', padding: 30, color: '#94A3B8', fontStyle: 'italic' }}>
+              <tr><td colSpan={13} style={{ textAlign: 'center', padding: 30, color: 'var(--tc-subtle)', fontStyle: 'italic' }}>
                 {active ? 'Aucun enregistrement pour cette période' : 'Sélectionnez une période puis cliquez sur Rechercher'}
               </td></tr>
             ) : filtered.map(v => {
@@ -373,8 +373,8 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
                 <tr key={v.id}>
                   <td style={{ ...tdStyle, color: v.recyclerPlaque ? undefined : '#64748B', background: v.recyclerPlaque ? '#D1FAE5' : undefined }}>{v.ref}</td>
                   <td style={{ ...tdStyle, fontWeight: 500, textTransform: 'uppercase' }}>{v.nomAcheteur}</td>
-                  <td style={{ ...tdStyle, color: '#475569' }}>{v.paysResidence}/{v.paysDestination || v.paysResidence}</td>
-                  <td style={{ ...tdStyle, color: '#475569' }}>{v.typeVehicule}</td>
+                  <td style={{ ...tdStyle, color: 'var(--tc-label)' }}>{v.paysResidence}/{v.paysDestination || v.paysResidence}</td>
+                  <td style={{ ...tdStyle, color: 'var(--tc-label)' }}>{v.typeVehicule}</td>
                   <td style={{ ...tdStyle, textTransform: 'uppercase' }}>{v.marqueModele}</td>
                   <td style={{ ...tdStyle, fontFamily: "'Courier New', monospace", fontSize: 10, color: '#2563EB' }}>{v.chassis}</td>
                   <td style={tdStyle}>
@@ -389,14 +389,14 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
                   <td style={{ ...tdStyle, textAlign: 'center', color: '#7C3AED', fontWeight: 600 }}>
                     {v.numTri || String(10000 + v.id).padStart(6, '0')}
                   </td>
-                  <td style={{ ...tdStyle, color: '#475569' }}>{dayjs(v.date).format('DD/MM/YYYY')}</td>
+                  <td style={{ ...tdStyle, color: 'var(--tc-label)' }}>{dayjs(v.date).format('DD/MM/YYYY')}</td>
                   <td style={{ ...tdStyle, textAlign: 'right', color: '#DC2626', fontWeight: 700 }}>
                     {Math.round(v.montant * 0.78).toLocaleString('fr-FR')}
                   </td>
                   <td style={{ ...tdStyle, textAlign: 'center' }}>
                     {v.recyclerPlaque ? <span style={{ color: '#16A34A', fontWeight: 700 }}>✓</span> : <span style={{ color: '#CBD5E1' }}>—</span>}
                   </td>
-                  <td style={{ ...tdStyle, color: '#475569' }}>
+                  <td style={{ ...tdStyle, color: 'var(--tc-label)' }}>
                     {v.recyclerPlaque ? dayjs(v.date).add(1, 'day').format('DD/MM/YYYY') : ''}
                   </td>
                 </tr>
@@ -450,7 +450,7 @@ export function MontantRestituerWindow({ onClose }: { onClose?: () => void }): J
           }}>
             <span style={{ fontSize: 12, fontWeight: 600, color: '#1E293B' }}>Montant à restituer</span>
             <button onClick={() => setPrintDialog(false)} style={{
-              background: 'none', border: 'none', fontSize: 15, color: '#94A3B8', cursor: 'pointer',
+              background: 'none', border: 'none', fontSize: 15, color: 'var(--tc-subtle)', cursor: 'pointer',
             }}>✕</button>
           </div>
           <div style={{ padding: '20px 24px', textAlign: 'center' }}>

@@ -24,7 +24,7 @@ const OPS_PARTICULIERES: OpParticuliere[] = [
 export default function OpsParticulieresPage(): JSX.Element {
   const thStyle: React.CSSProperties = {
     padding: '5px 8px', textAlign: 'left', fontSize: 11.5,
-    color: '#1E293B', fontWeight: 600, background: '#E8EEF4',
+    color: 'var(--tc-text)', fontWeight: 600, background: 'var(--tc-thead-bg)',
     borderBottom: '2px solid #CBD5E1', borderRight: '1px solid #CBD5E1',
   }
 
@@ -49,21 +49,21 @@ export default function OpsParticulieresPage(): JSX.Element {
             <tbody>
               {OPS_PARTICULIERES.length === 0 ? (
                 <tr>
-                  <td colSpan={3} style={{ textAlign: 'center', padding: 40, color: '#94A3B8', fontStyle: 'italic' }}>
+                  <td colSpan={3} style={{ textAlign: 'center', padding: 40, color: 'var(--tc-subtle)', fontStyle: 'italic' }}>
                     Aucune opération particulière enregistrée
                   </td>
                 </tr>
               ) : (
                 OPS_PARTICULIERES.map((op, i) => (
                   <tr key={i} style={{
-                    background: i % 2 === 0 ? '#fff' : '#F8FAFF',
+                    background: i % 2 === 0 ? 'var(--tc-card)' : 'var(--tc-section)',
                     borderBottom: '1px solid #E2E8F0',
                     verticalAlign: 'top',
                   }}>
-                    <td style={{ padding: '5px 8px', fontSize: 11, color: '#374151', borderRight: '1px solid #E2E8F0', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '5px 8px', fontSize: 11, color: 'var(--tc-label-strong)', borderRight: '1px solid var(--tc-line)', whiteSpace: 'nowrap' }}>
                       {op.dt}
                     </td>
-                    <td style={{ padding: '5px 8px', fontSize: 11, color: '#1E293B', borderRight: '1px solid #E2E8F0' }}>
+                    <td style={{ padding: '5px 8px', fontSize: 11, color: 'var(--tc-text)', borderRight: '1px solid var(--tc-line)' }}>
                       {op.user}
                     </td>
                     <td style={{ padding: '5px 8px', fontSize: 11, lineHeight: 1.6 }}>
@@ -82,8 +82,8 @@ export default function OpsParticulieresPage(): JSX.Element {
 
         {/* Status bar */}
         <div style={{
-          padding: '4px 10px', background: '#FFFEF0', borderTop: '1px solid #E2E8F0',
-          fontSize: 11, color: '#475569', flexShrink: 0,
+          padding: '4px 10px', background: 'var(--tc-warmbar)', borderTop: '1px solid var(--tc-line)',
+          fontSize: 11, color: 'var(--tc-label)', flexShrink: 0,
         }}>
           Nbr d&apos;opérations : {OPS_PARTICULIERES.length}
         </div>
@@ -92,13 +92,13 @@ export default function OpsParticulieresPage(): JSX.Element {
       {/* Side panel */}
       <div style={{
         width: 130, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 5,
-        padding: '7px 6px', background: '#F8FAFF', borderLeft: '1px solid #E2E8F0',
+        padding: '7px 6px', background: 'var(--tc-section)', borderLeft: '1px solid var(--tc-line)',
       }}>
         <button
           onClick={() => notification.info({ message: 'Impression liste opérations...', placement: 'bottomRight' })}
           style={{
             width: '100%', padding: '5px 6px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
-            border: '1px solid #BFDBFE', background: '#EFF6FF', color: '#1D4ED8', fontWeight: 700,
+            border: '1px solid var(--tc-soft-bd)', background: 'var(--tc-soft-bg)', color: 'var(--tc-soft-tx)', fontWeight: 700,
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
           }}
         >
@@ -109,7 +109,7 @@ export default function OpsParticulieresPage(): JSX.Element {
           onClick={() => window.dispatchEvent(new CustomEvent('mdi:close-self'))}
           style={{
             width: '100%', padding: '5px 6px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
-            border: '1px solid #FECACA', background: '#FFF5F5', color: '#DC2626', fontWeight: 600,
+            border: '1px solid var(--tc-err-bd)', background: 'var(--tc-err-bg)', color: '#DC2626', fontWeight: 600,
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
           }}
         >
