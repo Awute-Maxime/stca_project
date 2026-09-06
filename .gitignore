@@ -18,3 +18,10 @@ prisma/migrations/dev.db*
 # Corpus source VIN (données brutes, non versionnées)
 scripts/echantillon.csv
 scripts/*.xlsx
+
+# Fichiers temporaires générés par electron-vite au lancement
+electron.vite.config.*.mjs
+
+# Scripts de pilotage CDP jetables (vérifications à l'écran)
+_*.mjs
+_*.html

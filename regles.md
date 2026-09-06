@@ -3,23 +3,36 @@
 ---
 
 ## Contexte projet
-- **App :** STCA-Electron — reproduction moderne de STCA II (enregistrement véhicules en transit, Togo)
-- **Stack :**
-  - Frontend : Electron + React + Ant Design + Framer Motion + Tailwind CSS
-  - Backend : Node.js + Express + Prisma + PostgreSQL
-  - Packaging : Electron Builder (.exe)
-- **Architecture :** Client/Serveur — clients Electron sur postes, serveur Node.js+PG (LAN ou VPS)
+- **Produit :** **TCIT** (Togolaise de Contrôle et d'Immatriculation Transit) — reproduction moderne
+  de STCA II (enregistrement de véhicules en transit + assurance couplée, Togo).
+  `STCA-Electron` = nom historique du dossier et du dépôt ; `productName` = **TCIT**,
+  `name` = `tcit-desktop`, `appId` = `tg.tcit.desktop`.
+- **Stack réelle (vérifiée 06/09/2026) :**
+  - Frontend : Electron + React + Ant Design 5 + Framer Motion + Tailwind CSS + Zustand
+  - Données : **Prisma + SQLite** (fichier local `prisma/stca.db`, copié en `userData` au 1er lancement)
+  - Réseau : `ws` (Poste Plaques / afficheur N° de Tri), `axios`
+  - Tests : Vitest + Testing Library · Packaging : electron-builder (NSIS `.exe`)
+  - ⚠️ **Pas d'Express, pas de PostgreSQL aujourd'hui** — prévus en Phase 4 (client/serveur).
+    Le `provider` Prisma changera, les modèles et le code restent les mêmes.
+- **Suite d'applications (3) :** `STCA-Electron` (app principale) · `STCA-Affichage` (N° de Tri) ·
+  `STCA-Pointage` (sortie véhicules / ESCORT). Paquet UI partagé : `tcit-ui`.
+  Fichiers partagés : `%PROGRAMDATA%\TCIT\stca-m.json` et `%PROGRAMDATA%\TCIT\branding.json`.
 - **Repo GitHub :** https://github.com/Awute-Maxime/stca_project.git
 - **Dossier de travail :** `F:\AI PROJECTS\STCA-Electron\`
-- **Phase actuelle :** Phase 2 — Exploration STCA II (en cours) → interrompu au menu Analyse (choix type rapport)
+- **Phase actuelle :** Phase 3 (dev) quasi terminée + **Phase 5 amorcée** — installeurs de test
+  `0.9.0-test` livrés et installés avec succès le 03/09/2026. Voir le tableau en fin de fichier.
 
 ---
 
 ## Checklist début de session
 
-1. Lire `MEMORY.md` (mémoire Claude)
+1. Lire la mémoire Claude : `C:\Users\MaxFox II\.claude\projects\F--AI-PROJECTS\memory\MEMORY.md`
+   (index) puis les fiches utiles
 2. Lire ce fichier (`regles.md`)
 3. Annoncer en 3 lignes : **ce qui est fait / où on en est / prochaine étape**
+
+⚠️ L'ancien dossier mémoire `…\projects\C--Users-MaxFox-II\memory\` est **périmé (7 juin 2026)** —
+ne plus le lire ni l'écrire.
 
 ---
 
@@ -41,14 +54,38 @@
 
 ---
 
-## Règle 3 — Commande `sauvegarde`
+## Règle 3 — Journal de session (`docs/session-*.md`)
+
+### 3.a — Écriture SYSTÉMATIQUE en fin de session *(durcie le 06/09/2026)*
+
+**Le fichier `docs/session-AAAA-MM-JJ.md` doit être écrit à CHAQUE session de travail**, sans
+attendre le mot-clé « sauvegarde ». C'est le **fil narratif** du projet : la mémoire Claude dit
+*où on en est*, le journal de session dit *comment on y est arrivé et pourquoi*.
+
+**Déclencheurs — écrire le fichier dès que l'un est vrai :**
+- l'utilisateur dit **« sauvegarde »** (→ dérouler aussi 3.b en entier) ;
+- la session a produit **au moins un commit** ou une décision de conception ;
+- le contexte approche **90 %** de la limite (cf. règle 9) ;
+- l'utilisateur annonce qu'il **s'arrête** (« on s'arrête là », « à demain », « bonne nuit »…).
+
+**Format imposé** (repris des 22 fichiers existants) :
+`# Session AAAA-MM-JJ — <titre>` puis `## Déroulé` · `## Ce qui est fait` · `## Vérifications` ·
+`## Commits` · `## Retouches après revue` · `## Prochaine étape`.
+Plusieurs sessions le même jour → suffixer (`session-2026-07-25-poste-affichage.md`).
+
+⚠️ **Leçon du 29/07 → 03/09/2026** : la règle n'était déclenchée que par le mot « sauvegarde ».
+Résultat : **11 jours de travail et 61 commits sans aucun journal** (décodeur VIN, mode sombre
+complet, installeurs) — reconstruits a posteriori depuis le transcript brut. Ne pas refaire.
+
+### 3.b — Commande `sauvegarde`
 
 Quand l'utilisateur dit **"sauvegarde"**, exécuter dans l'ordre :
 
 1. **Créer/mettre à jour** `docs/session-AAAA-MM-JJ.md` avec le résumé complet de la session
-2. **Mettre à jour la mémoire** Claude : `C:\Users\MaxFox II\.claude\projects\C--Users-MaxFox-II\memory\`
-   - Mettre à jour `project-stca-electron.md` (phase actuelle, dernière étape)
-   - Mettre à jour `MEMORY.md` (index)
+2. **Mettre à jour la mémoire** Claude : `C:\Users\MaxFox II\.claude\projects\F--AI-PROJECTS\memory\`
+   - Mettre à jour la ou les **fiches** concernées (une fiche = un fait, ex.
+     `project_stca_personnalisation.md`, `project_stca_next_task.md`)
+   - Mettre à jour `MEMORY.md` (index — une ligne par fiche, jamais de contenu)
 3. **Git commit + push** :
    ```
    git add -A
@@ -140,7 +177,7 @@ STCA-Electron\
 ## Règle 9 — Sauvegarde automatique en fin de session
 
 **Quand le contexte de session approche 90% de la limite :**
-- Déclencher automatiquement la commande `sauvegarde` (Règle 3) sans attendre l'instruction de l'utilisateur
+- Déclencher automatiquement la commande `sauvegarde` (règle 3.b) sans attendre l'instruction de l'utilisateur
 - Annoncer clairement : "⚠️ Limite de session à 90% — sauvegarde automatique en cours"
 - Inclure dans le résumé session tout ce qui a été exploré depuis la dernière sauvegarde
 
@@ -187,28 +224,49 @@ chrome-devtools list_pages   # chaque BrowserWindow = une page
 
 ---
 
-## Règle 12 — Design visuel : PREMIUM DARK uniquement (ajoutée 10/06/2026)
+## Règle 12 — Design visuel : CLAIR premium (référence) + SOMBRE additif
+*(ajoutée 10/06/2026 — **révisée 06/09/2026**, voir historique en bas de règle)*
 
-**Ne jamais proposer un design "safe" ou basique pour STCA-Electron.**
+**Ne jamais proposer un design "safe" ou basique pour TCIT.**
+Exigence constante : un design digne d'un designer senior 15 ans grands comptes
+(référence : Vercel, Linear, Stripe) — mais **dans l'identité bleu-blanc de TCIT**.
 
-L'utilisateur veut un design digne d'un designer senior 15 ans grands comptes. Référence : Vercel, Linear, Stripe dashboard — dark, clean, premium.
+### 🔒 Contrainte forte — le CLAIR est la référence
+Le **mode clair = l'application ACTUELLE, strictement inchangée**. On ne modifie **aucune** couleur
+du système existant. Le **sombre est purement additif** (`data-theme="dark"`), inactif par défaut.
+**Règle sacrée : clair pixel-identique** — la valeur claire de chaque variable = la valeur d'origine exacte.
 
-Palette officielle du projet :
-```
-bg:          #080f1d   (deep navy — fond principal fenêtres MDI)
-surface:     rgba(255,255,255,0.04)
-border:      rgba(255,255,255,0.09)
-borderFocus: rgba(79,156,249,0.55)
-accent:      #4F9CF9   (electric blue — interactions)
-gold:        #F5A623   (gold — badge IMMAT, highlights importants)
-green:       #10B981   (montant, succès)
-text:        #E8EDF5
-muted:       #7890A8
-label:       #546A82
-```
+### Palette — variables CSS `--tc-*` (`src/renderer/src/assets/index.css`)
+Toute nouvelle fenêtre utilise les variables, **jamais des couleurs codées en dur** :
 
-Animations obligatoires : `formEnter`, `immatReveal`, `immatPulse`, `shimmer` (définis dans `index.css`).
-Classe CSS `.mdi-dark` sur le container root de chaque fenêtre enfant.
+| Rôle | `:root` (clair) | `:root[data-theme='dark']` |
+|---|---|---|
+| `--tc-titlebar` | `#1B3A6B` | `#0A1018` |
+| `--tc-sb-from` / `--tc-sb-to` (sidebar) | `#1E4080` / `#112654` | `#0E1626` / `#0A1018` |
+| `--tc-desktop` (bureau MDI) | `#EEF2F9` | `#05080D` |
+| `--tc-card` / `--tc-card-bd` | `#ffffff` / `#F1F5F9` | `#111826` / `#1E2A3D` |
+| `--tc-heading` / `--tc-text` | `#1B3A6B` / `#1E293B` | `#CBD8EA` / `#E9EEF6` |
+| `--tc-muted` / `--tc-subtle` | `#64748B` / `#94A3B8` | `#93A1B5` / `#66748B` |
+
+Jeu complet (tables, sous-headers, badges, champs, états ok/warn/err) : voir les blocs `:root`
+lignes ~511 et ~538 de `index.css`. Accent par défaut `#2563EB`, badge IMMAT **or**.
+Couleur d'accent **personnalisable par client** via `branding.json`.
+
+### Ce qui reste TOUJOURS clair, même en sombre
+- **Aperçus avant impression** (`apercu.*` : carte grise, facture, feuillets, listes) = **papier** → blancs.
+- Miniature papier de `ConfigImprimantes`, chrome rétro WinDev de `FichierMarquesPage`.
+- **`LoginPage` + `SplashScreen`** : déjà sombres par conception → **ne pas y toucher**.
+
+### Couleurs MÉTIER — jamais converties
+Plaque/destination, châssis rouge/bleu, montants verts, badges, alertes rouge/ambre, pastilles.
+
+### Animations
+`formEnter`, `immatReveal`, `immatPulse`, `shimmer` (définies dans `index.css`).
+
+> **Historique :** de juin à juillet 2026, la règle imposait un « premium dark uniquement »
+> (palette `#080f1d` / accent `#4F9CF9`). Cette direction a été **abandonnée** au profit du
+> bleu-blanc cohérent avec `MainScreen`. Le sombre est revenu en 09/2026 comme **thème optionnel**,
+> pas comme design par défaut. Ne pas ressusciter l'ancienne palette.
 
 ---
 
@@ -312,26 +370,40 @@ Chaque bouton de l'interface doit reproduire **l'action exacte** de son équival
 
 ---
 
-## Plan d'exécution (rappel rapide)
+## Plan d'exécution — état au 06/09/2026
 
 | Phase | Description | Statut |
 |-------|-------------|--------|
 | 1 | Analyse & Architecture | ✅ Terminé |
 | 2 | Exploration STCA II | ✅ Terminé (06/06/2026) |
-| 3 | Développement Electron (app principale) | 🔄 En cours |
-| 4 | Backend PostgreSQL + Express + Prisma | ❌ |
-| 5 | Tests & Déploiement | ❌ |
+| 3 | Développement Electron (app principale) | ✅ Quasi terminé |
+| 4 | Passage client/serveur (Express + PostgreSQL) | ❌ Non démarré — SQLite local aujourd'hui |
+| 5 | Tests & Déploiement | 🔄 Amorcé — installeurs `0.9.0-test` livrés le 03/09/2026 |
 
-**Phase 3 — État au 10/06/2026 :**
-- ✅ Splash screen bleu radial + voiture SVG cyan
-- ✅ Login glassmorphism transparent
-- ✅ MainScreen (sidebar + menu + statusbar)
-- ✅ Architecture MDI multi-BrowserWindow (fenêtres vraiment libres)
-- ✅ EnregistrementPage compact (une page, sans scroll)
-- ✅ Mock data : 52 véhicules, 10 destinations
-- 🔄 Redesign premium dark (interrompu — reprendre avec MdiWindowHost + EnregistrementPage)
-- ❌ Autres fenêtres (Destination, Analyse, Liste, Recherche...)
+**Phase 3 — fait :**
+- ✅ Splash, Login, MainScreen (sidebar + menu + statusbar)
+- ✅ Architecture MDI multi-BrowserWindow (règle 10)
+- ✅ **Toutes** les fenêtres métier : Enregistrement, Liste, Recherche, Destination, Analyse,
+  Archivage, Pointage, Assurances, Export/Import, Historique, Marques, Utilisateurs, Config…
+- ✅ Données réelles : **Prisma/SQLite**, import sans perte de la base HFSQL « STCA M » (338 075 enr.)
+- ✅ **Décodeur VIN** — index seedé sur corpus 100 k ; triple marque+modèle+année ±1 = **78 %**
+- ✅ **Personnalisation V1 + mode sombre** — `branding.json` partagé, écran ⚙️ Paramètres,
+  **toute l'app en sombre** (clair pixel-identique), plans A + B + A-bis terminés
+- ✅ Documents imprimés : **carte grise** (aperçu + impression)
 
-**Phase 4 — Applications connexes prévues :**
-- App affichage **N° de Tri** (192.168.0.25:8000) — source fournie par l'utilisateur
-- Connexion PostgreSQL via Express/Prisma
+**Phase 5 — fait :**
+- ✅ 3 installeurs NSIS `0.9.0-test` (`TCIT-Test-0.9.0.zip`, 286 Mo) — **installation réelle testée**
+- ⚠️ Pièges packaging notés dans la mémoire (`project_stca_installeurs_test`) : Prisma → `asar:false`
+  + extraResources · `ELECTRON_RUN_AS_NODE` · NSIS `/D` sans espaces · SmartScreen (non signé)
+
+**Chantiers ouverts :**
+- 🔵 Documents restants : facture, fiche ID, feuillets assurance + calibrage mm de la carte grise
+- 🔵 **Phase C** : paquet partagé `tcit-ui` → rétrofit `STCA-Affichage` et `STCA-Pointage`
+- 🔵 Maquettes HTML Affichage / Pointage puis `/planification`
+- 🔴 **Revue application** (`docs/…/revue-application-checklist.md`) : mots de passe **en clair**
+  dans le code, données fictives `ParamDestinations`, MDI accessible hors authentification
+- ⚪ Optionnel : un installeur unique posant les 3 apps (aujourd'hui = 3 setups séparés)
+
+**Applications connexes (existantes, dépôts séparés) :**
+- `STCA-Affichage` — afficheur **N° de Tri** (IP paramétrable, défaut `192.168.0.25`)
+- `STCA-Pointage` — sortie véhicules / ESCORT (lit `%PROGRAMDATA%\TCIT\stca-m.json`)
